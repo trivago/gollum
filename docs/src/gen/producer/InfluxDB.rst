@@ -35,15 +35,15 @@ Parameters
 
 **User**
 
-  Defines the InfluxDB username to use. If this name is left empty
-  credentials are assumed to be disabled.
+  Defines the InfluxDB username to use. If this is empty,
+  credentials are not used.
   Be default this parameter is set to "".
   
   
 
 **Password**
 
-  Defines the password to be used for the set User.
+  Defines the InfluxDB password to use.
   Be default this parameter is set to "".
   
   
@@ -57,10 +57,9 @@ Parameters
 
 **TimeBasedName**
 
-  Enables time based of databse names and rotation.
-  When setting this parameter to true the Database parameter is treated as a
-  template for time.Format, i.e. you can use "default-2006-01-02" to switch
-  databases each day.
+  When set to true, the Database parameter is treated as a
+  template for time.Format and the resulting string is used as the database
+  name. You can e.g. use "default-2006-01-02" to switch databases each day.
   By default this parameter is set to "true".
   
   

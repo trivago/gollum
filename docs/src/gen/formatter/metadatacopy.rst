@@ -3,7 +3,8 @@
 MetadataCopy
 ============
 
-Copy data from defined payload or meta data to set meta data field(s).
+This formatter sets metadata fields by copying data from the message's
+payload or from other metadata fields.
 
 
 

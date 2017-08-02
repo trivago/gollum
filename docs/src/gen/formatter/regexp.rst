@@ -3,8 +3,8 @@
 RegExp
 ======
 
-This formatter parses a message using regular expressions and returns the
-result.
+This formatter parses a message using a regular expression, performs
+string (template) replacement and returns the result.
 
 
 
@@ -29,9 +29,9 @@ Parameters
 
 **Template** (default: ${1})
 
-  Defines the result string. Regexp groups can be addressed by
-  using "${n}" with n being the index of the group. For other possible
-  reference semantics see https://golang.org/pkg/regexp/#Regexp.Expand.
+  Defines the result string. Regexp matching groups can be referred
+  to using "${n}", with n being the group's index. For other possible
+  reference semantics, see https://golang.org/pkg/regexp/#Regexp.Expand.
   By default this parameter is set to "${1}"
   
   
@@ -60,7 +60,7 @@ Examples
 	   Streams: stding
 	   Modulators:
 	     - format.RegExp:
-	         Separator: "^(\\d+) (\\w+): "
+	         Expression: "^(\\d+) (\\w+): "
 	         Template: "time: ${1}, host: ${2}"
 	
 	

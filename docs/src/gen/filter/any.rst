@@ -3,8 +3,9 @@
 Any
 ===
 
-This filter is a "OR" filter combination. If one of the set sub-filters will accept the
-message, this filter also accept the message and continue.
+This plugin takes a list of filters and applies each of them to incoming
+messages until a an accepting filter is found. If any of the listed filters
+accept the message, it is passed through, otherwise, the message is dropper.
 
 
 
@@ -25,8 +26,8 @@ Parameters (from core.SimpleFilter)
 
 **FilteredStream**
 
-  This value defines a stream where filtered messages get sent to.
-  You can disable this behavior by setting "".
+  This value defines the stream filtered messages get sent to.
+  You can disable this behavior by setting the value to "".
   By default this parameter is set to "".
   
   

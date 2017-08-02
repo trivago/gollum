@@ -3,9 +3,9 @@
 Identifier
 ==========
 
-This formatter can be used to generate a (mostly) unique 64 bit identifier
-number from the message payload, timestamp and/or sequence number. The number
-will be converted to a human readable form.
+This formatter generates a (mostly) unique 64 bit identifier number from
+the message payload, timestamp and/or sequence number. The number is be
+converted to a human readable form.
 
 
 

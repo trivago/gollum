@@ -3,8 +3,8 @@
 Socket
 ======
 
-The socket producer connects to a service over a TCP, UDP or unix domain
-socket based connection.
+The socket producer connects to a service over TCP, UDP or a UNIX domain
+socket.
 
 
 
@@ -19,9 +19,8 @@ Parameters
 
 **Address**
 
-  This value stores the identifier to connect to.
-  This can either be any ip address and port like "localhost:5880" or a file
-  like "unix:///var/gollum.socket".
+  Defines the address to connect to. This can either be any ip
+  address and port like "localhost:5880" or a file like "unix:///var/gollum.socket".
   By default this parameter is set to ":5880".
   
   
@@ -47,7 +46,12 @@ Parameters
   This value defines the number of messages to be buffered before they are
   written to disk. This setting is clamped to BatchMaxCount.
   By default this parameter is set to "Batch/MaxCount / 2".
-  Batch/TimeoutSec: This value defines the maximum number of seconds to wait after the last
+  
+  
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  This value defines the maximum number of seconds to wait after the last
   message arrived before a batch is flushed automatically.
   By default this parameter is set to "5".
   
@@ -71,11 +75,6 @@ Parameters
   
   
 
-**Batch/TimeoutSec** (default: 5, unit: sec)
-
-  (no documentation available)
-  
-
 Parameters (from core.BufferedProducer)
 ---------------------------------------
 
@@ -88,8 +87,9 @@ Parameters (from core.BufferedProducer)
 
 **ChannelTimeoutMs** (default: 0, unit: ms)
 
-  This value defines a timeout for each message before the message will discarded.
-  You can set this parameter to "0" for disabling the timeout.
+  This value defines a timeout for each message
+  before the message will discarded. To disable the timeout, set this
+  parameter to 0.
   By default this parameter is set to "0".
   
   

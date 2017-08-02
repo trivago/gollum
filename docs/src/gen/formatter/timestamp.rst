@@ -3,8 +3,9 @@
 Timestamp
 =========
 
-Timestamp is a formatter that allows prefixing a message with a timestamp
-(time of arrival at gollum) as well as postfixing it with a delimiter string.
+Timestamp is a formatter that allows prefixing messages with a timestamp
+(time of arrival at gollum). The timestamp format is freely configurable
+and can e.g. contain a delimiter sequence at the end.
 
 
 
@@ -14,8 +15,8 @@ Parameters
 
 **Timestamp** (default: 2006-01-02 15:04:05 MST | )
 
-  This value defines a Go time format string that is used to format the actual
-  timestamp that prefixes the message.
+  This value defines a Go time format string that is used to f
+  ormat the timestamp.
   By default this parameter is set to  "2006-01-02 15:04:05 MST | ".
   
   

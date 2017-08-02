@@ -5,7 +5,7 @@ StreamRoute
 
 StreamRoute is a formatter that modifies a message's stream by reading a
 prefix from the message's data (and discarding it).
-The prefix is defined by everything before a given delimiter in the
+The prefix is defined as everything before a given delimiter in the
 message. If no delimiter is found or the prefix is empty the message stream
 is not changed.
 
@@ -46,7 +46,7 @@ Examples
 
 .. code-block:: yaml
 
-	This example will set the stream name for messages like `<error>:a message string` to `error`
+	This example sets the stream name for messages like `<error>:a message string` to `error`
 	and `a message string` as payload:
 	
 	 exampleConsumer:

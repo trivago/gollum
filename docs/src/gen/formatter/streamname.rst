@@ -42,7 +42,7 @@ Examples
 
 .. code-block:: yaml
 
-	This example will prefix the message with the most recent routing history.
+	This example prefixes the message with the most recent routing history.
 	
 	 exampleProducer:
 	   Type: producer.Console

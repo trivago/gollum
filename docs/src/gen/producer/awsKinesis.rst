@@ -19,8 +19,9 @@ Parameters
 
 **StreamMapping**
 
-  This value defines a translation from gollum stream to kinesis stream
-  name. If no mapping is given the gollum stream name is used as kinesis stream name.
+  This value defines a translation from gollum stream names
+  to kinesis stream names. If no mapping is given the gollum stream name is
+  used as the kinesis stream name.
   By default this parameter is set to "empty"
   
   
@@ -35,8 +36,8 @@ Parameters
 
 **RecordMessageDelimiter** (default: \n)
 
-  This value defines the string to delimit messages within
-  a kinesis record.
+  This value defines the delimiter string to use between
+  messages within a kinesis record.
   By default this parameter is set to "\n".
   
   

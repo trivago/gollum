@@ -29,14 +29,15 @@ Parameters (from core.SimpleRouter)
 
 **Filters**
 
-  A optional list of zero or more Filter plugins to connect to this router.
+  This value defines an optional list of Filter plugins to connect to
+  this router.
   
   
 
 **TimeoutMs** (default: 0, unit: ms)
 
-  This value set a timeout in milliseconds until a message should handled by the router.
-  You can disable this behavior by setting "0".
+  This value sets a timeout in milliseconds until a message should
+  handled by the router. You can disable this behavior by setting it to "0".
   By default this parameter is set to "0".
   
   

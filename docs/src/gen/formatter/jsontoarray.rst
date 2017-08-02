@@ -3,10 +3,11 @@
 JSONToArray
 ===========
 
-JSONToArray "flattens" a JSON object by selecting specific fields and putting
-the values of them into a separated list.
+JSONToArray "flattens" a JSON object by selecting specific fields
+and creating a delimiter-separated string of their values.
 
-An json input of `{"foo":"value1","bar":"value2"}` can be transformed in a list like `value1,value2`.
+A JSON input like `{"foo":"value1","bar":"value2"}` can be transformed
+into a list like `value1,value2`.
 
 
 
@@ -16,13 +17,14 @@ Parameters
 
 **Fields**
 
-  The list of all keys which used to create the final text list.
+  List of strings specifying the JSON keys to retrieve from the input
   
   
 
 **Separator** (default: ,)
 
-  This value used as separator for the final text list.
+  The delimited string to insert between each value in the generated
+  string.
   By default this parameter is set to ",".
   
   

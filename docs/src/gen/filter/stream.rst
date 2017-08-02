@@ -3,8 +3,12 @@
 Stream
 ======
 
-This plugin filters messages by stream based on a black and a whitelist.
-The blacklist is checked first.
+The "Stream" filter filters messages by applying black and white lists
+to the the messages' streams' names.
+
+The blacklist is applied first; messages not rejected by the blacklist
+are checked against the whitelist. An empty white list matches all
+streams.
 
 
 
@@ -14,17 +18,17 @@ Parameters
 
 **Block**
 
-  Sets a list of streams that are blocked. If a message's
-  stream is not in that list, the OnlyStreams list is tested.
-  By default this parameter is set to "empty".
+  Defines a list of stream names that are blocked. If a message's
+  stream is not in that list, the "Only" list is tested. By default this
+  parameter is empty.
   
   
 
 **Only**
 
-  Sets a list of streams that may pass. Messages from streams
+  Defines a list of streams that may pass. Messages from streams
   that are not in this list are blocked unless the list is empty.
-  By default this parameter is set to "empty".
+  By default this parameter is empty.
   
   
 
@@ -33,8 +37,8 @@ Parameters (from core.SimpleFilter)
 
 **FilteredStream**
 
-  This value defines a stream where filtered messages get sent to.
-  You can disable this behavior by setting "".
+  This value defines the stream filtered messages get sent to.
+  You can disable this behavior by setting the value to "".
   By default this parameter is set to "".
   
   
@@ -44,7 +48,7 @@ Examples
 
 .. code-block:: yaml
 
-	This example accept ALL messages except ones from stream "foo":
+	This example accepts ALL messages except ones from stream "foo":
 	
 	 ExampleConsumer:
 	   Type: consumer.Console
@@ -54,7 +58,7 @@ Examples
 	         Block:
 	           - foo
 	
-	This example accept NO messages except ones from stream "foo":
+	This example only accepts messages from stream "foo":
 	
 	 ExampleConsumer:
 	   Type: consumer.Console

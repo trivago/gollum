@@ -3,8 +3,7 @@
 Clear
 =====
 
-This formatter erases the content of a message or metadata field. When
-applied to a metadata key, the key will be deleted.
+This formatter erases the message payload or deletes a metadata key.
 
 
 

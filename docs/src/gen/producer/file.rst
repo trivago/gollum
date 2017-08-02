@@ -30,7 +30,7 @@ Parameters
 
 **FileOverwrite**
 
-  This value enables files to be overwritten instead of appending new data
+  This value causes the file to be overwritten instead of appending new data
   to it.
   By default this parameter is set to "false".
   
@@ -38,17 +38,17 @@ Parameters
 
 **Permissions** (default: 0644)
 
-  This value accepts an octal number string that contains the unix file
-  permissions used when creating a file.
-  By default this parameter is set to "0664".
+  Defines the UNIX filesystem permissions used when creating
+  the named file as an octal number.
+  By default this paramater is set to "0664".
   
   
 
 **FolderPermissions** (default: 0755)
 
-  This value accepts an octal number string that contains the unix file
-  permissions used when creating a folder.
-  By default this parameter is set to "0755".
+  Defines the UNIX filesystem permissions used when creating
+  the folders as an octal number.
+  By default this paramater is set to "0755".
   
   
 

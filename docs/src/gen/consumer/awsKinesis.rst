@@ -26,8 +26,8 @@ Parameters
 **OffsetFile**
 
   This value defines a file to store the current offset per shard.
-  You can set this parameter to "" for disabling. If a file is set and found consuming will start
-  after the stored offset.
+  To disable this parameter, set it to "". If the parameter is set and the file
+  found, consuming will start after the stored offset.
   By default this parameter is set to "".
   
   
@@ -42,7 +42,7 @@ Parameters
 **RecordMessageDelimiter**
 
   This value defines the string to delimit messages within a
-  record. You can set this parameter to "" for disabling.
+  record. To disable this parameter, set it to "".
   By default this parameter is set to "".
   
   
@@ -65,7 +65,7 @@ Parameters
 
 **CheckNewShardsSec** (default: 0, unit: sec)
 
-  This value set a timer to update shards in Kinesis.
+  This value sets a timer to update shards in Kinesis.
   You can set this parameter to "0" for disabling.
   By default this parameter is set to "0".
   

@@ -4,7 +4,7 @@ TemplateJSON
 ============
 
 This formatter unmarshals the given data as JSON and applies the results to
-the given go template. The given JSON data will be replaced with the rendered
+the given go template. The JSON data will be replaced with the rendered
 template result. The template language is described in the go documentation:
 https://golang.org/pkg/text/template/#hdr-Actions
 
@@ -17,7 +17,7 @@ Parameters
 **Template**
 
   Defines the go template to execute with the received JSON data.
-  If the template cannot be parsed or the JSON payload could not be unmarshaled
+  If the template cannot be parsed or the JSON payload cannot be unmarshaled,
   the incoming JSON data is preserved.
   By default this parameter is set to "".
   

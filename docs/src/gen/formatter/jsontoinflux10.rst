@@ -32,14 +32,14 @@ Parameters
 **Measurement** (default: measurement)
 
   Specifies the JSON field that holds the measurements in this
-  message. If the field is not existing the message will be discarded.
+  message. If the field doesn't exist, the message is discarded.
   By default this parameter is set to "measurement".
   
   
 
 **Ignore**
 
-  May contain a list of all JSON fields that will be ignored and not
+  May contain a list of JSON fields that should be ignored and not
   sent to InfluxDB.
   By default this parameter is set to an empty list.
   
@@ -47,7 +47,7 @@ Parameters
 
 **Tags**
 
-  May contain a list of all JSON fields to send to InfluxDB as tags.
+  May contain a list of JSON fields to send to InfluxDB as tags.
   The InfluxDB 0.9 convention is that values that do not change by every
   request are to be considered metadata and given as tags.
   

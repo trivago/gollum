@@ -28,7 +28,7 @@ Parameters
 **ReadTimeoutSec** (default: 3, unit: sec)
 
   Defines the maximum duration in seconds before timing out
-  the HTTP read request. Sets  http.Server.ReadTimeout; for details, see its
+  the HTTP read request. Sets http.Server.ReadTimeout; for details, see its
   Go documentation.
   
   

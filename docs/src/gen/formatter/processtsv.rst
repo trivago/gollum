@@ -22,19 +22,19 @@ Parameters
 
 **QuotedValue**
 
-  When set to true values that start and end with a quotation
+  When set to true, values that start and end with a quotation
   mark are not scanned for delimiter characters. I.e. those values will not be
-  splitted when containing a delimiter character.
+  split even if they contain delimiter characters.
   By default this parameter is set to false.
   
   
 
 **Directives**
 
-  Defines an array of actions to be applied to the TSV encoded
-  data. Directives are processed in order of their appearance. Directives start
+  Defines an array of actions to apply to the TSV encoded
+  data. Directives are processed in order of appearance. Directives start
   with the index of the field, followed by an action followed by additional
-  parameters if necessary. Parameters, key and action are separated by using
+  parameters if necessary. Parameters, key and action are separated by
   the ":" character.
   By default this parameter is set to an empty list.
   
@@ -43,7 +43,7 @@ Parameters
   **replace**
 
     <string>  <new string>
-    Replace a given string inside the field's value with a new one.
+    Replace a given string inside the field's value with another one.
     
     
 
@@ -71,7 +71,7 @@ Parameters
   **quote**
 
     
-    Put the field's value into quotation marks after all directives have been
+    Surround the field's value with quotation marks after all directives have been
     processed.
     
     
@@ -79,7 +79,7 @@ Parameters
   **time**
 
     <from fromat> <to format>
-    Read a timestamp with a given format compatible to time.Parse and transform
+    Read a timestamp in the specified time.Parse-compatible format and transform
     it into another format compatible with time.Format.
     
     

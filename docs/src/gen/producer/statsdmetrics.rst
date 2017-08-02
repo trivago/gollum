@@ -87,8 +87,9 @@ Parameters (from core.BufferedProducer)
 
 **ChannelTimeoutMs** (default: 0, unit: ms)
 
-  This value defines a timeout for each message before the message will discarded.
-  You can set this parameter to "0" for disabling the timeout.
+  This value defines a timeout for each message
+  before the message will discarded. To disable the timeout, set this
+  parameter to 0.
   By default this parameter is set to "0".
   
   

@@ -13,8 +13,8 @@ Parameters (from core.SimpleFilter)
 
 **FilteredStream**
 
-  This value defines a stream where filtered messages get sent to.
-  You can disable this behavior by setting "".
+  This value defines the stream filtered messages get sent to.
+  You can disable this behavior by setting the value to "".
   By default this parameter is set to "".
   
   
@@ -24,7 +24,7 @@ Examples
 
 .. code-block:: yaml
 
-	This example will start a cosole consumer and block all incoming messages:
+	This example starts a Console consumer and blocks all incoming messages:
 	
 	 exampleConsumer:
 	   Type: consumer.Console
