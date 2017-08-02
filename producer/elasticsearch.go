@@ -85,24 +85,23 @@ import (
 // This example starts a simple twitter example producer for local running ElasticSearch:
 //
 //  producerElasticSearch:
-// 	  Type: producer.ElasticSearch
+//    Type: producer.ElasticSearch
 //    Streams: tweets_stream
-//	  SetGzip: true
+//    SetGzip: true
 //    Servers:
 //      - http://127.0.0.1:9200
 //    StreamProperties:
-//		tweets_stream:
-//			Index: twitter
-// 			DayBasedIndex: true
-//			Type: tweet
-//			Mapping:
-//				# index mapping for payload
-// 				user: keyword
-//				message: text
-//			Settings:
-//				number_of_shards: 1
-//				number_of_replicas: 1
-//
+//      tweets_stream:
+//        Index: twitter
+//        DayBasedIndex: true
+//        Type: tweet
+//        Mapping:
+//          # index mapping for payload
+//          user: keyword
+//          message: text
+//        Settings:
+//          number_of_shards: 1
+//          number_of_replicas: 1
 type ElasticSearch struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
 	connection           elasticConnection

@@ -243,14 +243,13 @@ a separate file for each stream:
 
 	 S3Out:
 	   Type: producer.AwsS3
+	   Streams: "*"
 	   Credential:
 	     Type: shared
 	     File: /Users/<USERNAME>/.aws/credentials
 	     Profile: default
 	   Region: eu-west-1
 	   Bucket: gollum-s3-test
-	   Streams:
-	     - "*"
 	   Batch:
 	     TimeoutSec: 60
 	     MaxCount: 1000

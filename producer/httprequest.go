@@ -67,13 +67,11 @@ import (
 //
 // Examples
 //
-// .
-//
-//   "HttpOut01":
-//     Type: "producer.HTTPRequest"
-//     Streams: "http_01"
-//     Address: "http://localhost:8099/test"
-//     RawData: true
+//  HttpOut01:
+//    Type: producer.HTTPRequest
+//    Streams: http_01
+//    Address: "http://localhost:8099/test"
+//    RawData: true
 //
 type HTTPRequest struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`

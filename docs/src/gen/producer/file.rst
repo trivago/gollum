@@ -199,12 +199,9 @@ after every 64 message or after 60sec:
 	   Streams: "*"
 	   File: /tmp/gollum.log
 	   Batch:
-
-		MaxCount: 128
-.. code-block:: yaml
-
-	   	FlushCount: 64
-	   	TimeoutSec: 60
+	     MaxCount: 128
+	     FlushCount: 64
+	     TimeoutSec: 60
 	     FlushTimeoutSec: 3
 
 

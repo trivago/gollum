@@ -61,11 +61,10 @@ import (
 //    Streams: "*"
 //    File: /tmp/gollum.log
 //    Batch:
-// 		MaxCount: 128
-//    	FlushCount: 64
-//    	TimeoutSec: 60
+//      MaxCount: 128
+//      FlushCount: 64
+//      TimeoutSec: 60
 //      FlushTimeoutSec: 3
-//
 type File struct {
 	core.DirectProducer `gollumdoc:"embed_type"`
 

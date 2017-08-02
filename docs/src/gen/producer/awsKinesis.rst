@@ -179,13 +179,14 @@ This example set up a simple aws Kinesis producer:
 
 	 KinesisOut:
 	   Type: producer.AwsKinesis
+	   Streams: "*"
+	   StreamMapping:
+	     "*": default
 	   Credential:
 	     Type: shared
 	     File: /Users/<USERNAME>/.aws/credentials
 	     Profile: default
 	   Region: eu-west-1
-	   StreamMapping:
-	     "*": default
 	   RecordMaxMessages: 1
 	   RecordMessageDelimiter: "\n"
 	   SendTimeframeSec: 1

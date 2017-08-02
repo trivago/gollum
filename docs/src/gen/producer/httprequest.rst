@@ -80,15 +80,13 @@ Parameters (from core.BufferedProducer)
 Examples
 --------
 
-.
-
 .. code-block:: yaml
 
-	  "HttpOut01":
-	    Type: "producer.HTTPRequest"
-	    Streams: "http_01"
-	    Address: "http://localhost:8099/test"
-	    RawData: true
+	 HttpOut01:
+	   Type: producer.HTTPRequest
+	   Streams: http_01
+	   Address: "http://localhost:8099/test"
+	   RawData: true
 
 
 

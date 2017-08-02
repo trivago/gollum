@@ -111,12 +111,9 @@ Examples
 	   Database: "metrics"
 	   TimeBasedName: false
 	   Batch:
-
-		MaxCount: 2000
-.. code-block:: yaml
-
-	   	FlushCount: 100
-	   	TimeoutSec: 5
+	     MaxCount: 2000
+	     FlushCount: 100
+	     TimeoutSec: 5
 
 
 

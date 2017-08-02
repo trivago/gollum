@@ -145,30 +145,24 @@ This example starts a simple twitter example producer for local running ElasticS
 .. code-block:: yaml
 
 	 producerElasticSearch:
-
-	  Type: producer.ElasticSearch
-.. code-block:: yaml
-
+	   Type: producer.ElasticSearch
 	   Streams: tweets_stream
-
-	  SetGzip: true
-.. code-block:: yaml
-
+	   SetGzip: true
 	   Servers:
 	     - http://127.0.0.1:9200
 	   StreamProperties:
+	     tweets_stream:
+	       Index: twitter
+	       DayBasedIndex: true
+	       Type: tweet
+	       Mapping:
+	         # index mapping for payload
+	         user: keyword
+	         message: text
+	       Settings:
+	         number_of_shards: 1
+	         number_of_replicas: 1
 
-		tweets_stream:
-			Index: twitter
-			DayBasedIndex: true
-			Type: tweet
-			Mapping:
-				# index mapping for payload
-				user: keyword
-				message: text
-			Settings:
-				number_of_shards: 1
-				number_of_replicas: 1
 
 
 

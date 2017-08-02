@@ -47,10 +47,10 @@ Examples
 
 .. code-block:: yaml
 
-	  "StdErrPrinter":
-	    Type: "producer.Console"
-	    Streams: "myerrorstream"
-	    Console: "stderr"
+	  StdErrPrinter:
+	    Type: producer.Console
+	    Streams: myerrorstream
+	    Console: stderr
 
 
 

@@ -315,10 +315,10 @@ Examples
 	   Streams: logs
 	   Compression: zip
 	   Servers:
-	   	- "kafka01:9092"
-	   	- "kafka02:9092"
-	   	- "kafka03:9092"
-	   	- "kafka04:9092"
+	     - "kafka01:9092"
+	     - "kafka02:9092"
+	     - "kafka03:9092"
+	     - "kafka04:9092"
 
 
 

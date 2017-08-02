@@ -102,10 +102,7 @@ Examples
 	   Type: producer.Scribe"
 	   Stream: ["*", "_GOLLUM"]
 	   Address: "scribe01:1463"
-
-	  HeartBeatIntervalSec: 10
-.. code-block:: yaml
-
+	   HeartBeatIntervalSec: 10
 	   Category:
 	     "access"   : "accesslogs"
 	     "error"    : "errorlogs"

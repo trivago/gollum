@@ -33,10 +33,10 @@ import (
 //
 // Examples
 //
-//   "StdErrPrinter":
-//     Type: "producer.Console"
-//     Streams: "myerrorstream"
-//     Console: "stderr"
+//   StdErrPrinter:
+//     Type: producer.Console
+//     Streams: myerrorstream
+//     Console: stderr
 //
 type Console struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
