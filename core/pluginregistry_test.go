@@ -27,10 +27,6 @@ func TestPluginRegistry(t *testing.T) {
 	expect.NotNil(err)
 	expect.Equal(registered, len(PluginRegistry.plugins))
 
-	// Test for Register
-	PluginRegistry.Register(plugin, "aPlugin")
-	expect.Equal(registered+1, len(PluginRegistry.plugins))
-
 	// Test for RegisterUnique
 	PluginRegistry.RegisterUnique(plugin, "aPlugin")
 	expect.Equal(registered+1, len(PluginRegistry.plugins))
