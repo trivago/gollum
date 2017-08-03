@@ -30,8 +30,8 @@ var (
 type streamRegistry struct {
 	routers     map[MessageStreamID]Router
 	name        map[MessageStreamID]string
-	nameGuard   *sync.Mutex
-	streamGuard *sync.Mutex
+	nameGuard   *sync.RWMutex
+	streamGuard *sync.RWMutex
 	wildcard    []Producer
 }
 
@@ -39,9 +39,9 @@ type streamRegistry struct {
 // all registered routers.
 var StreamRegistry = streamRegistry{
 	routers:     make(map[MessageStreamID]Router),
-	streamGuard: new(sync.Mutex),
+	streamGuard: new(sync.RWMutex),
 	name:        make(map[MessageStreamID]string),
-	nameGuard:   new(sync.Mutex),
+	nameGuard:   new(sync.RWMutex),
 }
 
 // GetStreamID is deprecated
@@ -74,9 +74,9 @@ func (registry streamRegistry) GetStreamName(streamID MessageStreamID) string {
 		return WildcardStream
 
 	default:
-		registry.nameGuard.Lock()
+		registry.nameGuard.RLock()
 		name, exists := registry.name[streamID]
-		registry.nameGuard.Unlock()
+		registry.nameGuard.RUnlock()
 
 		if exists {
 			return name // ### return, found ###
@@ -93,9 +93,9 @@ func (registry streamRegistry) GetRouterByStreamName(name string) Router {
 
 // GetRouter returns a registered stream or nil
 func (registry streamRegistry) GetRouter(id MessageStreamID) Router {
-	registry.streamGuard.Lock()
+	registry.streamGuard.RLock()
 	stream, exists := registry.routers[id]
-	registry.streamGuard.Unlock()
+	registry.streamGuard.RUnlock()
 
 	if exists {
 		return stream
@@ -105,17 +105,17 @@ func (registry streamRegistry) GetRouter(id MessageStreamID) Router {
 
 // IsStreamRegistered returns true if the stream for the given id is registered.
 func (registry streamRegistry) IsStreamRegistered(id MessageStreamID) bool {
-	registry.streamGuard.Lock()
+	registry.streamGuard.RLock()
 	_, exists := registry.routers[id]
-	registry.streamGuard.Unlock()
+	registry.streamGuard.RUnlock()
 
 	return exists
 }
 
 // ForEachStream loops over all registered routers and calls the given function.
 func (registry streamRegistry) ForEachStream(callback func(streamID MessageStreamID, stream Router)) {
-	registry.streamGuard.Lock()
-	defer registry.streamGuard.Unlock()
+	registry.streamGuard.RLock()
+	defer registry.streamGuard.RUnlock()
 
 	for streamID, router := range registry.routers {
 		callback(streamID, router)
@@ -166,19 +166,57 @@ func (registry *streamRegistry) AddAllWildcardProducersToAllRouters() {
 
 // Register registers a router plugin to a given stream id
 func (registry *streamRegistry) Register(router Router, streamID MessageStreamID) {
-	registry.streamGuard.Lock()
+	registry.streamGuard.RLock()
 	_, exists := registry.routers[streamID]
-	registry.streamGuard.Unlock()
+	registry.streamGuard.RUnlock()
 
 	if exists {
 		logrus.Warningf("%T attaches to an already occupied router (%s)", router, registry.GetStreamName(streamID))
-	} else {
-		CountRouters()
+		return // ### return, double registration ###
 	}
 
 	registry.streamGuard.Lock()
-	registry.routers[streamID] = router
-	registry.streamGuard.Unlock()
+	defer registry.streamGuard.Unlock()
+
+	// Test again inside critical section to avoid races
+	if _, exists := registry.routers[streamID]; !exists {
+		registry.routers[streamID] = router
+		CountRouters()
+	}
+}
+
+// GetRouterOrFallback returns the router for the given streamID if it is registered.
+// If no router is registered for the given streamID the default router is used.
+// The default router is equivalent to an unconfigured router.Broadcast with
+// all wildcard producers already added.
+func (registry *streamRegistry) GetRouterOrFallback(streamID MessageStreamID) Router {
+	if streamID == InvalidStreamID {
+		return nil // ### return, invalid stream does not have a router ###
+	}
+
+	registry.streamGuard.RLock()
+	router, exists := registry.routers[streamID]
+	registry.streamGuard.RUnlock()
+	if exists {
+		return router // ### return, already registered ###
+	}
+
+	registry.streamGuard.Lock()
+	defer registry.streamGuard.Unlock()
+
+	// Create router, avoid race conditions by check again in ciritical section
+	if _, exists := registry.routers[streamID]; exists {
+		return router // ### return, lost the race ###
+	}
+
+	defaultRouter := registry.createFallback(streamID)
+	registry.AddWildcardProducersToRouter(defaultRouter)
+	registry.routers[streamID] = defaultRouter
+
+	CountRouters()
+	CountFallbackRouters()
+
+	return defaultRouter
 }
 
 func (registry *streamRegistry) createFallback(streamID MessageStreamID) Router {
@@ -195,36 +233,4 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Router 
 
 	stream := plugin.(Router) // panic if not!
 	return stream
-}
-
-// GetRouterOrFallback returns the router for the given streamID if it is registered.
-// If no router is registered for the given streamID the default router is used.
-// The default router is equivalent to an unconfigured router.Broadcast with
-// all wildcard producers already added.
-func (registry *streamRegistry) GetRouterOrFallback(streamID MessageStreamID) Router {
-	if streamID == InvalidStreamID {
-		return nil
-	}
-
-	registry.streamGuard.Lock()
-	router, exists := registry.routers[streamID]
-	registry.streamGuard.Unlock()
-
-	if exists {
-		return router
-	}
-
-	defaultRouter := registry.createFallback(streamID)
-	registry.AddWildcardProducersToRouter(defaultRouter)
-
-	registry.streamGuard.Lock()
-	registry.routers[streamID] = defaultRouter
-	registry.streamGuard.Unlock()
-
-	CountRouters()
-	if streamID != InvalidStreamID && streamID != WildcardStreamID {
-		CountFallbackRouters()
-	}
-
-	return defaultRouter
 }

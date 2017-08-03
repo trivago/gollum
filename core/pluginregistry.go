@@ -15,59 +15,51 @@
 package core
 
 import (
-	"fmt"
+	"sync"
 )
 
 type pluginRegistry struct {
 	plugins map[string]Plugin
+	guard   *sync.RWMutex
 }
 
 // PluginRegistry holds all plugins by their name
 var PluginRegistry = pluginRegistry{
 	plugins: make(map[string]Plugin),
-}
-
-// Register stores a plugin by its ID (a string) for later retrieval.
-// Name collisions are resolved automatically by adding an incrementing number
-// to the name. As of this the registered name is returned by this function.
-func (registry *pluginRegistry) Register(plugin Plugin, ID string) string {
-	collision := 1
-	pluginID := ID
-	for {
-		if _, exists := registry.plugins[pluginID]; !exists {
-			registry.plugins[pluginID] = plugin
-			return pluginID // ### return, registered ###
-		}
-		pluginID = fmt.Sprintf("%s%d", ID, collision)
-		collision++
-	}
+	guard:   new(sync.RWMutex),
 }
 
 // RegisterUnique stores a plugin by its ID (a string) for later retrieval.
 // Name collisions are not resolved, duplicated names will not be registered.
 func (registry *pluginRegistry) RegisterUnique(plugin Plugin, ID string) bool {
+	registry.guard.Lock()
+	defer registry.guard.Unlock()
+
 	if _, exists := registry.plugins[ID]; !exists {
 		registry.plugins[ID] = plugin
 		return true
 	}
+
 	return false
 }
 
 // GetPlugin returns a plugin by name or nil if not found.
 func (registry *pluginRegistry) GetPlugin(ID string) Plugin {
+	registry.guard.RLock()
 	plugin, exists := registry.plugins[ID]
-	if !exists {
-		plugin = nil
+	registry.guard.RUnlock()
+
+	if exists {
+		return plugin
 	}
-	return plugin
+	return nil
 }
 
 // GetPluginWithState returns a plugin by name if it has a state or nil.
 func (registry *pluginRegistry) GetPluginWithState(ID string) PluginWithState {
 	plugin := registry.GetPlugin(ID)
-	pluginWithState, hasState := plugin.(PluginWithState)
-	if !hasState {
-		pluginWithState = nil
+	if pluginWithState, hasState := plugin.(PluginWithState); hasState {
+		return pluginWithState
 	}
-	return pluginWithState
+	return nil
 }
