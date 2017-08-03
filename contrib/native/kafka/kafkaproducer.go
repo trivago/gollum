@@ -346,11 +346,13 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 		prod.Logger.Error(err)
 	}
 
-	metadata := msg.GetMetadata()
 	kafkaMsg := &messageWrapper{
-		key:   metadata.GetValue(prod.keyField),
 		value: msg.GetPayload(),
 		user:  serializedOriginal,
+	}
+
+	if metadata := msg.TryGetMetadata(); metadata != nil {
+		kafkaMsg.key = metadata.GetValue(prod.keyField)
 	}
 
 	if err := topic.handle.Produce(kafkaMsg); err != nil {
