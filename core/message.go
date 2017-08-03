@@ -24,7 +24,6 @@ import (
 // The struct is used by Message.data for the current message data and orig for the original message data
 type MessageData struct {
 	payload  []byte
-	streamID MessageStreamID
 	Metadata Metadata
 }
 
@@ -32,8 +31,10 @@ type MessageData struct {
 // This struct is passed between consumers and producers.
 type Message struct {
 	data         MessageData
-	orig         MessageData
+	orig         *MessageData
+	streamID     MessageStreamID
 	prevStreamID MessageStreamID
+	origStreamID MessageStreamID
 	source       MessageSource
 	timestamp    time.Time
 }
@@ -47,23 +48,19 @@ var (
 
 // NewMessage creates a new message from a given data stream by copying data.
 func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID MessageStreamID) *Message {
-	buffer := getPayloadCopy(data)
-
-	message := &Message{
+	msg := &Message{
 		source:       source,
-		prevStreamID: streamID,
+		streamID:     streamID,
+		origStreamID: streamID,
 		timestamp:    time.Now(),
 	}
 
-	message.data.payload = buffer
-	message.data.streamID = streamID
-	if metadata == nil {
-		message.data.Metadata = make(Metadata)
-	} else {
-		message.data.Metadata = metadata
+	msg.data.payload = getPayloadCopy(data)
+	if msg != nil && len(metadata) > 0 {
+		msg.data.Metadata = metadata
 	}
 
-	return message
+	return msg
 }
 
 // getPayloadCopy return a copy of the data byte array
@@ -80,12 +77,12 @@ func (msg *Message) GetCreationTime() time.Time {
 
 // GetStreamID returns the stream this message is currently routed to.
 func (msg *Message) GetStreamID() MessageStreamID {
-	return msg.data.streamID
+	return msg.streamID
 }
 
 // GetOrigStreamID returns the original/first streamID
 func (msg *Message) GetOrigStreamID() MessageStreamID {
-	return msg.orig.streamID
+	return msg.origStreamID
 }
 
 // GetPrevStreamID returns the last "hop" of this message.
@@ -95,7 +92,7 @@ func (msg *Message) GetPrevStreamID() MessageStreamID {
 
 // GetRouter returns the stream object behind the current StreamID.
 func (msg *Message) GetRouter() Router {
-	return StreamRegistry.GetRouterOrFallback(msg.GetStreamID())
+	return StreamRegistry.GetRouterOrFallback(msg.streamID)
 }
 
 // GetPrevRouter returns the stream object behind the previous StreamID.
@@ -103,11 +100,29 @@ func (msg *Message) GetPrevRouter() Router {
 	return StreamRegistry.GetRouterOrFallback(msg.prevStreamID)
 }
 
+// GetOrigRouter returns the stream object behind the original StreamID.
+func (msg *Message) GetOrigRouter() Router {
+	return StreamRegistry.GetRouterOrFallback(msg.origStreamID)
+}
+
 // SetStreamID sets a new stream and stores the current one in the previous
-// stream field.
+// stream field. If the previous stream is invalid and the new stream is not,
+// the new stream will become the original stream.
 func (msg *Message) SetStreamID(streamID MessageStreamID) {
-	msg.prevStreamID = msg.GetStreamID()
-	msg.data.streamID = streamID
+	if streamID != InvalidStreamID && msg.streamID == InvalidStreamID {
+		msg.origStreamID = streamID
+	}
+	msg.prevStreamID = msg.streamID
+	msg.streamID = streamID
+}
+
+// SetOriginalStreamID acts like SetStreamID but always sets the original stream
+// ID, too. This method should be used before a message is routed for the first
+// time (e.g. in a consumer) or when the original stream should change.
+func (msg *Message) SetOriginalStreamID(streamID MessageStreamID) {
+	msg.origStreamID = streamID
+	msg.prevStreamID = msg.streamID
+	msg.streamID = streamID
 }
 
 // GetSource returns the message's source (can be nil).
@@ -125,8 +140,18 @@ func (msg *Message) GetPayload() []byte {
 	return msg.data.payload
 }
 
-// GetMetadata returns the current Metadata
+// GetMetadata returns the current Metadata. If no metadata is present, the
+// metadata map will be created by this call.
 func (msg *Message) GetMetadata() Metadata {
+	if msg.data.Metadata == nil {
+		msg.data.Metadata = make(Metadata)
+	}
+	return msg.data.Metadata
+}
+
+// TryGetMetadata returns the current Metadata. If no metadata is present, nil
+// will be returned.
+func (msg *Message) TryGetMetadata() Metadata {
 	return msg.data.Metadata
 }
 
@@ -177,45 +202,56 @@ func (msg *Message) Clone() *Message {
 	return &clone
 }
 
-// CloneOriginal returns a copy of this message with the original payload and stream
-// The created timestamp is copied, too.
+// CloneOriginal returns a copy of this message with the original payload and
+// stream. If FreezeOriginal has not been called before it will be at this point
+// so that all subsequential calls will use the same original.
 func (msg *Message) CloneOriginal() *Message {
+	if msg.orig == nil {
+		msg.FreezeOriginal()
+	}
+
 	clone := *msg
 
 	clone.data.payload = MessageDataPool.Get(len(msg.orig.payload))
 	copy(clone.data.payload, msg.orig.payload)
 
-	clone.SetStreamID(msg.orig.streamID)
+	clone.SetStreamID(msg.origStreamID)
 
 	return &clone
 }
 
-// FreezeOriginal set the original data and freeze the message
+// FreezeOriginal will take the current state of the message and store it as
+// the "original" message. This function can only be called once for each
+// message.
 func (msg *Message) FreezeOriginal() {
-	msg.orig.payload = getPayloadCopy(msg.data.payload)
-	msg.orig.streamID = msg.data.streamID
-	msg.orig.Metadata = msg.data.Metadata.Clone()
+	if msg.orig != nil { // avoid another allocation if possible
+		return
+	}
+	msg.orig = &MessageData{
+		payload:  getPayloadCopy(msg.data.payload),
+		Metadata: msg.data.Metadata.Clone(),
+	}
 }
 
 // Serialize generates a new payload containing all data that can be preserved
 // over shutdown (i.e. no data directly referencing runtime components). The
 // serialized data is based on the current message state.
 func (msg *Message) Serialize() ([]byte, error) {
-	return msg.data.serialize(msg.prevStreamID, msg.timestamp)
+	return msg.data.serialize(msg)
 }
 
 // SerializeOriginal generates a new payload containing all data that can be
 // preserved over shutdown (i.e. no data directly referencing runtime c
 // omponents). The serialized data is based on the original message
 func (msg *Message) SerializeOriginal() ([]byte, error) {
-	return msg.orig.serialize(msg.data.streamID, msg.timestamp)
+	return msg.orig.serialize(msg)
 }
 
-func (data MessageData) serialize(prevStreamID MessageStreamID, timestamp time.Time) ([]byte, error) {
+func (data MessageData) serialize(msg *Message) ([]byte, error) {
 	serializable := &SerializedMessage{
-		StreamID:     proto.Uint64(uint64(data.streamID)),
-		PrevStreamID: proto.Uint64(uint64(prevStreamID)),
-		Timestamp:    proto.Int64(timestamp.UnixNano()),
+		StreamID:     proto.Uint64(uint64(msg.streamID)),
+		PrevStreamID: proto.Uint64(uint64(msg.prevStreamID)),
+		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
 		Data:         data.payload,
 		Metadata:     data.Metadata,
 	}
@@ -225,19 +261,18 @@ func (data MessageData) serialize(prevStreamID MessageStreamID, timestamp time.T
 
 // DeserializeMessage generates a message from a string produced by
 // Message.Serialize.
-func DeserializeMessage(data []byte) (Message, error) {
+func DeserializeMessage(data []byte) (*Message, error) {
 	serializable := new(SerializedMessage)
 	err := proto.Unmarshal(data, serializable)
 
-	msg := Message{
+	msg := &Message{
 		prevStreamID: MessageStreamID(serializable.GetPrevStreamID()),
 		timestamp:    time.Unix(0, serializable.GetTimestamp()),
 	}
 
-	msg.data.streamID = MessageStreamID(serializable.GetStreamID())
+	msg.streamID = MessageStreamID(serializable.GetStreamID())
 	msg.data.payload = serializable.GetData()
 	msg.data.Metadata = serializable.GetMetadata()
 
-	msg.FreezeOriginal()
 	return msg, err
 }

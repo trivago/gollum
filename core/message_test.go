@@ -29,7 +29,7 @@ func getMockMessage(data string) *Message {
 	}
 
 	msg.data.payload = []byte(data)
-	msg.data.streamID = 1
+	msg.streamID = 1
 
 	return msg
 }
@@ -68,9 +68,9 @@ func TestMessageInstantiate(t *testing.T) {
 	msg.FreezeOriginal()
 
 	expect.Equal(msgString, string(msg.data.payload))
-	expect.Equal(MessageStreamID(1), msg.data.streamID)
+	expect.Equal(MessageStreamID(1), msg.streamID)
 	expect.Equal(msgString, string(msg.orig.payload))
-	expect.Equal(MessageStreamID(1), msg.orig.streamID)
+	expect.Equal(MessageStreamID(1), msg.origStreamID)
 }
 
 func TestMessageOriginalDataIntegrity(t *testing.T) {
@@ -85,9 +85,9 @@ func TestMessageOriginalDataIntegrity(t *testing.T) {
 	msg.StorePayload([]byte(msgUpdateString))
 
 	expect.Equal(msgUpdateString, string(msg.data.payload))
-	expect.Equal(MessageStreamID(10), msg.data.streamID)
+	expect.Equal(MessageStreamID(10), msg.streamID)
 	expect.Equal(msgString, string(msg.orig.payload))
-	expect.Equal(MessageStreamID(1), msg.orig.streamID)
+	expect.Equal(MessageStreamID(1), msg.origStreamID)
 	expect.Equal(MessageStreamID(1), msg.prevStreamID)
 }
 
@@ -105,9 +105,9 @@ func TestMessageClone(t *testing.T) {
 	msgClone := msg.Clone()
 
 	expect.Equal(msgUpdateString, string(msgClone.data.payload))
-	expect.Equal(MessageStreamID(10), msgClone.data.streamID)
+	expect.Equal(MessageStreamID(10), msgClone.streamID)
 	expect.Equal(msgString, string(msgClone.orig.payload))
-	expect.Equal(MessageStreamID(1), msgClone.orig.streamID)
+	expect.Equal(MessageStreamID(1), msgClone.origStreamID)
 }
 
 func TestMessageCloneMetadata(t *testing.T) {
@@ -139,9 +139,9 @@ func TestMessageCloneOriginal(t *testing.T) {
 	msgClone := msg.CloneOriginal()
 
 	expect.Equal(msgString, string(msgClone.data.payload))
-	expect.Equal(MessageStreamID(1), msgClone.data.streamID)
+	expect.Equal(MessageStreamID(1), msgClone.streamID)
 	expect.Equal(msgString, string(msgClone.orig.payload))
-	expect.Equal(MessageStreamID(1), msgClone.orig.streamID)
+	expect.Equal(MessageStreamID(1), msgClone.origStreamID)
 }
 
 func TestMessageCloneOriginalMetadata(t *testing.T) {

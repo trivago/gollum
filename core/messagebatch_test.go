@@ -194,7 +194,7 @@ func TestMessageSerialize(t *testing.T) {
 	readMessage, err := DeserializeMessage(data)
 	expect.Nil(err)
 
-	expect.Equal(readMessage.data.streamID, testMessage.data.streamID)
+	expect.Equal(readMessage.streamID, testMessage.streamID)
 	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
 	expect.Equal(readMessage.timestamp, testMessage.timestamp)
 	expect.Equal(readMessage.data.payload, testMessage.data.payload)
