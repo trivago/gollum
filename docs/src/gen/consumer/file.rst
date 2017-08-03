@@ -16,6 +16,13 @@ if the underlying file is changed.
 Metadata
 --------
 
+**NOTE**
+
+  
+  *The metadata will only set if the parameter `SetMetadata` is active.*
+  
+  
+
 **file**
 
   The file name of the consumed file (set)
@@ -88,9 +95,20 @@ Parameters
 
   This value defines the duration the consumer waits between
   checking the source file for new content after hitting the end of file (EOF).
-  The value is in milliseconds (ms). NOTE: this settings only takes effect if
-  the consumer is running in `poll` mode!
+  The value is in milliseconds (ms).
   By default this parameter is set to "100".
+  
+  * NOTE: This settings only takes effect if the consumer is running in `poll` mode!
+  
+  
+
+**SetMetadata** (default: false)
+
+  If this value is set to "true" the `Metadata` will set to each message
+  during the creation.
+  By default this parameter is set to "false".
+  
+  * NOTE: This setting needs additional performance.
   
   
 
