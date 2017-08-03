@@ -226,9 +226,12 @@ func (msg *Message) CloneOriginal() *Message {
 
 // FreezeOriginal will take the current state of the message and store it as
 // the "original" message. This function can only be called once for each
-// message.
+// message. Please note that this function only affects payload and metadata and
+// can only be called once. Additional calls will have no effect.
+// The original stream ID can be changed at any time by using SetOrigStreamID.
 func (msg *Message) FreezeOriginal() {
-	if msg.orig != nil { // avoid another allocation if possible
+	// Freeze may be called only once
+	if msg.orig != nil {
 		return
 	}
 
@@ -245,14 +248,15 @@ func (msg *Message) FreezeOriginal() {
 
 // Serialize generates a new payload containing all data that can be preserved
 // over shutdown (i.e. no data directly referencing runtime components). The
-// serialized data is based on the current message state.
+// serialized data is based on the current message state and does not perserve
+// the original data created by FreezeOriginal.
 func (msg *Message) Serialize() ([]byte, error) {
 	return msg.data.serialize(msg)
 }
 
 // SerializeOriginal generates a new payload containing all data that can be
-// preserved over shutdown (i.e. no data directly referencing runtime c
-// omponents). The serialized data is based on the original message
+// preserved over shutdown (i.e. no data directly referencing runtime
+// components). The serialized data is based on the original message.
 func (msg *Message) SerializeOriginal() ([]byte, error) {
 	return msg.orig.serialize(msg)
 }
@@ -269,8 +273,9 @@ func (data MessageData) serialize(msg *Message) ([]byte, error) {
 	return proto.Marshal(serializable)
 }
 
-// DeserializeMessage generates a message from a string produced by
-// Message.Serialize.
+// DeserializeMessage generates a message from a byte array produced by
+// Message.Serialize. Please note that the payload is restored but the original
+// data is not. As of this FreezeOriginal can be called again after this call.
 func DeserializeMessage(data []byte) (*Message, error) {
 	serializable := new(SerializedMessage)
 	err := proto.Unmarshal(data, serializable)
