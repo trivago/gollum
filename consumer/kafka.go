@@ -111,7 +111,7 @@ const (
 //
 // - DefaultFetchSizeByte: Defines the average amout of data to fetch per
 // request. This value must be greater than 0.
-// By default this parameter is set to 1.
+// By default this parameter is set to 32768.
 //
 // - FetchTimeoutMs: Defines the time in milliseconds to wait on reaching
 // MinFetchSizeByte before fetching new data regardless of size.
@@ -311,7 +311,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 
 	cons.config.Consumer.Fetch.Min = int32(conf.GetInt("MinFetchSizeByte", 1))
 	cons.config.Consumer.Fetch.Max = int32(conf.GetInt("MaxFetchSizeByte", 0))
-	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("DefaultFetchSizeByte", 1))
+	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("DefaultFetchSizeByte", 32768))
 	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
 
 	if cons.group != "" {

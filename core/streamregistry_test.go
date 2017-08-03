@@ -24,8 +24,8 @@ func getMockStreamRegistry() streamRegistry {
 	return streamRegistry{
 		routers:     map[MessageStreamID]Router{},
 		name:        map[MessageStreamID]string{},
-		streamGuard: new(sync.Mutex),
-		nameGuard:   new(sync.Mutex),
+		streamGuard: new(sync.RWMutex),
+		nameGuard:   new(sync.RWMutex),
 		wildcard:    []Producer{},
 	}
 }
