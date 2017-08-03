@@ -57,9 +57,7 @@ func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID M
 
 	message.data.payload = buffer
 	message.data.streamID = streamID
-	if metadata == nil {
-		message.data.Metadata = make(Metadata)
-	} else {
+	if metadata != nil && len(metadata) > 0 {
 		message.data.Metadata = metadata
 	}
 
@@ -125,8 +123,18 @@ func (msg *Message) GetPayload() []byte {
 	return msg.data.payload
 }
 
-// GetMetadata returns the current Metadata
+// GetMetadata returns the current Metadata. If no metadata is present, the
+// metadata map will be created by this call.
 func (msg *Message) GetMetadata() Metadata {
+	if msg.data.Metadata == nil {
+		msg.data.Metadata = make(Metadata)
+	}
+	return msg.data.Metadata
+}
+
+// TryGetMetadata returns the current Metadata. If no metadata is present, nil
+// will be returned.
+func (msg *Message) TryGetMetadata() Metadata {
 	return msg.data.Metadata
 }
 
@@ -194,7 +202,12 @@ func (msg *Message) CloneOriginal() *Message {
 func (msg *Message) FreezeOriginal() {
 	msg.orig.payload = getPayloadCopy(msg.data.payload)
 	msg.orig.streamID = msg.data.streamID
-	msg.orig.Metadata = msg.data.Metadata.Clone()
+
+	if msg.data.Metadata == nil {
+		msg.orig.Metadata = nil
+	} else {
+		msg.orig.Metadata = msg.data.Metadata.Clone()
+	}
 }
 
 // Serialize generates a new payload containing all data that can be preserved

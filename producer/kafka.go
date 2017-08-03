@@ -517,7 +517,9 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 
 func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
 	if len(prod.keyField) > 0 {
-		return msg.GetMetadata().GetValue(prod.keyField)
+		if metadata := msg.TryGetMetadata(); metadata != nil {
+			return metadata.GetValue(prod.keyField)
+		}
 	}
 
 	return []byte{}
