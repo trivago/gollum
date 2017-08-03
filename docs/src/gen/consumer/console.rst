@@ -12,6 +12,13 @@ each newline character.
 Metadata
 --------
 
+**NOTE**
+
+  
+  *The metadata will only set if the parameter `SetMetadata` is active.*
+  
+  
+
 **pipe**
 
   Name of the pipe the message was received on (set)
@@ -47,6 +54,16 @@ Parameters
   If set to true, the plusing triggers an exit signal if the
   pipe is closed, i.e. when EOF is detected.
   By default this paramater is set to "true".
+  
+  
+
+**SetMetadata** (default: false)
+
+  If this value is set to "true" the `Metadata` will set to each message
+  during the creation.
+  By default this parameter is set to "false".
+  
+  * NOTE: This setting needs additional performance.
   
   
 
