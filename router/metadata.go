@@ -54,16 +54,19 @@ func (router *Metadata) Start() error {
 
 // Enqueue enques a message to the router
 func (router *Metadata) Enqueue(msg *core.Message) error {
-	streamName := msg.GetMetadata().GetValueString(router.key)
-
-	if len(streamName) > 0 {
-		targetID := core.GetStreamID(string(streamName))
-		router := core.StreamRegistry.GetRouterOrFallback(targetID)
-
-		msg.SetStreamID(targetID)
-		core.Route(msg, router)
-		return nil
+	metadata := msg.TryGetMetadata()
+	if metadata == nil {
+		return router.Broadcast.Enqueue(msg)
 	}
 
-	return router.Broadcast.Enqueue(msg)
+	streamName := metadata.GetValueString(router.key)
+	targetID := core.GetStreamID(streamName)
+	if targetID == core.InvalidStreamID {
+		return router.Broadcast.Enqueue(msg)
+	}
+
+	targetRouter := core.StreamRegistry.GetRouterOrFallback(targetID)
+
+	msg.SetStreamID(targetID)
+	return core.Route(msg, targetRouter)
 }
