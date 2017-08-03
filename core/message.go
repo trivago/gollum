@@ -56,7 +56,7 @@ func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID M
 	}
 
 	msg.data.payload = getPayloadCopy(data)
-	if msg != nil && len(metadata) > 0 {
+	if metadata != nil && len(metadata) > 0 {
 		msg.data.Metadata = metadata
 	}
 
@@ -211,12 +211,16 @@ func (msg *Message) CloneOriginal() *Message {
 	}
 
 	clone := *msg
-
 	clone.data.payload = MessageDataPool.Get(len(msg.orig.payload))
 	copy(clone.data.payload, msg.orig.payload)
 
-	clone.SetStreamID(msg.origStreamID)
+	if msg.orig.Metadata == nil {
+		clone.data.Metadata = msg.orig.Metadata.Clone()
+	} else {
+		clone.data.Metadata = nil
+	}
 
+	clone.SetStreamID(msg.origStreamID)
 	return &clone
 }
 
@@ -227,9 +231,15 @@ func (msg *Message) FreezeOriginal() {
 	if msg.orig != nil { // avoid another allocation if possible
 		return
 	}
+
+	var metadata Metadata
+	if msg.data.Metadata != nil {
+		metadata = msg.data.Metadata.Clone()
+	}
+
 	msg.orig = &MessageData{
 		payload:  getPayloadCopy(msg.data.payload),
-		Metadata: msg.data.Metadata.Clone(),
+		Metadata: metadata,
 	}
 }
 
