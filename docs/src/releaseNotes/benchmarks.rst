@@ -60,8 +60,8 @@ Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
 
 Basic formatting
 `````````````````
-Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
-Please note that from this version on formatting is done in parallel.
+| Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| Please note that from this version on formatting is done in parallel.
 
  * 39,70s user 
  * 6,09s system 
