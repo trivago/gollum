@@ -37,6 +37,8 @@ const (
 //
 // Metadata
 //
+// *NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
+//
 // - pipe: Name of the pipe the message was received on (set)
 //
 // Parameters
@@ -53,6 +55,11 @@ const (
 // pipe is closed, i.e. when EOF is detected.
 // By default this paramater is set to "true".
 //
+// - SetMetadata: When this value is set to "true", the fields mentioned in the metadata
+// section will be added to each message. Adding metadata will have a
+// performance impact on systems with high throughput.
+// By default this parameter is set to "false".
+//
 // Examples
 //
 // This config reads data from stdin e.g. when starting gollum via unix pipe.
@@ -66,6 +73,7 @@ type Console struct {
 	autoExit            bool   `config:"ExitOnEOF" default:"true"`
 	pipeName            string `config:"Pipe" default:"stdin"`
 	pipePerm            uint32 `config:"Permissions" default:"0644"`
+	hasToSetMetadata    bool   `config:"SetMetadata" default:"false"`
 	pipe                *os.File
 }
 
@@ -86,10 +94,14 @@ func (cons *Console) Configure(conf core.PluginConfigReader) {
 
 // Enqueue creates a new message
 func (cons *Console) Enqueue(data []byte) {
-	metaData := core.Metadata{}
-	metaData.SetValue("pipe", []byte(cons.pipeName))
+	if cons.hasToSetMetadata {
+		metaData := core.Metadata{}
+		metaData.SetValue("pipe", []byte(cons.pipeName))
 
-	cons.EnqueueWithMetadata(data, metaData)
+		cons.EnqueueWithMetadata(data, metaData)
+	} else {
+		cons.SimpleConsumer.Enqueue(data)
+	}
 }
 
 // Consume listens to stdin.

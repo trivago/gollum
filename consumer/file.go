@@ -61,6 +61,8 @@ const (
 //
 // Metadata
 //
+// *NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
+//
 // - file: The file name of the consumed file (set)
 //
 // - dir: The directory of the consumed file (set)
@@ -97,9 +99,14 @@ const (
 //
 // - PollingDelay: This value defines the duration the consumer waits between
 // checking the source file for new content after hitting the end of file (EOF).
-// The value is in milliseconds (ms). NOTE: this settings only takes effect if
-// the consumer is running in `poll` mode!
+// The value is in milliseconds (ms). NOTE: This settings only takes effect if the consumer
+// is running in `poll` mode!
 // By default this parameter is set to "100".
+//
+// - SetMetadata: When this value is set to "true", the fields mentioned in the metadata
+// section will be added to each message. Adding metadata will have a
+// performance impact on systems with high throughput.
+// By default this parameter is set to "false".
 //
 // Examples
 //
@@ -117,8 +124,9 @@ const (
 type File struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 
-	delimiter   string `config:"Delimiter" default:"\n"`
-	observeMode string `config:"ObserveMode" default:"poll"`
+	delimiter        string `config:"Delimiter" default:"\n"`
+	observeMode      string `config:"ObserveMode" default:"poll"`
+	hasToSetMetadata bool   `config:"SetMetadata" default:"false"`
 
 	seeker  seeker
 	source  sourceFile
@@ -150,13 +158,17 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 
 // Enqueue creates a new message
 func (cons *File) Enqueue(data []byte) {
-	metaData := core.Metadata{}
+	if cons.hasToSetMetadata {
+		metaData := core.Metadata{}
 
-	dir, file := filepath.Split(cons.source.realFileName)
-	metaData.SetValue("file", []byte(file))
-	metaData.SetValue("dir", []byte(dir))
+		dir, file := filepath.Split(cons.source.realFileName)
+		metaData.SetValue("file", []byte(file))
+		metaData.SetValue("dir", []byte(dir))
 
-	cons.EnqueueWithMetadata(data, metaData)
+		cons.EnqueueWithMetadata(data, metaData)
+	} else {
+		cons.SimpleConsumer.Enqueue(data)
+	}
 }
 
 func (cons *File) storeOffset() {

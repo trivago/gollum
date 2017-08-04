@@ -45,6 +45,8 @@ const (
 //
 // Metadata
 //
+// *NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
+//
 // - topic: Contains the name of the kafka topic
 //
 // - key: Contains the key of the kafka message
@@ -71,6 +73,11 @@ const (
 // and "A.B.C.D". If the version given is not known, the closest possible
 // version is chosen. If GroupId is set to a value < "0.9", "0.9.0.1" will be used.
 // By default this parameter is set to "0.8.2".
+//
+// - SetMetadata: When this value is set to "true", the fields mentioned in the metadata
+// section will be added to each message. Adding metadata will have a
+// performance impact on systems with high throughput.
+// By default this parameter is set to "false".
 //
 // - DefaultOffset: Defines the inital offest when starting to read the topic.
 // Valid values are "oldest" and "newest". If OffsetFile
@@ -193,6 +200,7 @@ type Kafka struct {
 	servers             []string      `config:"Servers"`
 	topic               string        `config:"Topic" default:"default"`
 	group               string        `config:"GroupId"`
+	hasToSetMetadata    bool          `config:"SetMetadata" default:"false"`
 	offsetFile          string        `config:"OffsetFile"`
 	persistTimeout      time.Duration `config:"PresistTimoutMs" default:"5000" metric:"ms"`
 	orderedRead         bool          `config:"Ordered"`
@@ -513,12 +521,16 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 }
 
 func (cons *Kafka) enqueueEvent(event *kafka.ConsumerMessage) {
-	metaData := core.Metadata{}
+	if cons.hasToSetMetadata {
+		metaData := core.Metadata{}
 
-	metaData.SetValue("topic", []byte(event.Topic))
-	metaData.SetValue("key", event.Key)
+		metaData.SetValue("topic", []byte(event.Topic))
+		metaData.SetValue("key", event.Key)
 
-	cons.EnqueueWithMetadata(event.Value, metaData)
+		cons.EnqueueWithMetadata(event.Value, metaData)
+	} else {
+		cons.SimpleConsumer.Enqueue(event.Value)
+	}
 }
 
 func (cons *Kafka) startReadTopic(topic string) {

@@ -12,6 +12,9 @@ library; most settings are mapped to the settings from this library.
 Metadata
 --------
 
+*NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
+
+
 **topic**
 
   Contains the name of the kafka topic
@@ -70,6 +73,15 @@ Parameters
   and "A.B.C.D". If the version given is not known, the closest possible
   version is chosen. If GroupId is set to a value < "0.9", "0.9.0.1" will be used.
   By default this parameter is set to "0.8.2".
+  
+  
+
+**SetMetadata** (default: false)
+
+  When this value is set to "true", the fields mentioned in the metadata
+  section will be added to each message. Adding metadata will have a
+  performance impact on systems with high throughput.
+  By default this parameter is set to "false".
   
   
 
