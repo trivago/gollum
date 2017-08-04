@@ -30,12 +30,12 @@ You should be able to run the entire suite using:
 make test
 ```
 
-The test run will execute `go vet`, `golint`, `go fmt` checks, unit test and basic integration tests.
+The test run will execute `go vet`, `golint`, `go fmt` checks, `unit- and basic integration` tests.
 
 ### 4. Did you find a bug?
 
 * **Ensure the bug was not already reported** by [searching all
-  issues](https://github.com/gollum/trivago/issues?q=).
+  issues](https://github.com/trivago/gollum/issues?q=).
 
 * If you're unable to find an open issue addressing the problem, [open a new
   one](https://github.com/trivago/gollum/issues/new).  Be sure to
