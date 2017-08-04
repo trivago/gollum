@@ -45,6 +45,7 @@ Messages serialized to disk with 0.4.x are not compatible with 0.5.0.
 * Several race conditions have been fixed
 * Producer.ElasticSearch is now based on a more up-to-date library
 * Producer.AwsS3 is now behaving more like producer.File
+* Gollum metrics can now bind to a specific address instead of just a port
 
 ### Breaking changes with 0.5.0
 
