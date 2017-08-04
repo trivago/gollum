@@ -12,6 +12,13 @@ library; most settings are mapped to the settings from this library.
 Metadata
 --------
 
+**NOTE**
+
+  
+  *The metadata will only set if the parameter `SetMetadata` is active.*
+  
+  
+
 **topic**
 
   Contains the name of the kafka topic
@@ -73,7 +80,7 @@ Parameters
   
   
 
-**SetMetadata**
+**SetMetadata** (default: false)
 
   If this value is set to "true" the `Metadata` will set to each message
   during the creation.

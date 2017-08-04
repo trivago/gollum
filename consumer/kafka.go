@@ -45,6 +45,8 @@ const (
 //
 // Metadata
 //
+// - NOTE: *The metadata will only set if the parameter `SetMetadata` is active.*
+//
 // - topic: Contains the name of the kafka topic
 //
 // - key: Contains the key of the kafka message
