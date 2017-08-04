@@ -5,23 +5,11 @@ If this is a bug fix, make sure your description includes "fixes #xxxx", or
 Please provide the following information:
 -->
 
-**- What I did**
+## For what is this pull request
 
-**- How I did it**
+<!-- Please describe what this pull request fix or change -->
 
-**- How to verify it**
-
-**- Reference to github issue**
-
-- ...
-
-**- Description for the changelog**
-<!--
-Write a short (one line) summary that describes the changes in this
-pull request for inclusion in the changelog:
--->
-
-**- Checklist**
+## Checklist
 <!--
 Mark everything that applies:
 -->
