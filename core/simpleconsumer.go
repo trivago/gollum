@@ -15,12 +15,12 @@
 package core
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
 	"sync"
 	"time"
-	"fmt"
 )
 
 // SimpleConsumer consumer
