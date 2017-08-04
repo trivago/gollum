@@ -194,3 +194,46 @@ func TestMessageMetadataReset(t *testing.T) {
 	expect.Equal("value string", string(result1))
 	expect.Equal([]byte{}, result2)
 }
+
+func TestMessageSerialize(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	testMessage := NewMessage(nil, []byte("This is a\nteststring"), nil, 1)
+	testMessage.GetMetadata().SetValue("key", []byte("meta data value"))
+
+	data, err := testMessage.Serialize()
+	expect.NoError(err)
+	expect.Greater(len(data), 0)
+
+	// Test deserialization
+	readMessage, err := DeserializeMessage(data)
+	expect.NoError(err)
+
+	expect.Equal(readMessage.streamID, testMessage.streamID)
+	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
+	expect.Equal(readMessage.origStreamID, testMessage.origStreamID)
+	expect.Equal(readMessage.timestamp, testMessage.timestamp)
+	expect.Equal(readMessage.data.payload, testMessage.data.payload)
+	expect.Equal(readMessage.data.metadata, testMessage.data.metadata)
+	expect.Nil(readMessage.orig)
+
+	// Test original data serialization
+	testMessage.FreezeOriginal()
+	testMessage.SetlStreamIDAsOriginal(1)
+
+	data, err = testMessage.Serialize()
+	expect.NoError(err)
+	expect.Greater(len(data), 0)
+
+	readMessage, err = DeserializeMessage(data)
+	expect.NoError(err)
+
+	expect.Equal(readMessage.streamID, testMessage.streamID)
+	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
+	expect.Equal(readMessage.origStreamID, testMessage.origStreamID)
+	expect.Equal(readMessage.timestamp, testMessage.timestamp)
+	expect.Equal(readMessage.data.payload, testMessage.data.payload)
+	expect.Equal(readMessage.data.metadata, testMessage.data.metadata)
+	expect.NotNil(readMessage.orig)
+	expect.Equal(readMessage.orig.payload, testMessage.orig.payload)
+	expect.Equal(readMessage.orig.metadata, testMessage.orig.metadata)
+}

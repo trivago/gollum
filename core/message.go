@@ -289,6 +289,7 @@ func DeserializeMessage(data []byte) (*Message, error) {
 	}
 
 	if msgOrigData := serializable.GetOriginal(); msgOrigData != nil {
+		msg.orig = new(MessageData)
 		msg.orig.payload = msgOrigData.GetData()
 		msg.orig.metadata = msgOrigData.GetMetadata()
 	}
