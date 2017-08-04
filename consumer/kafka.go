@@ -45,7 +45,7 @@ const (
 //
 // Metadata
 //
-// - NOTE: *The metadata will only set if the parameter `SetMetadata` is active.*
+// *NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
 //
 // - topic: Contains the name of the kafka topic
 //
@@ -74,10 +74,10 @@ const (
 // version is chosen. If GroupId is set to a value < "0.9", "0.9.0.1" will be used.
 // By default this parameter is set to "0.8.2".
 //
-// - SetMetadata: If this value is set to "true" the `Metadata` will set to each message
-// during the creation.
+// - SetMetadata: When this value is set to "true", the fields mentioned in the metadata
+// section will be added to each message. Adding metadata will have a
+// performance impact on systems with high throughput.
 // By default this parameter is set to "false".
-// * NOTE: This setting needs additional performance.
 //
 // - DefaultOffset: Defines the inital offest when starting to read the topic.
 // Valid values are "oldest" and "newest". If OffsetFile

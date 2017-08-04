@@ -27,6 +27,7 @@ func (def *Definition) dumpString() string {
 
 // DefinitionList contains a list of definitions
 type DefinitionList struct {
+	desc  string
 	slice []*Definition
 }
 
@@ -39,11 +40,19 @@ func (list *DefinitionList) parseAndAppendString(text string) {
 	startDefRE := regexp.MustCompile("^ *- (.*)")
 	keyedDefRE := regexp.MustCompile("^([^:]+):[[:space:]]*(.*)")
 
+	descTextRE := regexp.MustCompile("(?sUm:^(.*) *-)")
+
 	var (
 		currentList  *DefinitionList
 		currentItem  *Definition
 		currentDepth int
 	)
+
+	descMatch := descTextRE.FindStringSubmatch(text)
+	if len(descMatch) > 1 {
+		list.desc = descMatch[1]
+		text = text[len(descMatch[1]):]
+	}
 
 	currentList = list
 
@@ -155,6 +164,11 @@ func (list *DefinitionList) dumpString() string {
 // getRST formats the DefinitionList as ReStructuredText
 func (list DefinitionList) getRST(paramFields bool, depth int) string {
 	result := ""
+
+	if len(list.desc) > 0 {
+		result = fmt.Sprintf("%s\n", list.desc)
+	}
+
 	for _, def := range list.slice {
 		// Heading
 		if strings.Trim(def.name, " \t") != "" {

@@ -37,7 +37,7 @@ const (
 //
 // Metadata
 //
-// - NOTE: *The metadata will only set if the parameter `SetMetadata` is active.*
+// *NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
 //
 // - pipe: Name of the pipe the message was received on (set)
 //
@@ -55,10 +55,10 @@ const (
 // pipe is closed, i.e. when EOF is detected.
 // By default this paramater is set to "true".
 //
-// - SetMetadata: If this value is set to "true" the `Metadata` will set to each message
-// during the creation.
+// - SetMetadata: When this value is set to "true", the fields mentioned in the metadata
+// section will be added to each message. Adding metadata will have a
+// performance impact on systems with high throughput.
 // By default this parameter is set to "false".
-// * NOTE: This setting needs additional performance.
 //
 // Examples
 //

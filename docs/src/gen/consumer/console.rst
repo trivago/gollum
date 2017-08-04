@@ -12,12 +12,8 @@ each newline character.
 Metadata
 --------
 
-**NOTE**
+*NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
 
-  
-  *The metadata will only set if the parameter `SetMetadata` is active.*
-  
-  
 
 **pipe**
 
@@ -59,11 +55,10 @@ Parameters
 
 **SetMetadata** (default: false)
 
-  If this value is set to "true" the `Metadata` will set to each message
-  during the creation.
+  When this value is set to "true", the fields mentioned in the metadata
+  section will be added to each message. Adding metadata will have a
+  performance impact on systems with high throughput.
   By default this parameter is set to "false".
-  
-  * NOTE: This setting needs additional performance.
   
   
 

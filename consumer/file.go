@@ -61,7 +61,7 @@ const (
 //
 // Metadata
 //
-// - NOTE: *The metadata will only set if the parameter `SetMetadata` is active.*
+// *NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
 //
 // - file: The file name of the consumed file (set)
 //
@@ -99,14 +99,14 @@ const (
 //
 // - PollingDelay: This value defines the duration the consumer waits between
 // checking the source file for new content after hitting the end of file (EOF).
-// The value is in milliseconds (ms).
+// The value is in milliseconds (ms). NOTE: This settings only takes effect if the consumer
+// is running in `poll` mode!
 // By default this parameter is set to "100".
-// * NOTE: This settings only takes effect if the consumer is running in `poll` mode!
 //
-// - SetMetadata: If this value is set to "true" the `Metadata` will set to each message
-// during the creation.
+// - SetMetadata: When this value is set to "true", the fields mentioned in the metadata
+// section will be added to each message. Adding metadata will have a
+// performance impact on systems with high throughput.
 // By default this parameter is set to "false".
-// * NOTE: This setting needs additional performance.
 //
 // Examples
 //
