@@ -92,17 +92,17 @@ func (msg *Message) GetPrevStreamID() MessageStreamID {
 
 // GetRouter returns the stream object behind the current StreamID.
 func (msg *Message) GetRouter() Router {
-	return StreamRegistry.GetRouterOrFallback(msg.streamID)
+	return StreamRegistry.GetRouterOrFallback(msg.GetStreamID())
 }
 
 // GetPrevRouter returns the stream object behind the previous StreamID.
 func (msg *Message) GetPrevRouter() Router {
-	return StreamRegistry.GetRouterOrFallback(msg.prevStreamID)
+	return StreamRegistry.GetRouterOrFallback(msg.GetPrevStreamID())
 }
 
 // GetOrigRouter returns the stream object behind the original StreamID.
 func (msg *Message) GetOrigRouter() Router {
-	return StreamRegistry.GetRouterOrFallback(msg.origStreamID)
+	return StreamRegistry.GetRouterOrFallback(msg.GetOrigStreamID())
 }
 
 // SetStreamID sets a new stream and stores the current one in the previous
@@ -247,9 +247,9 @@ func (msg *Message) FreezeOriginal() {
 // the original data created by FreezeOriginal.
 func (msg *Message) Serialize() ([]byte, error) {
 	serializable := &SerializedMessage{
-		StreamID:     proto.Uint64(uint64(msg.streamID)),
-		PrevStreamID: proto.Uint64(uint64(msg.prevStreamID)),
-		OrigStreamID: proto.Uint64(uint64(msg.origStreamID)),
+		StreamID:     proto.Uint64(uint64(msg.GetStreamID())),
+		PrevStreamID: proto.Uint64(uint64(msg.GetPrevStreamID())),
+		OrigStreamID: proto.Uint64(uint64(msg.GetOrigStreamID())),
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
 		Data: &SerializedMessageData{
 			Data:     msg.data.payload,
