@@ -6,6 +6,7 @@ Instructions
 
 	installation
 	usage
+	metrics
 	bestPractice
 	developing
 	writingPlugins
