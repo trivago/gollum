@@ -9,6 +9,17 @@ Please provide the following information:
 
 <!-- Please describe what this pull request fix or change -->
 
+
+## Config to verify:
+
+<!--- Provide a config to verify/test this pull request -->
+
+```yaml
+# config
+# ...
+```
+
+
 ## Checklist
 <!--
 Mark everything that applies:
