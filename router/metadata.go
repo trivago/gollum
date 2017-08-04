@@ -60,11 +60,11 @@ func (router *Metadata) Enqueue(msg *core.Message) error {
 	}
 
 	streamName := metadata.GetValueString(router.key)
-	if len(streamName) == 0 {
+	targetID := core.GetStreamID(streamName)
+	if targetID == core.InvalidStreamID {
 		return router.Broadcast.Enqueue(msg)
 	}
 
-	targetID := core.GetStreamID(string(streamName))
 	targetRouter := core.StreamRegistry.GetRouterOrFallback(targetID)
 
 	msg.SetStreamID(targetID)

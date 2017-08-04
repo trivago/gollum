@@ -341,14 +341,14 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 		topic = prod.registerNewTopic(topicName, msg.GetStreamID())
 	}
 
-	serializedOriginal, err := msg.SerializeOriginal()
+	serializedMsg, err := msg.Serialize()
 	if err != nil {
 		prod.Logger.Error(err)
 	}
 
 	kafkaMsg := &messageWrapper{
 		value: msg.GetPayload(),
-		user:  serializedOriginal,
+		user:  serializedMsg,
 	}
 
 	if metadata := msg.TryGetMetadata(); metadata != nil {
@@ -379,7 +379,7 @@ func (prod *KafkaProducer) storeRTT(msg *core.Message) {
 // OnMessageDelivered gets called by librdkafka on message delivery success
 func (prod *KafkaProducer) OnMessageDelivered(userdata []byte) {
 	if msg, err := core.DeserializeMessage(userdata); err == nil {
-		prod.storeRTT(&msg)
+		prod.storeRTT(msg)
 	} else {
 		prod.Logger.Error(err)
 	}
@@ -389,8 +389,8 @@ func (prod *KafkaProducer) OnMessageDelivered(userdata []byte) {
 func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
 	prod.Logger.Error("Message delivery failed:", reason)
 	if msg, err := core.DeserializeMessage(userdata); err == nil {
-		prod.storeRTT(&msg)
-		prod.TryFallback(&msg)
+		prod.storeRTT(msg)
+		prod.TryFallback(msg)
 	} else {
 		prod.Logger.Error(err)
 	}

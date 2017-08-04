@@ -205,7 +205,7 @@ func (registry *streamRegistry) GetRouterOrFallback(streamID MessageStreamID) Ro
 	defer registry.streamGuard.Unlock()
 
 	// Create router, avoid race conditions by check again in ciritical section
-	if _, exists := registry.routers[streamID]; exists {
+	if router, exists = registry.routers[streamID]; exists {
 		return router // ### return, lost the race ###
 	}
 

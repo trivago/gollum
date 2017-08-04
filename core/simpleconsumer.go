@@ -239,8 +239,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
 		router := cons.routers[streamIdx]
 		msg := msg.Clone()
-		msg.SetStreamID(router.GetStreamID())
-		msg.FreezeOriginal()
+		msg.SetlStreamIDAsOriginal(router.GetStreamID())
 
 		if err := Route(msg, router); err != nil {
 			cons.Logger.Error(err)
@@ -248,8 +247,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	}
 
 	router := cons.routers[lastStreamIdx]
-	msg.SetStreamID(router.GetStreamID())
-	msg.FreezeOriginal()
+	msg.SetlStreamIDAsOriginal(router.GetStreamID())
 
 	if err := Route(msg, router); err != nil {
 		cons.Logger.Error(err)

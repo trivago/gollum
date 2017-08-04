@@ -192,7 +192,11 @@ func (prod *SimpleProducer) GetShutdownTimeout() time.Duration {
 // Modulate applies all modulators from this producer to a given message.
 // This implementation handles routing and discarding of messages.
 func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
-	return prod.modulators.Modulate(msg)
+	if len(prod.modulators) > 0 {
+		msg.FreezeOriginal()
+		return prod.modulators.Modulate(msg)
+	}
+	return ModulateResultContinue
 }
 
 // HasContinueAfterModulate applies all modulators by Modulate, handle the ModulateResult

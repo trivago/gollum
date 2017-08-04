@@ -15,7 +15,6 @@
 package core
 
 import (
-	"encoding/base64"
 	"fmt"
 	"github.com/trivago/tgo/ttesting"
 	"testing"
@@ -169,34 +168,4 @@ func TestMessageBatch(t *testing.T) {
 
 	expect.False(batch.Append(NewMessage(nil, nil, nil, InvalidStreamID)))
 	expect.False(batch.AppendOrBlock(NewMessage(nil, nil, nil, InvalidStreamID)))
-}
-
-func TestMessageSerialize(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-	testMessage := NewMessage(nil, []byte("This is a\nteststring"), nil, 1)
-	testMessage.GetMetadata().SetValue("key", []byte("meta data value"))
-
-	data, err := testMessage.Serialize()
-	expect.NoError(err)
-	expect.Greater(len(data), 0)
-
-	// Test base 64 encoding of this format
-	encodedSize := base64.StdEncoding.EncodedLen(len(data))
-	encoded := make([]byte, encodedSize)
-	base64.StdEncoding.Encode(encoded, data)
-
-	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(encoded)))
-	length, _ := base64.StdEncoding.Decode(decoded, encoded)
-
-	expect.Equal(data, decoded[:length])
-
-	// Test deserialization
-	readMessage, err := DeserializeMessage(data)
-	expect.Nil(err)
-
-	expect.Equal(readMessage.data.streamID, testMessage.data.streamID)
-	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
-	expect.Equal(readMessage.timestamp, testMessage.timestamp)
-	expect.Equal(readMessage.data.payload, testMessage.data.payload)
-	expect.Equal(readMessage.data.Metadata, testMessage.data.Metadata)
 }
