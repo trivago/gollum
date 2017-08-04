@@ -73,6 +73,16 @@ Parameters
   
   
 
+**SetMetadata**
+
+  If this value is set to "true" the `Metadata` will set to each message
+  during the creation.
+  By default this parameter is set to "false".
+  
+  * NOTE: This setting needs additional performance.
+  
+  
+
 **DefaultOffset**
 
   Defines the inital offest when starting to read the topic.
@@ -139,6 +149,14 @@ Parameters
   Defines the minimum amout of data to fetch from Kafka per
   request. If less data is available the broker will wait.
   By default this parameter is set to 1.
+  
+  
+
+**DefaultFetchSizeByte**
+
+  Defines the average amout of data to fetch per
+  request. This value must be greater than 0.
+  By default this parameter is set to 32768.
   
   
 
