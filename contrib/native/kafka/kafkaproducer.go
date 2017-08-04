@@ -341,14 +341,14 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 		topic = prod.registerNewTopic(topicName, msg.GetStreamID())
 	}
 
-	serializedOriginal, err := msg.SerializeOriginal()
+	serializedMsg, err := msg.Serialize()
 	if err != nil {
 		prod.Logger.Error(err)
 	}
 
 	kafkaMsg := &messageWrapper{
 		value: msg.GetPayload(),
-		user:  serializedOriginal,
+		user:  serializedMsg,
 	}
 
 	if metadata := msg.TryGetMetadata(); metadata != nil {

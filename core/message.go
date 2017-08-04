@@ -24,7 +24,7 @@ import (
 // The struct is used by Message.data for the current message data and orig for the original message data
 type MessageData struct {
 	payload  []byte
-	Metadata Metadata
+	metadata Metadata
 }
 
 // Message is a container used for storing the internal state of messages.
@@ -57,7 +57,7 @@ func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID M
 
 	msg.data.payload = getPayloadCopy(data)
 	if metadata != nil && len(metadata) > 0 {
-		msg.data.Metadata = metadata
+		msg.data.metadata = metadata
 	}
 
 	return msg
@@ -138,16 +138,16 @@ func (msg *Message) GetPayload() []byte {
 // GetMetadata returns the current Metadata. If no metadata is present, the
 // metadata map will be created by this call.
 func (msg *Message) GetMetadata() Metadata {
-	if msg.data.Metadata == nil {
-		msg.data.Metadata = make(Metadata)
+	if msg.data.metadata == nil {
+		msg.data.metadata = make(Metadata)
 	}
-	return msg.data.Metadata
+	return msg.data.metadata
 }
 
 // TryGetMetadata returns the current Metadata. If no metadata is present, nil
 // will be returned.
 func (msg *Message) TryGetMetadata() Metadata {
-	return msg.data.Metadata
+	return msg.data.metadata
 }
 
 // StorePayload copies data into the hold data buffer. If the buffer can hold
@@ -209,10 +209,10 @@ func (msg *Message) CloneOriginal() *Message {
 	clone.data.payload = MessageDataPool.Get(len(msg.orig.payload))
 	copy(clone.data.payload, msg.orig.payload)
 
-	if msg.orig.Metadata == nil {
-		clone.data.Metadata = msg.orig.Metadata.Clone()
+	if msg.orig.metadata == nil {
+		clone.data.metadata = msg.orig.metadata.Clone()
 	} else {
-		clone.data.Metadata = nil
+		clone.data.metadata = nil
 	}
 
 	clone.SetStreamID(msg.origStreamID)
@@ -231,13 +231,13 @@ func (msg *Message) FreezeOriginal() {
 	}
 
 	var metadata Metadata
-	if msg.data.Metadata != nil {
-		metadata = msg.data.Metadata.Clone()
+	if msg.data.metadata != nil {
+		metadata = msg.data.metadata.Clone()
 	}
 
 	msg.orig = &MessageData{
 		payload:  getPayloadCopy(msg.data.payload),
-		Metadata: metadata,
+		metadata: metadata,
 	}
 }
 
@@ -246,23 +246,22 @@ func (msg *Message) FreezeOriginal() {
 // serialized data is based on the current message state and does not perserve
 // the original data created by FreezeOriginal.
 func (msg *Message) Serialize() ([]byte, error) {
-	return msg.data.serialize(msg)
-}
-
-// SerializeOriginal generates a new payload containing all data that can be
-// preserved over shutdown (i.e. no data directly referencing runtime
-// components). The serialized data is based on the original message.
-func (msg *Message) SerializeOriginal() ([]byte, error) {
-	return msg.orig.serialize(msg)
-}
-
-func (data MessageData) serialize(msg *Message) ([]byte, error) {
 	serializable := &SerializedMessage{
 		StreamID:     proto.Uint64(uint64(msg.streamID)),
 		PrevStreamID: proto.Uint64(uint64(msg.prevStreamID)),
+		OrigStreamID: proto.Uint64(uint64(msg.origStreamID)),
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
-		Data:         data.payload,
-		Metadata:     data.Metadata,
+		Data: &SerializedMessageData{
+			Data:     msg.data.payload,
+			Metadata: msg.data.metadata,
+		},
+	}
+
+	if msg.orig != nil {
+		serializable.Original = &SerializedMessageData{
+			Data:     msg.orig.payload,
+			Metadata: msg.orig.metadata,
+		}
 	}
 
 	return proto.Marshal(serializable)
@@ -273,16 +272,26 @@ func (data MessageData) serialize(msg *Message) ([]byte, error) {
 // data is not. As of this FreezeOriginal can be called again after this call.
 func DeserializeMessage(data []byte) (*Message, error) {
 	serializable := new(SerializedMessage)
-	err := proto.Unmarshal(data, serializable)
+	if err := proto.Unmarshal(data, serializable); err != nil {
+		return nil, err
+	}
 
 	msg := &Message{
+		streamID:     MessageStreamID(serializable.GetStreamID()),
 		prevStreamID: MessageStreamID(serializable.GetPrevStreamID()),
+		origStreamID: MessageStreamID(serializable.GetOrigStreamID()),
 		timestamp:    time.Unix(0, serializable.GetTimestamp()),
 	}
 
-	msg.streamID = MessageStreamID(serializable.GetStreamID())
-	msg.data.payload = serializable.GetData()
-	msg.data.Metadata = serializable.GetMetadata()
+	if msgData := serializable.GetData(); msgData != nil {
+		msg.data.payload = msgData.GetData()
+		msg.data.metadata = msgData.GetMetadata()
+	}
 
-	return msg, err
+	if msgOrigData := serializable.GetOriginal(); msgOrigData != nil {
+		msg.orig.payload = msgOrigData.GetData()
+		msg.orig.metadata = msgOrigData.GetMetadata()
+	}
+
+	return msg, nil
 }
