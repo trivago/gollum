@@ -6,5 +6,6 @@
 
     /src/gen/router/broadcast.rst
     /src/gen/router/distribute.rst
+    /src/gen/router/metadata.rst
     /src/gen/router/random.rst
     /src/gen/router/roundrobin.rst

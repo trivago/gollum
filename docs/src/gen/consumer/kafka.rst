@@ -142,6 +142,14 @@ Parameters
   
   
 
+**DefaultFetchSizeByte**
+
+  Defines the average amout of data to fetch per
+  request. This value must be greater than 0.
+  By default this parameter is set to 32768.
+  
+  
+
 **FetchTimeoutMs**
 
   Defines the time in milliseconds to wait on reaching
