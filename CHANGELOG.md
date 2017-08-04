@@ -6,6 +6,10 @@ Gollum 0.5.0 contains major breaking changes in all areas.
 Configuration files working with Gollum 0.4.x will not work with this verison unless changed.
 Please have a look at the [transition guide](http://gollum.readthedocs.io/en/latest/src/releaseNotes/v0.5.0.html#breaking-changes-0-4-x-to-0-5-0) for details.
 
+Important note:
+When switching a pipline from 0.4.x to 0.5.0, make sure all spooling data has been read.
+Messages serialized to disk with 0.4.x are not compatible with 0.5.0.
+
 ### New with 0.5.0
 
 * Filters and Formatters have been merged into one list
@@ -65,6 +69,7 @@ Please have a look at the [transition guide](http://gollum.readthedocs.io/en/lat
 * Formatters can still the stream of a message but cannot trigger routing by themselves
 * Compiling contrib plugins now requires a specific loader.go to be added
 * The docker file on docker hub is now a lot smaller and only contains the gollum binary
+* The message serialization format has been changed
 
 ## 0.4.5
 
