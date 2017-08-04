@@ -7,14 +7,14 @@ Gollum provide various metrics which can be used for monitoring or controlling.
 Collecting metrics
 ------------------
 
-To collect metrics you need to start the gollum process with the `-m <port>` option_.
-If gollum is running with the `-m` option you are able to get all collected metrics by a tcp request in
+To collect metrics you need to start the gollum process with the `"-m <address:port>"` option_.
+If gollum is running with the `"-m"` option you are able to get all collected metrics by a tcp request in
 json format.
 
 .. _option: http://gollum.readthedocs.io/en/latest/src/instructions/usage.html#commandline
 
 
-Example:
+Example request:
 
 .. code-block:: bash
 
