@@ -106,23 +106,18 @@ func (msg *Message) GetOrigRouter() Router {
 }
 
 // SetStreamID sets a new stream and stores the current one in the previous
-// stream field. If the previous stream is invalid and the new stream is not,
-// the new stream will become the original stream.
+// stream field. This method does not affect the original stream ID.
 func (msg *Message) SetStreamID(streamID MessageStreamID) {
-	if streamID != InvalidStreamID && msg.streamID == InvalidStreamID {
-		msg.origStreamID = streamID
-	}
 	msg.prevStreamID = msg.streamID
 	msg.streamID = streamID
 }
 
-// SetOriginalStreamID acts like SetStreamID but always sets the original stream
-// ID, too. This method should be used before a message is routed for the first
+// SetlStreamIDAsOriginal acts like SetStreamID but always sets the original
+// stream ID, too. This method should be used before a message is routed for the first
 // time (e.g. in a consumer) or when the original stream should change.
-func (msg *Message) SetOriginalStreamID(streamID MessageStreamID) {
+func (msg *Message) SetlStreamIDAsOriginal(streamID MessageStreamID) {
+	msg.SetStreamID(streamID)
 	msg.origStreamID = streamID
-	msg.prevStreamID = msg.streamID
-	msg.streamID = streamID
 }
 
 // GetSource returns the message's source (can be nil).
