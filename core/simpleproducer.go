@@ -76,7 +76,8 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) {
 	//   Path: "/<plugin_id>/pluginState"
 	prod.AddHealthCheckAt("/pluginState", func() (code int, body string) {
 		if prod.IsActive() {
-			return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", prod.GetStateString())
+			return thealthcheck.StatusOK,
+				fmt.Sprintf("ACTIVE: %s", prod.GetStateString())
 		}
 		return thealthcheck.StatusServiceUnavailable,
 			fmt.Sprintf("NOT_ACTIVE: %s", prod.GetStateString())

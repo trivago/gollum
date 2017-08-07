@@ -5,7 +5,7 @@ Gollum provide optional http endpoints for health checks.
 
 To activate the health check endpoints you need to start the gollum process with the `"-hc <address:port>"` option_.
 If gollum is running with the `"-hc"` option you are able to request different http endpoints
-to get global and plugin health status.
+to get global- and plugin health status.
 
 .. _option: http://gollum.readthedocs.io/en/latest/src/instructions/usage.html#commandline
 
@@ -36,10 +36,10 @@ Response:
     Content-Length: 191
     Content-Type: text/plain; charset=utf-8
 
-    /Benchmark/pluginState 200 ACTIVE: Active
-    /Profiler-C1/pluginState 200 ACTIVE: Active
-    /Profiler-C2/pluginState 200 ACTIVE: Active
-    /Profiler-C3/pluginState 200 ACTIVE: Active
+    /pluginID-A/pluginState 200 ACTIVE: Active
+    /pluginID-B/pluginState 200 ACTIVE: Active
+    /pluginID-C/pluginState 200 ACTIVE: Active
+    /pluginID-D/pluginState 200 ACTIVE: Active
     /_PING_ 200 PONG
 
 
@@ -62,14 +62,14 @@ Response:
 
     PONG
 
-**/<PLUGIN_NAME>/pluginState**
+**/<PLUGIN_ID>/pluginState**
 
 Request:
 
 .. code-block:: bash
 
     # example request with active `producer.benchmark`
-    curl -i 127.0.0.1:8080/Benchmark/pluginState
+    curl -i 127.0.0.1:8080/pluginID-A/pluginState
 
 Response:
 
