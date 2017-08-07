@@ -15,6 +15,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
@@ -91,6 +92,16 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	} else {
 		cons.enqueueMessage = cons.directEnqueue
 	}
+
+	// Simple health check for the plugin state
+	//   Path: "/<plugin_id>/pluginState"
+	cons.AddHealthCheckAt("/pluginState", func() (code int, body string) {
+		if cons.IsActive() {
+			return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", cons.GetStateString())
+		}
+		return thealthcheck.StatusServiceUnavailable,
+			fmt.Sprintf("NOT_ACTIVE: %s", cons.GetStateString())
+	})
 }
 
 // GetLogger returns the logger scoped to this plugin
@@ -108,6 +119,11 @@ func (cons *SimpleConsumer) AddHealthCheck(callback thealthcheck.CallbackFunc) {
 // (http://<addr>:<port>/<plugin_id><path>)
 func (cons *SimpleConsumer) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
 	thealthcheck.AddEndpoint("/"+cons.GetID()+path, callback)
+}
+
+// GetStateString returns the name of state this plugin is currently in
+func (cons *SimpleConsumer) GetStateString() string {
+	return stateToDescription[cons.runState.GetState()]
 }
 
 // GetID returns the ID of this consumer
