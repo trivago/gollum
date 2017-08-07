@@ -243,7 +243,7 @@ func (msg *Message) FreezeOriginal() {
 
 // Serialize generates a new payload containing all data that can be preserved
 // over shutdown (i.e. no data directly referencing runtime components). The
-// serialized data is based on the current message state and does not perserve
+// serialized data is based on the current message state and does not preserve
 // the original data created by FreezeOriginal.
 func (msg *Message) Serialize() ([]byte, error) {
 	serializable := &SerializedMessage{

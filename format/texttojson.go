@@ -83,7 +83,7 @@ const (
 // * Writing a key while writing array elements will close the array.
 //
 // - Directive flags: Flags can modify the parser behavior and can be used to
-// store values on a stack accross multiple directives.
+// store values on a stack across multiple directives.
 //
 //  - continue: Prepend the token to the next match.
 //

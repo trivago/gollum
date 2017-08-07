@@ -53,7 +53,7 @@ const (
 //
 // Parameters
 //
-// - Servers: Defines the list of all kafka brokers to initally connect to when
+// - Servers: Defines the list of all kafka brokers to initially connect to when
 // querying topic metadata. This list requires at least one borker to work and
 // ideally contains all the brokers in the cluster.
 // By default this parameter is set to ["localhost:9092"].
