@@ -50,7 +50,7 @@ import (
 // name. You can e.g. use "default-2006-01-02" to switch databases each day.
 // By default this parameter is set to "true".
 //
-// - RetentionPolicy: Only avaialble for Version 90. This setting defines the
+// - RetentionPolicy: Only available for Version 90. This setting defines the
 // InfluxDB retention policy allowed with this protocol version.
 // By default this parameter is set to "".
 //

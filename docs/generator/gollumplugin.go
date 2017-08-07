@@ -156,7 +156,7 @@ func getGollumPluginConfigParams(fieldList *ast.FieldList) DefinitionList {
 		if paramName, found := tags["config"]; found {
 			results.add(&Definition{
 				name: paramName,
-				// Default description if not overriden in the plugin's comment block
+				// Default description if not overridden in the plugin's comment block
 				desc: "(no documentation available)",
 				dfl:  tags["default"],
 				unit: tags["metric"],

@@ -36,7 +36,7 @@ import (
 // found the current timestamp is assumed.
 // By default this parameter is set to "time".
 //
-// - TimeFormat: Specifices the format of the time field as in go's time.Parse
+// - TimeFormat: Specifies the format of the time field as in go's time.Parse
 // or "unix" if the field contains a valid unix timestamp.
 // By default this parameter is set to "unix".
 //
