@@ -79,7 +79,7 @@ const (
 // performance impact on systems with high throughput.
 // By default this parameter is set to "false".
 //
-// - DefaultOffset: Defines the inital offest when starting to read the topic.
+// - DefaultOffset: Defines the initial offest when starting to read the topic.
 // Valid values are "oldest" and "newest". If OffsetFile
 // is defined and the file exists, the DefaultOffset parameter is ignored.
 // If GroupId is defined, this setting will only be used for the first request.
