@@ -17,6 +17,7 @@ package core
 import (
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -38,6 +39,8 @@ type testPluginAutoConfig struct {
 	ModulatorArray ModulatorArray    `config:"modulatorArray"`
 	FilterArray    FilterArray       `config:"filterArray"`
 	FormatterArray FormatterArray    `config:"formatterArray"`
+	URLValue       *url.URL          `config:"urlValue"`
+	NoURLValue     *url.URL          `config:"NoUrlValue"`
 }
 
 func (t *testPluginAutoConfig) Configure(conf PluginConfigReader) {
@@ -82,6 +85,8 @@ func TestConfigReaderAutoConfig(t *testing.T) {
 		map[interface{}]interface{}{"core.mockFormatter": tcontainer.NewMarshalMap()},
 		map[interface{}]interface{}{"core.mockFormatter": tcontainer.NewMarshalMap()},
 	}
+	values["URLValue"] = "http://bing.com/search?q=dotnet"
+	values["NoURLValue"] = ""
 
 	config, err := NewNestedPluginConfig("core.mockPlugin", values)
 	expect.NoError(err)
@@ -102,6 +107,8 @@ func TestConfigReaderAutoConfig(t *testing.T) {
 	expect.Equal([]byte("bytes"), myStruct.ByteArray)
 	expect.Equal(GetStreamID("test"), myStruct.StreamValue)
 	expect.Equal([]MessageStreamID{GetStreamID("foo"), GetStreamID("bar")}, myStruct.StreamArray)
+	expect.Equal("http://bing.com/search?q=dotnet", myStruct.URLValue.String())
+	expect.Nil(myStruct.NoURLValue)
 
 	expect.NotNil(myStruct.Router)
 	expect.Equal(&testRouter, myStruct.Router)

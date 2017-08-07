@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/tstrings"
+	"net/url"
 )
 
 // PluginConfigReaderWithError is a read-only wrapper on top of a plugin config
@@ -79,6 +80,23 @@ func (reader PluginConfigReaderWithError) GetString(key string, defaultValue str
 		return tstrings.Unescape(value), err
 	}
 	return defaultValue, nil
+}
+
+// GetURL tries to read an URL struct from a PluginConfig.
+// If that value is not found nil is returned.
+func (reader PluginConfigReaderWithError) GetURL(key string, defaultValue string) (*url.URL, error) {
+	value, err := reader.GetString(key, defaultValue)
+	if err != nil {
+		return nil, err
+	}
+	if value == "" {
+		return nil, nil
+	}
+	urlValue, err := url.Parse(value)
+	if err != nil {
+		return nil, err
+	}
+	return urlValue, nil
 }
 
 // GetInt tries to read a integer value from a PluginConfig.
