@@ -87,8 +87,8 @@ func TestStreamRegistryWildcardProducer(t *testing.T) {
 	// WildcardProducersExist()
 	expect.False(mockSRegistry.WildcardProducersExist())
 
-	producer1 := new(mockProducer)
-	producer2 := new(mockProducer)
+	producer1 := new(mockBufferedProducer)
+	producer2 := new(mockBufferedProducer)
 
 	mockSRegistry.RegisterWildcardProducer(producer1, producer2)
 
@@ -103,7 +103,7 @@ func TestStreamRegistryAddWildcardProducersToStream(t *testing.T) {
 	mockRouter := getMockRouter()
 
 	// create wildcardProducer.
-	mProducer := new(mockProducer)
+	mProducer := new(mockBufferedProducer)
 	// adding fallbackStreamID to verify the producer later.
 	mProducer.fallbackStream = StreamRegistry.GetRouter(StreamRegistry.GetStreamID("wildcardProducerDrop"))
 	mockSRegistry.RegisterWildcardProducer(mProducer)
