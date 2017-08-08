@@ -97,10 +97,10 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	//   Path: "/<plugin_id>/pluginState"
 	cons.AddHealthCheckAt("/pluginState", func() (code int, body string) {
 		if cons.IsActive() {
-			return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", cons.GetStateString())
+			return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", cons.runState.GetStateString())
 		}
 		return thealthcheck.StatusServiceUnavailable,
-			fmt.Sprintf("NOT_ACTIVE: %s", cons.GetStateString())
+			fmt.Sprintf("NOT_ACTIVE: %s", cons.runState.GetStateString())
 	})
 }
 
@@ -109,21 +109,10 @@ func (cons *SimpleConsumer) GetLogger() logrus.FieldLogger {
 	return cons.Logger
 }
 
-// AddHealthCheck a health check at the default URL
-// (http://<addr>:<port>/<plugin_id>)
-func (cons *SimpleConsumer) AddHealthCheck(callback thealthcheck.CallbackFunc) {
-	cons.AddHealthCheckAt("", callback)
-}
-
 // AddHealthCheckAt adds a health check at a subpath
 // (http://<addr>:<port>/<plugin_id><path>)
 func (cons *SimpleConsumer) AddHealthCheckAt(path string, callback thealthcheck.CallbackFunc) {
 	thealthcheck.AddEndpoint("/"+cons.GetID()+path, callback)
-}
-
-// GetStateString returns the name of state this plugin is currently in
-func (cons *SimpleConsumer) GetStateString() string {
-	return stateToDescription[cons.runState.GetState()]
 }
 
 // GetID returns the ID of this consumer

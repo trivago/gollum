@@ -122,6 +122,11 @@ func (state *PluginRunState) GetState() PluginState {
 	return PluginState(atomic.LoadInt32(&state.state))
 }
 
+// GetStateString returns the current state as string
+func (state *PluginRunState) GetStateString() string {
+	return stateToDescription[state.GetState()]
+}
+
 // SetState sets a new plugin state casted to the correct type
 func (state *PluginRunState) SetState(nextState PluginState) {
 	prevState := PluginState(atomic.SwapInt32(&state.state, int32(nextState)))
