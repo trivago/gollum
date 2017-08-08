@@ -24,19 +24,19 @@ import (
 	"time"
 )
 
-type mockProducer struct {
+type mockBufferedProducer struct {
 	BufferedProducer
 }
 
-func (prod *mockProducer) Configure(conf PluginConfigReader) {
+func (prod *mockBufferedProducer) Configure(conf PluginConfigReader) {
 }
 
-func (prod *mockProducer) Produce(workers *sync.WaitGroup) {
+func (prod *mockBufferedProducer) Produce(workers *sync.WaitGroup) {
 	// does something.
 }
 
-func getMockProducer() mockProducer {
-	return mockProducer{
+func getMockBufferedProducer() mockBufferedProducer {
+	return mockBufferedProducer{
 		BufferedProducer{
 			DirectProducer: DirectProducer{
 				SimpleProducer: SimpleProducer{
@@ -58,9 +58,9 @@ func getMockProducer() mockProducer {
 func TestProducerConfigure(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	mockProducer := mockProducer{}
+	mockProducer := mockBufferedProducer{}
 
-	mockConf := NewPluginConfig("mock", "mockProducer")
+	mockConf := NewPluginConfig("mock", "mockBufferedProducer")
 	mockConf.Override("routers", []string{"testBoundStream"})
 	mockConf.Override("FallbackStream", "mockStream")
 
@@ -75,7 +75,7 @@ func TestProducerConfigure(t *testing.T) {
 func TestProducerState(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	mockProducer := mockProducer{}
+	mockProducer := mockBufferedProducer{}
 	mockProducer.runState = new(PluginRunState)
 	mockProducer.setState(PluginStateActive)
 	expect.Equal(PluginStateActive, mockProducer.GetState())
@@ -93,7 +93,7 @@ func TestProducerState(t *testing.T) {
 func TestProducerCallback(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	mockProducer := mockProducer{}
+	mockProducer := mockBufferedProducer{}
 	rollBackCalled := false
 
 	rollCallBack := func() {
@@ -121,7 +121,7 @@ func TestProducerWaitgroup(t *testing.T) {
 func TestProducerEnqueue(t *testing.T) {
 	// TODO: distribute for drop route not called. Probably routers array contains soln
 	expect := ttesting.NewExpect(t)
-	mockP := getMockProducer()
+	mockP := getMockBufferedProducer()
 
 	mockDropStream := getMockRouter()
 	mockDropStream.streamID = 2
@@ -156,7 +156,7 @@ func TestProducerEnqueue(t *testing.T) {
 
 func TestProducerCloseMessageChannel(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockP := getMockProducer()
+	mockP := getMockBufferedProducer()
 
 	mockP.setState(PluginStateActive)
 
@@ -170,7 +170,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 	}
 
 	mockDropStream := getMockRouter()
-	mockDropStream.AddProducer(&mockProducer{})
+	mockDropStream.AddProducer(&mockBufferedProducer{})
 	mockDropStream.streamID = 2
 
 	StreamRegistry.name[2] = "testStream"
@@ -190,7 +190,7 @@ func TestProducerCloseMessageChannel(t *testing.T) {
 
 func TestProducerTickerLoop(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockP := getMockProducer()
+	mockP := getMockBufferedProducer()
 	mockP.setState(PluginStateActive)
 	// accept timeroff by abs( 15ms)
 	delta := float64(15 * time.Millisecond)
@@ -224,7 +224,7 @@ func TestProducerTickerLoop(t *testing.T) {
 
 func TestProducerMessageLoop(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockP := getMockProducer()
+	mockP := getMockBufferedProducer()
 	mockP.setState(PluginStateActive)
 	mockP.messages = NewMessageQueue(10)
 	msgData := "test Message loop"
@@ -249,7 +249,7 @@ func TestProducerMessageLoop(t *testing.T) {
 
 func TestProducerControlLoop(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockP := getMockProducer()
+	mockP := getMockBufferedProducer()
 
 	stop := new(int32)
 	roll := new(int32)
