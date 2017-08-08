@@ -19,6 +19,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 type TypeMockA struct {
@@ -39,6 +40,18 @@ func (router *TypeMockB) Start() error {
 
 func (router *TypeMockB) Enqueue(msg *Message) error {
 	return nil
+}
+
+type TypeMockC struct {
+	SimpleProducer
+}
+
+func (mock *TypeMockC) Produce(workers *sync.WaitGroup) {
+	//do something
+}
+
+func (mock *TypeMockC) Enqueue(msg *Message, timeout time.Duration) {
+	//do something
 }
 
 func TestReadConfig(t *testing.T) {
@@ -111,4 +124,41 @@ func TestValidateFailure(t *testing.T) {
 
 	err = conf.Validate()
 	expect.NotNil(err)
+}
+
+func TestConfigGetPluginTypeMethods(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	testConfig := []byte("consumerId: {Type: core.TypeMockA, Streams: foo}\nrouterId: {Type: core.TypeMockB, Stream: foo}\nproducerId: {Type: core.TypeMockC, Streams: foo}")
+
+	TypeRegistry.Register(TypeMockA{})
+	TypeRegistry.Register(TypeMockB{})
+	TypeRegistry.Register(TypeMockC{})
+
+	conf, err := ReadConfig(testConfig)
+	expect.NoError(err)
+
+	consumers := conf.GetConsumers()
+	expect.Equal(1, len(consumers))
+
+	for _, pluginConf := range consumers {
+		expect.Equal("consumerId", pluginConf.ID)
+		expect.Equal("core.TypeMockA", pluginConf.Typename)
+	}
+
+	producers := conf.GetProducers()
+	expect.Equal(1, len(producers))
+
+	for _, pluginConf := range producers {
+		expect.Equal("producerId", pluginConf.ID)
+		expect.Equal("core.TypeMockC", pluginConf.Typename)
+	}
+
+	routers := conf.GetRouters()
+	expect.Equal(1, len(routers))
+
+	for _, pluginConf := range routers {
+		expect.Equal("routerId", pluginConf.ID)
+		expect.Equal("core.TypeMockB", pluginConf.Typename)
+	}
 }
