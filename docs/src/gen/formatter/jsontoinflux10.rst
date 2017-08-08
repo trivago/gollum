@@ -23,7 +23,7 @@ Parameters
 
 **TimeFormat**
 
-  Specifices the format of the time field as in go's time.Parse
+  Specifies the format of the time field as in go's time.Parse
   or "unix" if the field contains a valid unix timestamp.
   By default this parameter is set to "unix".
   

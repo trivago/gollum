@@ -66,7 +66,7 @@ Parameters
 
 **RetentionPolicy**
 
-  Only avaialble for Version 90. This setting defines the
+  Only available for Version 90. This setting defines the
   InfluxDB retention policy allowed with this protocol version.
   By default this parameter is set to "".
   
@@ -96,6 +96,46 @@ Parameters (from core.BatchedProducer)
   Defines the maximum time in seconds messages can stay in
   the internal buffer before being flushed.
   By default this parameter is set to 5.
+  
+  
+
+Parameters (from core.SimpleProducer)
+-------------------------------------
+
+**Streams**
+
+  Defines a list of streams the producer will receive from. This
+  parameter is mandatory. Specifying "*" causes the producer to receive messages
+  from all streams except internal internal ones (e.g. _GOLLUM_).
+  By default this parameter is set to an empty list.
+  
+  
+
+**FallbackStream**
+
+  Defines a stream to route messages to if delivery fails.
+  The message is reset to its original state before being routed, i.e. all
+  modifications done to the message after leaving the consumer are removed.
+  Setting this paramater to "" will cause messages to be discared when delivery
+  fails.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a producer is
+  allowed to take to shut down. After this timeout the producer is always
+  considered to have shut down.  Decreasing this value may lead to lost
+  messages during shutdown. Raising it may increase shutdown time.
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message when
+  it arrives at this producer. If a modulator changes the stream of a message
+  the message is NOT routed to this stream anymore.
+  By default this parameter is set to an empty list.
   
   
 

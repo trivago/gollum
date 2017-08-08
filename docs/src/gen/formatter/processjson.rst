@@ -24,7 +24,7 @@ Parameters
 
 **TrimValues** (default: true)
 
-  Allows trimming of whitespaces from the beggining and end of
+  Allows trimming of whitespaces from the beginning and end of
   each value after processing took place.
   By default this parameter is set to true.
   

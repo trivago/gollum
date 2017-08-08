@@ -37,7 +37,7 @@ Parameters
 
 **Servers**
 
-  Defines the list of all kafka brokers to initally connect to when
+  Defines the list of all kafka brokers to initially connect to when
   querying topic metadata. This list requires at least one borker to work and
   ideally contains all the brokers in the cluster.
   By default this parameter is set to ["localhost:9092"].
@@ -87,7 +87,7 @@ Parameters
 
 **DefaultOffset**
 
-  Defines the inital offest when starting to read the topic.
+  Defines the initial offest when starting to read the topic.
   Valid values are "oldest" and "newest". If OffsetFile
   is defined and the file exists, the DefaultOffset parameter is ignored.
   If GroupId is defined, this setting will only be used for the first request.

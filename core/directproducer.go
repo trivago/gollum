@@ -23,8 +23,8 @@ import (
 // This type defines a common baseclass for producers.
 //
 type DirectProducer struct {
-	SimpleProducer
-	onMessage func(*Message)
+	SimpleProducer `gollumdoc:"embed_type"`
+	onMessage      func(*Message)
 }
 
 // Configure initializes the standard producer config values.
