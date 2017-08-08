@@ -61,7 +61,7 @@ func TestProducerConfigure(t *testing.T) {
 	mockProducer := mockBufferedProducer{}
 
 	mockConf := NewPluginConfig("mock", "mockBufferedProducer")
-	mockConf.Override("routers", []string{"testBoundStream"})
+	mockConf.Override("streams", []string{"testBoundStream"})
 	mockConf.Override("FallbackStream", "mockStream")
 
 	// Router needs to be configured to avoid unknown class errors
