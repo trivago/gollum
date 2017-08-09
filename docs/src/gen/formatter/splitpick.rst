@@ -39,6 +39,14 @@ Parameters (from core.SimpleFormatter)
   
   
 
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
+  
+  
+
 Examples
 --------
 
