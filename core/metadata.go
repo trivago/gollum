@@ -41,6 +41,12 @@ func (meta Metadata) Delete(key string) {
 	delete(meta, key)
 }
 
+// HasValue returns true if the given key exists
+func (meta Metadata) HasValue(key string) bool {
+	_, exists := meta[key]
+	return exists
+}
+
 // Clone Metadata byte values to new Metadata map
 func (meta Metadata) Clone() (clone Metadata) {
 	clone = Metadata{}

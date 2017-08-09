@@ -41,7 +41,15 @@ func (formatterModulator *FormatterModulator) Modulate(msg *Message) ModulateRes
 	return ModulateResultContinue
 }
 
+// CanBeApplied returns true if the array is not empty
+func (formatterModulator *FormatterModulator) CanBeApplied(msg *Message) bool {
+	return formatterModulator.Formatter.CanBeApplied(msg)
+}
+
 // ApplyFormatter calls the Formatter.ApplyFormatter method
 func (formatterModulator *FormatterModulator) ApplyFormatter(msg *Message) error {
-	return formatterModulator.Formatter.ApplyFormatter(msg)
+	if formatterModulator.CanBeApplied(msg) {
+		return formatterModulator.Formatter.ApplyFormatter(msg)
+	}
+	return nil
 }

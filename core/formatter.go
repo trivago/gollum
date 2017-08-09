@@ -18,17 +18,24 @@ package core
 // A Formatter also have to implement the modulator interface
 type Formatter interface {
 	ApplyFormatter(msg *Message) error
+	CanBeApplied(msg *Message) bool
 }
 
 // FormatterArray is a type wrapper to []Formatter to make array of formatter
 type FormatterArray []Formatter
 
+// CanBeApplied returns true if the array is not empty
+func (formatters FormatterArray) CanBeApplied(msg *Message) bool {
+	return len(formatters) > 0
+}
+
 // ApplyFormatter calls ApplyFormatter on every formatter
 func (formatters FormatterArray) ApplyFormatter(msg *Message) error {
 	for _, formatter := range formatters {
-		err := formatter.ApplyFormatter(msg)
-		if err != nil {
-			return err
+		if formatter.CanBeApplied(msg) {
+			if err := formatter.ApplyFormatter(msg); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
