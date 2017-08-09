@@ -26,16 +26,7 @@ func (e FGaugeDelta) Payload() interface{} {
 
 // Stats returns an array of StatsD events as they travel over UDP
 func (e FGaugeDelta) Stats() []string {
-	if e.Value < 0 {
-		// because a leading '+' or '-' in the value of a gauge denotes a delta, to send
-		// a negative gauge value we first set the gauge absolutely to 0, then send the
-		// negative value as a delta from 0 (that's just how the spec works :-)
-		return []string{
-			fmt.Sprintf("%s:%d|g", e.Name, 0),
-			fmt.Sprintf("%s:%g|g", e.Name, e.Value),
-		}
-	}
-	return []string{fmt.Sprintf("%s:%g|g", e.Name, e.Value)}
+	return []string{fmt.Sprintf("%s:%+g|g", e.Name, e.Value)}
 }
 
 // Key returns the name of this metric

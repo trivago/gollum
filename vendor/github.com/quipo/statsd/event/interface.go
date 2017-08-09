@@ -25,3 +25,17 @@ type Event interface {
 	Key() string
 	SetKey(string)
 }
+
+// compile-time assertion to verify default events implement the Event interface
+func _() {
+	var _ Event = (*Absolute)(nil)        // assert *Absolute implements Event
+	var _ Event = (*FAbsolute)(nil)       // assert *FAbsolute implements Event
+	var _ Event = (*Gauge)(nil)           // assert *Gauge implements Event
+	var _ Event = (*FGauge)(nil)          // assert *FGauge implements Event
+	var _ Event = (*GaugeDelta)(nil)      // assert *GaugeDelta implements Event
+	var _ Event = (*FGaugeDelta)(nil)     // assert *FGaugeDelta implements Event
+	var _ Event = (*Increment)(nil)       // assert *Increment implements Event
+	var _ Event = (*PrecisionTiming)(nil) // assert *PrecisionTiming implements Event
+	var _ Event = (*Timing)(nil)          // assert *Timing implements Event
+	var _ Event = (*Total)(nil)           // assert *Total implements Event
+}

@@ -192,15 +192,18 @@ func NeighborsIntWithPrecision(hash uint64, bits uint) []uint64 {
 	}
 }
 
+// precalculated for performance
+var exp232 = math.Exp2(32)
+
 // Encode the position of x within the range -r to +r as a 32-bit integer.
 func encodeRange(x, r float64) uint32 {
 	p := (x + r) / (2 * r)
-	return uint32(p * math.Exp2(32))
+	return uint32(p * exp232)
 }
 
 // Decode the 32-bit range encoding X back to a value in the range -r to +r.
 func decodeRange(X uint32, r float64) float64 {
-	p := float64(X) / math.Exp2(32)
+	p := float64(X) / exp232
 	x := 2*r*p - r
 	return x
 }

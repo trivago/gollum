@@ -4,6 +4,8 @@ package statsd
 
 import (
 	"time"
+
+	"github.com/quipo/statsd/event"
 )
 
 // NoopClient implements a "no-op" statsd in case there is no statsd server
@@ -76,5 +78,10 @@ func (s NoopClient) FGaugeDelta(stat string, value float64) error {
 
 // FAbsolute does nothing
 func (s NoopClient) FAbsolute(stat string, value float64) error {
+	return nil
+}
+
+// SendEvents does nothing
+func (s NoopClient) SendEvents(events map[string]event.Event) error {
 	return nil
 }

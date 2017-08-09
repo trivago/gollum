@@ -15,7 +15,7 @@ func (e *FGauge) Update(e2 Event) error {
 	if e.Type() != e2.Type() {
 		return fmt.Errorf("statsd event type conflict: %s vs %s ", e.String(), e2.String())
 	}
-	e.Value += e2.Payload().(float64)
+	e.Value = e2.Payload().(float64)
 	return nil
 }
 
