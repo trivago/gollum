@@ -5,12 +5,12 @@ If this is a bug fix, make sure your description includes "fixes #xxxx", or
 Please provide the following information:
 -->
 
-## For what is this pull request
+## The purpose of this pull request
 
 <!-- Please describe what this pull request fix or change -->
 
 
-## Config to verify:
+## Config to verify
 
 <!--- Provide a config to verify/test this pull request -->
 
