@@ -56,7 +56,7 @@ const (
 // version is chosen. If GroupId is set to a value < "0.9", "0.9.0.1" will be used.
 // By default this parameter is set to "0.8.2".
 //
-// - Topic: Defines a stream to topic mapping. If a stream is not mapped the
+// - Topics: Defines a stream to topic mapping. If a stream is not mapped the
 // stream name is used as topic. You can define the wildcard stream (*) here,
 // too. If defined, all streams that do not have a specific mapping will go to
 // this topic (including _GOLLUM_).

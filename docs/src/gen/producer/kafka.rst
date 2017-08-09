@@ -36,7 +36,7 @@ Parameters
   
   
 
-**Topic**
+**Topics**
 
   Defines a stream to topic mapping. If a stream is not mapped the
   stream name is used as topic. You can define the wildcard stream (*) here,
