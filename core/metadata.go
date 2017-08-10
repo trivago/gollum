@@ -22,7 +22,17 @@ func (meta Metadata) SetValue(key string, value []byte) {
 	meta[key] = value
 }
 
-// GetValue returns a meta data value by key
+// TrySetValue sets a key value pair only if the key is already existing
+func (meta Metadata) TrySetValue(key string, value []byte) bool {
+	if _, exists := meta[key]; exists {
+		meta[key] = value
+		return true
+	}
+	return false
+}
+
+// GetValue returns a meta data value by key. This function returns a value if
+// key is not set, too. In that case it will return an empty byte array.
 func (meta Metadata) GetValue(key string) []byte {
 	if value, isSet := meta[key]; isSet {
 		return value
@@ -31,23 +41,32 @@ func (meta Metadata) GetValue(key string) []byte {
 	return []byte{}
 }
 
-// GetValueString returns the meta value by GetValue as string
+// TryGetValue behaves like GetValue but returns a second value which denotes
+// if the key was set or not.
+func (meta Metadata) TryGetValue(key string) ([]byte, bool) {
+	if value, isSet := meta[key]; isSet {
+		return value, true
+	}
+	return []byte{}, false
+}
+
+// GetValueString casts the results of GetValue to a string
 func (meta Metadata) GetValueString(key string) string {
 	return string(meta.GetValue(key))
 }
 
-// Delete delete a meta data value by key
+// TryGetValueString casts the data result of TryGetValue to string
+func (meta Metadata) TryGetValueString(key string) (string, bool) {
+	data, exists := meta.TryGetValue(key)
+	return string(data), exists
+}
+
+// Delete removes the given key from the map
 func (meta Metadata) Delete(key string) {
 	delete(meta, key)
 }
 
-// HasValue returns true if the given key exists
-func (meta Metadata) HasValue(key string) bool {
-	_, exists := meta[key]
-	return exists
-}
-
-// Clone Metadata byte values to new Metadata map
+// Clone creates an exact copy of this metadata map.
 func (meta Metadata) Clone() (clone Metadata) {
 	clone = Metadata{}
 	for k, v := range meta {
@@ -55,6 +74,5 @@ func (meta Metadata) Clone() (clone Metadata) {
 		copy(vCopy, v)
 		clone[k] = vCopy
 	}
-
 	return
 }
