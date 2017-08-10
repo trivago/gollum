@@ -11,7 +11,11 @@ type SetAppliedContent func(msg *Message, content []byte)
 func GetAppliedContentGetFunction(applyTo string) GetAppliedContent {
 	if applyTo != "" {
 		return func(msg *Message) []byte {
-			return msg.GetMetadata().GetValue(applyTo)
+			metadata := msg.TryGetMetadata()
+			if metadata == nil {
+				return []byte{}
+			}
+			return metadata.GetValue(applyTo)
 		}
 	}
 
