@@ -33,7 +33,8 @@ v0.5.0
 
 Raw pipeline
 ````````````
-Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| go1.8.3 darwin/amd64
 
  * 11,85s user 
  * 3,69s system 
@@ -61,6 +62,7 @@ Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
 Basic formatting
 `````````````````
 | Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| go1.8.3 darwin/amd64
 | Please note that from this version on formatting is done in parallel.
 
  * 39,70s user 
@@ -91,7 +93,8 @@ Basic formatting
 
 8 consumers with formatting
 ```````````````````````````
-Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| go1.8.3 darwin/amd64
 
  * 344,33s user 
  * 28,24s system 
@@ -138,7 +141,8 @@ Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
 
 JSON pipeline
 ``````````````
-Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| go1.8.3 darwin/amd64
 
  * 28,23s user 
  * 6,33s system 
@@ -176,7 +180,8 @@ v0.4.6
 
 Raw pipeline
 ````````````
-Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| go1.8.3 darwin/amd64
 
  * 10,48s user 
  * 3,01s system 
@@ -200,8 +205,9 @@ Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
 
 Basic formatting
 `````````````````
-Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
- 
+| Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| go1.8.3 darwin/amd64
+
  * 21,84s user 
  * 5,78s system 
  * 206% cpu 
@@ -229,7 +235,8 @@ Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
 
 8 consumers with formatting
 ```````````````````````````
-Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| go1.8.3 darwin/amd64
 
  * 319,44s user 
  * 72,22s system 
@@ -258,7 +265,8 @@ Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
 
 JSON pipeline
 ``````````````
-Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| Intel Core i7-4770HQ CPU @ 2.20GHz, 16 GB RAM
+| go1.8.3 darwin/amd64
 
  * 28,30s user 
  * 6,30s system 
