@@ -209,6 +209,10 @@ func configureRuntime() {
 	if *flagProfile {
 		time.AfterFunc(time.Second*3, printProfile)
 	}
+
+	if *flagTraceMessage {
+		core.SetTraceMessageFunc()
+	}
 }
 
 // startMetricsService creates a metric endpoint if requested.

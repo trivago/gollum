@@ -50,6 +50,7 @@ func (prod *DirectProducer) Enqueue(msg *Message, timeout time.Duration) {
 	}
 
 	prod.onMessage(msg)
+	MessageTrace(msg, prod.GetID(), "Enqueued by direct producer")
 }
 
 // MessageControlLoop provides a producer main loop that is sufficient for most

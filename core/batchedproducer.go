@@ -76,6 +76,7 @@ func (prod *BatchedProducer) Enqueue(msg *Message, timeout time.Duration) {
 	}
 
 	prod.appendMessage(msg)
+	MessageTrace(msg, prod.GetID(), "Enqueued by batched producer")
 }
 
 // appendMessage append a message to the batch at enqueuing

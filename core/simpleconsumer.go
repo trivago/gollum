@@ -235,6 +235,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	}
 
 	CountMessagesEnqueued()
+	MessageTrace(msg, cons.GetID(), "Enqueued by consumer")
 
 	// Send message to all routers registered to this consumer
 	// Last message will not be cloned.
