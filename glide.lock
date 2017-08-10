@@ -1,5 +1,5 @@
 hash: db76d2fa34a49aa74c4d9df3b3c1f4583fa472872e2f13675040fe07d422f67e
-updated: 2017-08-09T12:19:05.514163326+02:00
+updated: 2017-08-10T15:42:16.733737914+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -88,7 +88,7 @@ imports:
 - name: github.com/klauspost/crc32
   version: bab58d77464aa9cf4e84200c3276da0831fe0c03
 - name: github.com/mattn/go-colorable
-  version: 6c0fd4aa6ec5818d5e3ea9e03ae436972a6c5a9a
+  version: c4c76971792b28a17ff5dd0b76a2732b3f1d3d4f
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mgutz/ansi
@@ -122,7 +122,7 @@ imports:
 - name: github.com/trivago/grok
   version: af18cdd9faf3e06aedce0974c7e4012efc87658e
 - name: github.com/trivago/tgo
-  version: c58879f60d3c7caf31add5f17bd413739bbcfd3e
+  version: e4d1ddd28c17dd89ed26327cf69fded22060671b
   subpackages:
   - tcontainer
   - terrors
@@ -145,7 +145,7 @@ imports:
   - blowfish
   - ssh/terminal
 - name: golang.org/x/sys
-  version: b0e0dd72976dc482b6cb37c5640440f876ac1907
+  version: e42485b6e20ae7d2304ec72e535b103ed350cc02
   subpackages:
   - unix
   - windows
