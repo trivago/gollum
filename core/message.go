@@ -276,11 +276,15 @@ func DeserializeMessage(data []byte) (*Message, error) {
 		return nil, err
 	}
 
+	timestamp := serializable.GetTimestamp()
+	timestampSec := timestamp / 1e9
+	timestampNano := timestamp - timestampSec*1e9
+
 	msg := &Message{
 		streamID:     MessageStreamID(serializable.GetStreamID()),
 		prevStreamID: MessageStreamID(serializable.GetPrevStreamID()),
 		origStreamID: MessageStreamID(serializable.GetOrigStreamID()),
-		timestamp:    time.Unix(0, serializable.GetTimestamp()),
+		timestamp:    time.Unix(timestampSec, timestampNano),
 	}
 
 	if msgData := serializable.GetData(); msgData != nil {
