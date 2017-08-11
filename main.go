@@ -210,7 +210,7 @@ func configureRuntime() {
 		time.AfterFunc(time.Second*3, printProfile)
 	}
 
-	if *flagTraceMessage {
+	if *flagTrace {
 		core.ActivateMessageTrace()
 	}
 }
@@ -313,11 +313,11 @@ func startMemoryProfiler() func() {
 // where TYPE can be net, sync, syscall or sched.
 // The returned function should be deferred if not nil.
 func startTracer() func() {
-	if *flagTrace == "" {
+	if *flagProfileTrace == "" {
 		return nil
 	}
 
-	file, err := os.Create(*flagTrace)
+	file, err := os.Create(*flagProfileTrace)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to create tracing results file")
 		return nil

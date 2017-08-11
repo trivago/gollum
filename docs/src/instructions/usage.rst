@@ -24,7 +24,8 @@ Gollum has several commandline options that can be accessed by starting Gollum w
 -pc, -profilecpu    Write CPU profiler results to a given file.
 -pm, -profilemem    Write heap profile results to a given file.
 -ps, -profilespeed  Write msg/sec measurements to log.
--tr, -trace       	Write trace results to a given file.
+-pt, -profiletrace 	Write profile trace results to a given file.
+-t, -trace          Write message trace results _TRACE_ stream.
 
 
 Running Gollum
