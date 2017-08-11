@@ -211,7 +211,7 @@ func configureRuntime() {
 	}
 
 	if *flagTraceMessage {
-		core.SetTraceMessageFunc()
+		core.ActivateMessageTrace()
 	}
 }
 

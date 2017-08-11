@@ -62,8 +62,8 @@ func (mts messageTracerSource) GetID() string {
 // MessageTrace provide the MessageTrace() function. By default this function do nothing.
 var MessageTrace = func(msg *Message, pluginID string, comment string) {}
 
-// SetTraceMessageFunc set a MessageTrace function to dump out the message trace
-func SetTraceMessageFunc() {
+// ActivateMessageTrace set a MessageTrace function to dump out the message trace
+func ActivateMessageTrace() {
 	MessageTrace = func(msg *Message, pluginID string, comment string) {
 		mt := messageTracer{
 			msg:      msg,
@@ -72,6 +72,12 @@ func SetTraceMessageFunc() {
 
 		mt.Dump(comment)
 	}
+}
+
+// DeactivateMessageTrace set a MessageTrace function to default
+// This method is necessary for unit testing
+func DeactivateMessageTrace() {
+	MessageTrace = func(msg *Message, pluginID string, comment string) {}
 }
 
 // Dump creates a messageDump struct for the message trace
