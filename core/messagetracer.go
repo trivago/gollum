@@ -165,7 +165,9 @@ func (mt *messageTracer) newMessageDump(msg *Message, comment string) messageDum
 
 func (mt *messageTracer) createFingerPrintID(dump *messageDump) uint32 {
 	hash := fnv.New32a()
-	hash.Write([]byte(fmt.Sprintf("%s/%s", dump.Source, dump.Timestamp)))
+
+	hash.Write([]byte(dump.Source))
+	hash.Write([]byte(dump.Timestamp.String()))
 
 	return hash.Sum32()
 }
