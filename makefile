@@ -20,6 +20,8 @@ CHECK_FILES=$(shell find . -type f -name '*.go' | grep -vE '^\./vendor/')
 LINT_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/(core$$|vendor/)')
 LINT_FILES_CORE=$(shell find core -maxdepth 1 -type f -name '*.go' -not -name '*.pb.go')
 
+LS_COV=ls -f *.cov
+
 #############################################################################################################
 # Build targets
 
@@ -144,11 +146,11 @@ coverprofile:
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=router.cov ./router
 
 	@echo "INFO: start generating profile.cov"
-	@echo "mode: count" > profile.cov
-	@cat core.cov | grep -v "mode: " >> profile.cov
-	@cat format.cov | grep -v "mode: " >> profile.cov
-	@cat filter.cov | grep -v "mode: " >> profile.cov
-	@cat router.cov | grep -v "mode: " >> profile.cov
+	@rm -f profile.tmp profile.cov
+
+	@echo "mode: count" > profile.tmp
+	@for cov_file in  $$( $(LS_COV) ); do cat $${cov_file} | grep -v "mode: " >> profile.tmp ; done
+	@mv profile.tmp profile.cov
 
 	@echo "INFO: profile.cov successfully generated"
 	@rm core.cov format.cov filter.cov router.cov
