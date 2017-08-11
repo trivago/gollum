@@ -142,10 +142,11 @@ coverprofile:
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=format.cov ./format
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=filter.cov ./filter
 	@$(BUILD_ENV) go test $(BUILD_FLAGS) -covermode=count -coverprofile=router.cov ./router
+	@echo "INFO: start generating profile.cov"
 	@echo "mode: count" > profile.cov
 	@cat ./*.cov | grep -v "mode: " >> profile.cov
 	@rm core.cov format.cov filter.cov router.cov
-	@echo "profile.cov successfully generated"
+	@echo "INFO: profile.cov successfully generated"
 
 integration: current
 	@echo "go tests integration"
