@@ -145,8 +145,8 @@ coverprofile:
 	@echo "INFO: start generating profile.cov"
 	@echo "mode: count" > profile.cov
 	@cat ./*.cov | grep -v "mode: " >> profile.cov
-	@rm core.cov format.cov filter.cov router.cov
 	@echo "INFO: profile.cov successfully generated"
+	@rm core.cov format.cov filter.cov router.cov
 
 integration: current
 	@echo "go tests integration"
