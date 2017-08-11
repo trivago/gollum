@@ -27,6 +27,7 @@ type messageTracer struct {
 	pluginID string
 }
 
+// codebeat:disable[TOO_MANY_IVARS]
 type messageDump struct {
 	Step            string
 	PluginID        string
@@ -40,6 +41,7 @@ type messageDump struct {
 	Timestamp       time.Time
 	FingerprintID   uint32
 }
+// codebeat:enable[TOO_MANY_IVARS]
 
 type messageTracerSource struct {
 }
@@ -155,13 +157,16 @@ func (mt *messageTracer) newMessageDump(msg *Message, comment string) messageDum
 	//  set timestamp
 	dump.Timestamp = msg.timestamp
 
-	// provide message fingerprintID for message identification
+	dump.FingerprintID = mt.createFingerPrintID(&dump)
+
+	return dump
+}
+
+func (mt *messageTracer) createFingerPrintID(dump *messageDump) uint32 {
 	hash := fnv.New32a()
 	hash.Write([]byte(fmt.Sprintf("%s/%s", dump.Source, dump.Timestamp)))
 
-	dump.FingerprintID = hash.Sum32()
-
-	return dump
+	return hash.Sum32()
 }
 
 // get stream name and translate InvalidStreamID ("") to InvalidStream
