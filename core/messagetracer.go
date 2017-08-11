@@ -41,6 +41,7 @@ type messageDump struct {
 	Timestamp       time.Time
 	FingerprintID   uint32
 }
+
 // codebeat:enable[TOO_MANY_IVARS]
 
 type messageTracerSource struct {
