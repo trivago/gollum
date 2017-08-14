@@ -235,7 +235,9 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 	// Iterate over all entries in the array.
 	// An entry can either be a string or a string -> map[string]interface{}
 	for _, typedConfigInterface := range namedConfigs {
-		typedConfig, isMap := typedConfigInterface.(map[interface{}]interface{})
+		typedConfigMap := tcontainer.TryConvertToMarshalMap(typedConfigInterface, nil)
+		typedConfig, isMap := typedConfigMap.(tcontainer.MarshalMap)
+
 		if !isMap {
 			typeNameStr, isString := typedConfigInterface.(string)
 			if !isString {
@@ -254,17 +256,12 @@ func (reader PluginConfigReaderWithError) GetPluginArray(key string, defaultValu
 		// string -> map[string]interface{}
 		// This is actually a map with just one entry
 		for typename, config := range typedConfig {
-			typeNameStr, isString := typename.(string)
-			if !isString {
-				return nil, fmt.Errorf("%s section is malformed (entry is not type:config)", key)
-			}
-
 			configMap, err := tcontainer.ConvertToMarshalMap(config, nil)
 			if err != nil {
-				return nil, fmt.Errorf("%s section is malformed (config for %s is not a map but %T)", key, typeNameStr, config)
+				return nil, fmt.Errorf("%s section is malformed (config for %s is not a map but %T)", key, typename, config)
 			}
 
-			pluginConfig, _ := NewNestedPluginConfig(typeNameStr, configMap)
+			pluginConfig, _ := NewNestedPluginConfig(typename, configMap)
 			plugin, err := NewPluginWithConfig(pluginConfig)
 			if err != nil {
 				return pluginArray, err
