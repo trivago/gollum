@@ -43,24 +43,29 @@ const (
 	putLogEventsDelay = 200 * time.Millisecond
 )
 
-// AwsCloudwatchLogs producer plugin
+// AwsCloudwatchLogs producer
 //
 // The AwsCloudwatchLogs producer plugin sends messages to
-// AWS Cloudwatch Logs service.
+// AWS Cloudwatch Logs service. Credentials are obtained by gollum automaticly.
 //
-// Configuration example
+// Patameters
 //
-//	CwLogs:
-//		Type: AwsCloudwatchLogs:
-//			LogStream: stream_name
-//			LogGroup: group_name
-//    Credential:
+// - LogStream: Stream name in cloudwatch logs.
+//
+// - LogGroup: Group name in cloudwatch logs.
+//
+// - Region: Amazon region into which stream logs to. Defaults to "eu-west-1".
+//
+// Examples
+//
+// This configuration sends messages to stream stream_name and group group_name with shared credentials.
+//
+// CwLogs:
+//  Type: AwsCloudwatchLogs:
+//      LogStream: stream_name
+//      LogGroup: group_name
+//  Credential:
 //      Type: shared
-//
-// Region defines the amazon region of your kinesis stream.
-// By default this is set to "eu-west-1".
-//
-// Credentials are obtained by gollum automaticly.
 type AwsCloudwatchLogs struct {
 	AwsMultiClient       components.AwsMultiClient `gollumdoc:"embed_type"`
 	core.BatchedProducer `gollumdoc:"embed_type"`
