@@ -19,6 +19,7 @@ import (
 	"strconv"
 )
 
+// GetUid returns the user id for a given user name
 func GetUid(name string) (int, error) {
 	switch name {
 	case "nobody":
@@ -37,6 +38,7 @@ func GetUid(name string) (int, error) {
 	}
 }
 
+// GetGid returns the group id for a given group name
 func GetGid(name string) (int, error) {
 	switch name {
 	case "nobody":

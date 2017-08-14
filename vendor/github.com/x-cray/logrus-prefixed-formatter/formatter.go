@@ -3,6 +3,8 @@ package prefixed
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -11,7 +13,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/mgutz/ansi"
+	"golang.org/x/crypto/ssh/terminal"
 )
+
+const defaultTimestampFormat = time.RFC3339
 
 var (
 	baseTimestamp      time.Time    = time.Now()
@@ -142,7 +147,16 @@ func (f *TextFormatter) init(entry *logrus.Entry) {
 		f.QuoteCharacter = "\""
 	}
 	if entry.Logger != nil {
-		f.isTerminal = logrus.IsTerminal(entry.Logger.Out)
+		f.isTerminal = f.checkIfTerminal(entry.Logger.Out)
+	}
+}
+
+func (f *TextFormatter) checkIfTerminal(w io.Writer) bool {
+	switch v := w.(type) {
+	case *os.File:
+		return terminal.IsTerminal(int(v.Fd()))
+	default:
+		return false
 	}
 }
 
@@ -175,7 +189,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 	timestampFormat := f.TimestampFormat
 	if timestampFormat == "" {
-		timestampFormat = logrus.DefaultTimestampFormat
+		timestampFormat = defaultTimestampFormat
 	}
 	if isFormatted {
 		isColored := (f.ForceColors || f.isTerminal) && !f.DisableColors
