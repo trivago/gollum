@@ -78,10 +78,10 @@ func init() {
 // Configure initializes this producer with values from a plugin config.
 func (prod *AwsCloudwatchLogs) Configure(conf core.PluginConfigReader) {
 	if prod.stream == "" {
-		conf.Errors.Pushf("LogStream can not be empty")
+		prod.Logger.Error("LogStream can not be empty")
 	}
 	if prod.group == "" {
-		conf.Errors.Pushf("LogGroup can not be empty")
+		prod.Logger.Error("LogGroup can not be empty")
 	}
 	if conf.GetInt("Batch/MaxCount", maxBatchEvents) > maxBatchEvents {
 		conf.Errors.Pushf("Batch/MaxCount must be below %d", maxBatchEvents)
