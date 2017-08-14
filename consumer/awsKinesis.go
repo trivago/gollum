@@ -35,9 +35,9 @@ const (
 	kinesisOffsetOldest = "oldest"
 )
 
-// AwsKinesis consumer plugin
+// AwsKinesis consumer
 //
-// This consumer reads message from an AWS Kinesis router.
+// This consumer reads a message from an AWS Kinesis router.
 //
 // Parameters
 //
@@ -45,26 +45,26 @@ const (
 // By default this parameter is set to "default".
 //
 // - OffsetFile: This value defines a file to store the current offset per shard.
-// You can set this parameter to "" for disabling. If a file is set and found consuming will start
-// after the stored offset.
+// To disable this parameter, set it to "". If the parameter is set and the file
+// is found, consuming will start after the offset stored in the file.
 // By default this parameter is set to "".
 //
 // - RecordsPerQuery: This value defines the number of records to pull per query.
 // By default this parameter is set to "100".
 //
-// - RecordMessageDelimiter: This value defines the string to delimit messages within a
-// record. You can set this parameter to "" for disabling.
+// - RecordMessageDelimiter: This value defines the string to delimit messages
+// within a record. To disable this parameter, set it to "".
 // By default this parameter is set to "".
 //
-// - QuerySleepTimeMs: This value defines the number of milliseconds to sleep before
-// trying to pull new records from a shard that did not return any records.
+// - QuerySleepTimeMs: This value defines the number of milliseconds to sleep
+// before trying to pull new records from a shard that did not return any records.
 // By default this parameter is set to "1000".
 //
-// - RetrySleepTimeSec: This value defines the number of seconds to wait after trying to
-// reconnect to a shard.
+// - RetrySleepTimeSec: This value defines the number of seconds to wait after
+// trying to reconnect to a shard.
 // By default this parameter is set to "4".
 //
-// - CheckNewShardsSec: This value set a timer to update shards in Kinesis.
+// - CheckNewShardsSec: This value sets a timer to update shards in Kinesis.
 // You can set this parameter to "0" for disabling.
 // By default this parameter is set to "0".
 //
@@ -74,7 +74,7 @@ const (
 //
 // Examples
 //
-// This example consume a kinesis stream "myStream" and create messages:
+// This example consumes a kinesis stream "myStream" and create messages:
 //
 //  KinesisIn:
 //    Type: consumer.AwsKinesis
@@ -84,7 +84,6 @@ const (
 //      Profile: default
 //    Region: "eu-west-1"
 //    KinesisStream: myStream
-//
 type AwsKinesis struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 

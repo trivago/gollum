@@ -5,7 +5,7 @@ StreamRoute
 
 StreamRoute is a formatter that modifies a message's stream by reading a
 prefix from the message's data (and discarding it).
-The prefix is defined by everything before a given delimiter in the
+The prefix is defined as everything before a given delimiter in the
 message. If no delimiter is found or the prefix is empty the message stream
 is not changed.
 
@@ -29,36 +29,46 @@ Parameters
   
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+This example sets the stream name for messages like `<error>:a message string` to `error`
+and `a message string` as payload:
+
 .. code-block:: yaml
 
-	This example will set the stream name for messages like `<error>:a message string` to `error`
-	and `a message string` as payload:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.StreamRoute:
-	         Delimiter: ":"
-	         StreamModulator:
-	           - format.Trim:
-	               LeftSeparator: <
-	               RightSeparator: >
-	
-	
+	       Delimiter: ":"
+	       StreamModulator:
+	         - format.Trim:
+	           LeftSeparator: <
+	           RightSeparator: >
+
+
+
 
 

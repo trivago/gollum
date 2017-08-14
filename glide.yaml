@@ -33,6 +33,7 @@ import:
 - package: github.com/mssola/user_agent
 - package: github.com/quipo/statsd
 - package: github.com/trivago/tgo
+  version: ~1.0.0
   subpackages:
   - tflag
   - thealthcheck

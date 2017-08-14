@@ -27,29 +27,25 @@ import (
 //
 // This type defines a common baseclass for all producers. All producer plugins
 // should derive from this class as all required basic functions are already
-// implemented in a general way.
+// implemented here in a general way.
 //
 // Parameters
 //
-// - Enable: switches the producer on or off.
-// By default this parameter is set to true.
+// - Streams: Defines a list of streams the producer will receive from. This
+// parameter is mandatory. Specifying "*" causes the producer to receive messages
+// from all streams except internal internal ones (e.g. _GOLLUM_).
+// By default this parameter is set to an empty list.
 //
-// - Streams: Defines a list of streams a producer will receive from. This
-// parameter is mandatory. When using "*" the producer will receive messages
-// from all streams but the internal streams (e.g. _GOLLUM_).
-// By default this parameter is set to an empty list".
-//
-// - FallbackStream: Defines a stream to route messages to when delivery failed.
+// - FallbackStream: Defines a stream to route messages to if delivery fails.
 // The message is reset to its original state before being routed, i.e. all
 // modifications done to the message after leaving the consumer are removed.
 // Setting this paramater to "" will cause messages to be discared when delivery
 // fails.
-// By default this parameter is set tot "".
 //
 // - ShutdownTimeoutMs: Defines the maximum time in milliseconds a producer is
 // allowed to take to shut down. After this timeout the producer is always
-// considered to have shut down.
-// By default this parameter is set to 1000.
+// considered to have shut down.  Decreasing this value may lead to lost
+// messages during shutdown. Raising it may increase shutdown time.
 //
 // - Modulators: Defines a list of modulators to be applied to a message when
 // it arrives at this producer. If a modulator changes the stream of a message
@@ -77,13 +73,14 @@ func (prod *SimpleProducer) Configure(conf PluginConfigReader) {
 	prod.control = make(chan PluginControl, 1)
 
 	// Simple health check for the plugin state
-	//   Path: "/<plugin_id>/SimpleProducer/pluginstate"
+	//   Path: "/<plugin_id>/pluginState"
 	prod.AddHealthCheckAt("/pluginState", func() (code int, body string) {
 		if prod.IsActive() {
-			return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", prod.GetStateString())
+			return thealthcheck.StatusOK,
+				fmt.Sprintf("ACTIVE: %s", prod.runState.GetStateString())
 		}
 		return thealthcheck.StatusServiceUnavailable,
-			fmt.Sprintf("NOT_ACTIVE: %s", prod.GetStateString())
+			fmt.Sprintf("NOT_ACTIVE: %s", prod.runState.GetStateString())
 	})
 }
 
@@ -121,11 +118,6 @@ func (prod *SimpleProducer) Control() chan<- PluginControl {
 // GetState returns the state this plugin is currently in
 func (prod *SimpleProducer) GetState() PluginState {
 	return prod.runState.GetState()
-}
-
-// GetStateString returns the name of state this plugin is currently in
-func (prod *SimpleProducer) GetStateString() string {
-	return stateToDescription[prod.runState.GetState()]
 }
 
 // IsBlocked returns true if GetState() returns waiting
@@ -196,7 +188,11 @@ func (prod *SimpleProducer) GetShutdownTimeout() time.Duration {
 // Modulate applies all modulators from this producer to a given message.
 // This implementation handles routing and discarding of messages.
 func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
-	return prod.modulators.Modulate(msg)
+	if len(prod.modulators) > 0 {
+		msg.FreezeOriginal()
+		return prod.modulators.Modulate(msg)
+	}
+	return ModulateResultContinue
 }
 
 // HasContinueAfterModulate applies all modulators by Modulate, handle the ModulateResult

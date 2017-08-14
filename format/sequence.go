@@ -20,19 +20,34 @@ import (
 	"sync/atomic"
 )
 
-// Sequence formatter plugin
-// Sequence is a formatter that allows prefixing a message with the message's
-// sequence number
-// Configuration example
+// Sequence formatter
 //
-//  - format.Sequence:
-//      Separator: ":"
-//      ApplyTo: "payload" # payload or <metaKey>
+// This formatter prefixes data with a sequence number managed by the
+// formatter. All messages passing through an instance of the
+// formatter will get a unique number. The number is not persisted,
+// i.e. it restarts at 0 after each restart of gollum.
 //
-// Separator sets the separator character placed after the sequence
-// number. This is set to ":" by default. If no separator is set the sequence string will only set.
+// Parameters
 //
-// ApplyTo defines the formatter content to use
+// - Separator: Defines the separator string placed between number and data.
+// By default this parameter is set to ":".
+//
+// Examples
+//
+// This example will insert the sequence number into an existing JSON payload.
+//
+//  exampleProducer:
+//    Type: producer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.Trim:
+//        LeftSeparator: "{"
+//        RightSeparator: "}"
+//      - format.Sequence
+//        Separator: ","
+//      - format.Envelope:
+//        Prefix: "{\"seq\":"
+//        Postfix: "}"
 type Sequence struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            []byte `config:"Separator" default:":"`

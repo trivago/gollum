@@ -15,6 +15,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
@@ -29,9 +30,6 @@ import (
 // implemented in a general way.
 //
 // Parameters
-//
-// - Enable: switches the consumer on or off.
-// By default this parameter is set to true.
 //
 // - Streams: Defines a list of streams a consumer will send to. This parameter
 // is mandatory. When using "*" messages will be sent only to the internal "*"
@@ -94,17 +92,21 @@ func (cons *SimpleConsumer) Configure(conf PluginConfigReader) {
 	} else {
 		cons.enqueueMessage = cons.directEnqueue
 	}
+
+	// Simple health check for the plugin state
+	//   Path: "/<plugin_id>/pluginState"
+	cons.AddHealthCheckAt("/pluginState", func() (code int, body string) {
+		if cons.IsActive() {
+			return thealthcheck.StatusOK, fmt.Sprintf("ACTIVE: %s", cons.runState.GetStateString())
+		}
+		return thealthcheck.StatusServiceUnavailable,
+			fmt.Sprintf("NOT_ACTIVE: %s", cons.runState.GetStateString())
+	})
 }
 
 // GetLogger returns the logger scoped to this plugin
 func (cons *SimpleConsumer) GetLogger() logrus.FieldLogger {
 	return cons.Logger
-}
-
-// AddHealthCheck a health check at the default URL
-// (http://<addr>:<port>/<plugin_id>)
-func (cons *SimpleConsumer) AddHealthCheck(callback thealthcheck.CallbackFunc) {
-	cons.AddHealthCheckAt("", callback)
 }
 
 // AddHealthCheckAt adds a health check at a subpath
@@ -242,8 +244,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
 		router := cons.routers[streamIdx]
 		msg := msg.Clone()
-		msg.SetStreamID(router.GetStreamID())
-		msg.FreezeOriginal()
+		msg.SetlStreamIDAsOriginal(router.GetStreamID())
 
 		if err := Route(msg, router); err != nil {
 			cons.Logger.Error(err)
@@ -251,8 +252,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	}
 
 	router := cons.routers[lastStreamIdx]
-	msg.SetStreamID(router.GetStreamID())
-	msg.FreezeOriginal()
+	msg.SetlStreamIDAsOriginal(router.GetStreamID())
 
 	if err := Route(msg, router); err != nil {
 		cons.Logger.Error(err)

@@ -4,35 +4,45 @@ Serialize
 =========
 
 Serialize is a formatter that serializes a message for later retrieval.
-The formatter use the internal protobuf based function from msg.Serialize().
+The formatter uses the internal protobuf based function from msg.Serialize().
 
 
 
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+This example serializes all consumed messages:
+
 .. code-block:: yaml
 
-	This example serialize all consumed messages:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.Serialize
-	
-	
+
+
+
 
 

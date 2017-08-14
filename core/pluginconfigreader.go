@@ -20,6 +20,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/treflect"
+	"net/url"
 	"reflect"
 )
 
@@ -97,6 +98,14 @@ func (reader *PluginConfigReader) HasValue(key string) bool {
 // If that value is not found defaultValue is returned.
 func (reader *PluginConfigReader) GetString(key string, defaultValue string) string {
 	value, err := reader.WithError.GetString(key, defaultValue)
+	reader.Errors.Push(err)
+	return value
+}
+
+// GetURL tries to read an URL struct from a PluginConfig.
+// If that value is not found nil is returned.
+func (reader *PluginConfigReader) GetURL(key string, defaultValue string) *url.URL {
+	value, err := reader.WithError.GetURL(key, defaultValue)
 	reader.Errors.Push(err)
 	return value
 }
@@ -299,8 +308,7 @@ func (reader *PluginConfigReader) configureStruct(structVal reflect.Value, logge
 	}
 }
 
-func (reader *PluginConfigReader) configureField(fieldVal reflect.Value, key string, tags PluginStructTag,
-	logger logrus.FieldLogger) {
+func (reader *PluginConfigReader) configureField(fieldVal reflect.Value, key string, tags PluginStructTag, logger logrus.FieldLogger) {
 	switch fieldVal.Kind() {
 	case reflect.Bool:
 		treflect.SetValue(fieldVal, reader.GetBool(key, tags.GetBool()))
@@ -326,6 +334,15 @@ func (reader *PluginConfigReader) configureField(fieldVal reflect.Value, key str
 
 	case reflect.Interface:
 		reader.configureInterfaceField(fieldVal, key, tags, logger)
+
+	case reflect.Ptr:
+		switch fieldVal.Type().Elem() {
+		case reflect.TypeOf(url.URL{}):
+			value := reader.GetURL(key, tags.GetString())
+			treflect.SetValue(fieldVal, value)
+		default:
+			panic("Pointer field type not supported")
+		}
 
 	default:
 		panic("Field type not supported")

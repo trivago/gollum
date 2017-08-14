@@ -38,168 +38,176 @@ const (
 	compressSnappy = "snappy"
 )
 
-// Kafka producer plugin
+// Kafka producer
 //
-// The kafka producer writes messages to a kafka cluster. This producer is
-// backed by the sarama library so most settings relate to that library.
+// This producer writes messages to a kafka cluster. This producer is backed by
+// the sarama library (https://github.com/Shopify/sarama) so most settings
+// directly relate to the settings of that library.
 //
-// Configuration example
+// Parameters
 //
-//   producerKafka:
-//   	type: producer.Kafka
-//      ClientId: "gollum"
-//      Version: "0.8.2"
-//      Partitioner: "Roundrobin"
-//      RequiredAcks: 1
-//      TimeoutMs: 1500
-//      GracePeriodMs: 10
-//      SendRetries: 0
-//      Compression: "None"
-//      MaxOpenRequests: 5
-//      MessageBufferCount: 256
-//      BatchMinCount: 1
-//      BatchMaxCount: 0
-//      BatchSizeByte: 8192
-//      BatchSizeMaxKB: 1024
-//      BatchTimeoutMs: 3000
-//      ServerTimeoutSec: 30
-//      SendTimeoutMs: 250
-//      ElectRetries: 3
-//      ElectTimeoutMs: 250
-//      MetadataRefreshMs: 10000
-//      TlsEnabled: true
-//      TlsKeyLocation: ""
-//      TlsCertificateLocation: ""
-//      TlsCaLocation: ""
-//      TlsServerName: ""
-//      TlsInsecureSkipVerify: false
-//      SaslEnabled: false
-//      SaslUsername: "gollum"
-//      SaslPassword: ""
-//      Servers:
-//    	  - "localhost:9092"
-//      Topic:
-//        "console" : "console"
-// 	KeyMetaField: ""
+// - Servers: Defines a list of ideally all brokers in the cluster. At least one
+// broker is required.
+// By default this parameter is set to an empty list.
 //
-// ClientId sets the client id of this producer. By default this is "gollum".
-//
-// Version defines the kafka protocol version to use. Common values are 0.8.2,
+// - Version: Defines the kafka protocol version to use. Common values are 0.8.2,
 // 0.9.0 or 0.10.0. Values of the form "A.B" are allowed as well as "A.B.C"
-// and "A.B.C.D". Defaults to "0.8.2". If the version given is not known, the
-// closest possible version is chosen.
+// and "A.B.C.D". If the version given is not known, the closest possible
+// version is chosen. If GroupId is set to a value < "0.9", "0.9.0.1" will be used.
+// By default this parameter is set to "0.8.2".
 //
-// Partitioner sets the distribution algorithm to use. Valid values are:
-// "Random","Roundrobin" and "Hash". By default "Roundrobin" is set.
+// - Topics: Defines a stream to topic mapping. If a stream is not mapped the
+// stream name is used as topic. You can define the wildcard stream (*) here,
+// too. If defined, all streams that do not have a specific mapping will go to
+// this topic (including _GOLLUM_).
+// By default this parameter is set to an empty list.
 //
-// FilterAfterFormat behaves like Filter but allows filters to be executed
-// after the formatter has run. By default no such filter is set.
+// - ClientId: Sets the kafka client id used by this producer.
+// By default this parameter is set to "gollum".
 //
-// RequiredAcks defines the acknowledgment level required by the broker.
-// 0 = No responses required. 1 = wait for the local commit. -1 = wait for
-// all replicas to commit. >1 = wait for a specific number of commits.
-// By default this is set to 1.
+// - Partitioner: Defines the distribution algorithm to use. Valid values are:
+// Random, Roundrobin and Hash.
+// By default this parameter is set to "Roundrobin".
 //
-// TimeoutMs denotes the maximum time the broker will wait for acks. This
+// - PartitionHasher: Defines the hash algorithm to use when Partitioner is set
+// to "Hash". Accepted values are "fnv1-a" and "murmur2".
+//
+// - KeyFrom: Defines the metadata field that contains the string to be used as
+// the key passed to kafka. When set to an empty string no key is used.
+// By default this parameter is set to "".
+//
+// - Compression: Defines the compression algorithm to use.
+// Possible values are "none", "zip" and "snappy".
+// By default this parameter is set to "none".
+//
+// - RequiredAcks: Defines the numbers of acknowledgements required until a
+// message is marked as "sent". When set to -1 all replicas must acknowledge a
+// message.
+// By default this parameter is set to 1.
+//
+// - TimeoutMs: Denotes the maximum time the broker will wait for acks. This
 // setting becomes active when RequiredAcks is set to wait for multiple commits.
-// By default this is set to 10 seconds.
+// By default this parameter is set to 10000.
 //
-// SendRetries defines how many times to retry sending data before marking a
-// server as not reachable. By default this is set to 1.
+// - GracePeriodMs: Defines the number of milliseconds to wait for Sarama to
+// accept a single message. After this period a message is sent to the fallback.
+// This setting mitigates a conceptual problem in the saram API which can lead
+// to long blocking times during startup.
+// By default this parameter is set to 100.
 //
-// Compression sets the method of compression to use. Valid values are:
-// "None","Zip" and "Snappy". By default "None" is set.
+// - MaxOpenRequests: Defines the maximum number of simultaneous connections
+// opened to a single broker at a time.
+// By default this parameter is set to 5.
 //
-// MaxOpenRequests defines the number of simultaneous connections are allowed.
-// By default this is set to 5.
+// - ServerTimeoutSec: Defines the time after which a connection is set to timed
+// out.
+// By default this parameter is set to 30.
 //
-// BatchMinCount sets the minimum number of messages required to trigger a
-// flush. By default this is set to 1.
+// - SendTimeoutMs: Defines the number of milliseconds to wait for a broker to
+// before marking a message as timed out.
+// By default this parameter is set to 250.
 //
-// BatchMaxCount defines the maximum number of messages processed per
-// request. By default this is set to 0 for "unlimited".
+// - SendRetries: Defines how many times a message should be send again before a
+// broker is marked as not reachable. Please note that this setting should never
+// be 0. See https://github.com/Shopify/sarama/issues/294.
+// By default this parameter is set to 1.
 //
-// BatchSizeByte sets the minimum number of bytes to collect before a new flush
-// is triggered. By default this is set to 8192.
+// - AllowNilValue: When enabled messages containing an empty or nil payload
+// will not be rejected.
+// By default this parameter is set to false.
 //
-// BatchSizeMaxKB defines the maximum allowed message size. By default this is
-// set to 1024.
+// - Batch/MinCount: Sets the minimum number of messages required to send a
+// request.
+// By default this parameter is set to 1.
 //
-// BatchTimeoutMs sets the minimum time in milliseconds to pass after which a new
-// flush will be triggered. By default this is set to 3.
+// - Batch/MaxCount: Defines the maximum number of messages bufferd before a
+// request is sent. A value of 0 will remove this limit.
+// By default this parameter is set to 0.
+//
+// - Batch/MinSizeByte: Defines the minimum number of bytes to buffer before
+// sending a request.
+// By default this parameter is set to 8192.
+//
+// - Batch/SizeMaxKB: Defines the maximum allowed message size in KB.
+// Messages bigger than this limit will be rejected.
+// By default this parameter is set to 1024.
+//
+// - Batch/TimeoutMs: Defines the maximum time in milliseconds after which a
+// new request will be sent, ignoring of Batch/MinCount and Batch/MinSizeByte
+// By default this parameter is set to 3.
+//
+// - ElectRetries: Defines how many times a metadata request is to be retried
+// during a leader election phase.
+// By default this parameter is set to 3.
+//
+// - ElectTimeoutMs: Defines the number of milliseconds to wait for the cluster
+// to elect a new leader.
+// By default this parameter is set to 250.
+//
+// - MetadataRefreshMs: Defines the interval in milliseconds for refetching
+// cluster metadata.
+// By default this parameter is set to 600000.
+//
+// - TlsEnable: Enables TLS communication with brokers.
+// By default this parameter is set to false.
+//
+// - TlsKeyLocation: Path to the client's private key (PEM) used for TLS based
+// authentication.
+// By default this parameter is set to "".
+//
+// - TlsCertificateLocation: Path to the client's public key (PEM) used for TLS
+// based authentication.
+// By default this parameter is set to "".
+//
+// - TlsCaLocation: Path to the CA certificate(s) used for verifying the
+// broker's key.
+// By default this parameter is set to "".
+//
+// - TlsServerName: Used to verify the hostname on the server's certificate
+// unless TlsInsecureSkipVerify is true.
+// By default this parameter is set to "".
+//
+// - TlsInsecureSkipVerify: Enables server certificate chain and host name
+// verification.
+// By default this parameter is set to false.
+//
+// - SaslEnable: Enables SASL based authentication.
+// By default this parameter is set to false.
+//
+// - SaslUsername: Sets the user name used for SASL/PLAIN authentication.
+// By default this parameter is set to "".
+//
+// - SaslPassword: Sets the password used for SASL/PLAIN authentication.
+// By default this parameter is set to "".
 //
 // MessageBufferCount sets the internal channel size for the kafka client.
 // By default this is set to 8192.
 //
-// ServerTimeoutSec defines the time after which a connection is set to timed
-// out. By default this is set to 30 seconds.
+// Examples
 //
-// SendTimeoutMs defines the number of milliseconds to wait for a server to
-// resond before triggering a timeout. Defaults to 250.
-//
-// ElectRetries defines how many times to retry during a leader election.
-// By default this is set to 3.
-//
-// ElectTimeoutMs defines the number of milliseconds to wait for the cluster to
-// elect a new leader. Defaults to 250.
-//
-// GracePeriodMs defines the number of milliseconds to wait for Sarama to
-// accept a single message. After this period a message is sent to the fallback.
-// By default this is set to 100ms.
-//
-// MetadataRefreshMs set the interval in seconds for fetching cluster metadata.
-// By default this is set to 600000 (10 minutes). This corresponds to the JVM
-// setting `topic.metadata.refresh.interval.ms`.
-//
-// TlsEnable defines whether to use TLS to communicate with brokers. Defaults
-// to false.
-//
-// TlsKeyLocation defines the path to the client's private key (PEM) for used
-// for authentication. Defaults to "".
-//
-// TlsCertificateLocation defines the path to the client's public key (PEM) used
-// for authentication. Defaults to "".
-//
-// TlsCaLocation defines the path to CA certificate(s) for verifying the broker's
-// key. Defaults to "".
-//
-// TlsServerName is used to verify the hostname on the server's certificate
-// unless TlsInsecureSkipVerify is true. Defaults to "".
-//
-// TlsInsecureSkipVerify controls whether to verify the server's certificate
-// chain and host name. Defaults to false.
-//
-// SaslEnable is whether to use SASL for authentication. Defaults to false.
-//
-// SaslUsername is the user for SASL/PLAIN authentication. Defaults to "gollum".
-//
-// SaslPassword is the password for SASL/PLAIN authentication. Defaults to "".
-//
-// Servers contains the list of all kafka servers to connect to.  By default this
-// is set to contain only "localhost:9092".
-//
-// KeyFrom defines the name of the metadata field used as a key for messages
-// sent to kafka. If the name is an empty string no key is sent. By default
-// this value is set to an empty string.
-//
-// Topic maps a stream to a specific kafka topic. You can define the
-// wildcard stream (*) here, too. If defined, all streams that do not have a
-// specific mapping will go to this topic (including _GOLLUM_).
-// If no topic mappings are set the stream names will be used as topic.
+//  kafkaWriter:
+//    Type: producer.Kafka
+//    Streams: logs
+//    Compression: zip
+//    Servers:
+//      - "kafka01:9092"
+//      - "kafka02:9092"
+//      - "kafka03:9092"
+//      - "kafka04:9092"
 type Kafka struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	topicGuard            *sync.RWMutex
 	topic                 map[core.MessageStreamID]*topicHandle
 	topicHandles          map[string]*topicHandle
 	streamToTopic         map[core.MessageStreamID]string
-	servers               []string      `config:"Servers" default:"localhost:9092"`
+	servers               []string      `config:"Servers"`
 	clientID              string        `config:"ClientId" default:"gollum"`
 	gracePeriod           time.Duration `config:"GracePeriodMs" default:"100" metric:"ms"`
 	client                kafka.Client
 	config                *kafka.Config
 	producer              kafka.AsyncProducer
 	missCount             int64
-	nilValueAllowed       bool
+	nilValueAllowed       bool   `config:"AllowNilValue" default:"false"`
 	keyField              string `config:"KeyFrom"`
 }
 
@@ -315,7 +323,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 
 	prod.config.Net.SASL.Enable = conf.GetBool("SaslEnable", false)
 	if prod.config.Net.SASL.Enable {
-		prod.config.Net.SASL.User = conf.GetString("SaslUser", "gollum")
+		prod.config.Net.SASL.User = conf.GetString("SaslUsername", "")
 		prod.config.Net.SASL.Password = conf.GetString("SaslPassword", "")
 	}
 
@@ -323,10 +331,10 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	prod.config.Metadata.Retry.Backoff = time.Duration(conf.GetInt("ElectTimeoutMs", 250)) * time.Millisecond
 	prod.config.Metadata.RefreshFrequency = time.Duration(conf.GetInt("MetadataRefreshMs", 600000)) * time.Millisecond
 
-	prod.config.Producer.MaxMessageBytes = int(conf.GetInt("Batch/SizeMaxKB", 1<<10)) << 10
 	prod.config.Producer.RequiredAcks = kafka.RequiredAcks(conf.GetInt("RequiredAcks", int64(kafka.WaitForLocal)))
-	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimoutMs", 10000)) * time.Millisecond
-	prod.config.Producer.Flush.Bytes = int(conf.GetInt("Batch/SizeByte", 8192))
+	prod.config.Producer.Timeout = time.Duration(conf.GetInt("TimeoutMs", 10000)) * time.Millisecond
+	prod.config.Producer.MaxMessageBytes = int(conf.GetInt("Batch/SizeMaxKB", 1<<10)) << 10
+	prod.config.Producer.Flush.Bytes = int(conf.GetInt("Batch/MinSizeByte", 8192))
 	prod.config.Producer.Flush.Messages = int(conf.GetInt("Batch/MinCount", 1))
 	prod.config.Producer.Flush.Frequency = time.Duration(conf.GetInt("Batch/TimeoutMs", 3000)) * time.Millisecond
 	prod.config.Producer.Flush.MaxMessages = int(conf.GetInt("Batch/MaxCount", 0))
@@ -348,7 +356,6 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 		prod.config.Producer.Compression = kafka.CompressionSnappy
 	}
 
-	prod.nilValueAllowed = conf.GetBool("AllowNilValue", false)
 	switch strings.ToLower(conf.GetString("Partitioner", partRoundrobin)) {
 	case partRandom:
 		prod.config.Producer.Partitioner = kafka.NewRandomPartitioner
@@ -510,7 +517,9 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 
 func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
 	if len(prod.keyField) > 0 {
-		return msg.GetMetadata().GetValue(prod.keyField)
+		if metadata := msg.TryGetMetadata(); metadata != nil {
+			return metadata.GetValue(prod.keyField)
+		}
 	}
 
 	return []byte{}
@@ -565,7 +574,7 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 			if connected, _ := broker.Connected(); connected {
 				req := &kafka.MetadataRequest{Topics: []string{topic}}
 				if _, err := broker.GetMetadata(req); err != nil {
-					prod.Logger.Debug("Broker ", broker.Addr(), " found to have an invalid connection: ", err)
+					prod.Logger.Debug("Server ", broker.Addr(), " found to have an invalid connection: ", err)
 					broker.Close()
 				}
 			}

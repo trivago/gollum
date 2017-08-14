@@ -3,7 +3,7 @@
 RegExp
 ======
 
-This filter allows to reject or accept messages based on regular expressions.
+This filter rejects or accepts messages based on regular expressions.
 
 
 
@@ -13,38 +13,38 @@ Parameters
 
 **FilterExpression**
 
-  Defines a regular expression that will allow a message to
-  pass on if it is matched. This parameter is ignored when set to "".
-  FilterExpression will be checked after FilterExpressionNot.
+  Messages matching this expression are passed on.
+  This parameter is ignored when set to "". FilterExpression is checked
+  after FilterExpressionNot.
   By default this parameter is set to "".
   
   
 
 **FilterExpressionNot**
 
-  Defines a regular expression that will allow a message
-  to pass on if it is not matched. This parameter is ignored when set to "".
-  FilterExpressionNot will be checked before FilterExpression.
+  Messages *not* matching this expression are
+  passed on. This parameter is ignored when set to "". FilterExpressionNot
+  is checked before FilterExpression.
   By default this parameter is set to "".
   
   
 
 **ApplyTo**
 
-  Defines which part of the message is affected by the filter.
-  When setting this parameter to "" this filter is applied to the
-  message payload. Every other value denotes a metadata key.
+  Defines which part of the message the filter is applied to.
+  When set to "", this filter is applied to the message's payload. All
+  other values denotes a metadata key.
   By default this parameter is set to "".
   
   
 
-Parameters (from SimpleFilter)
-------------------------------
+Parameters (from core.SimpleFilter)
+-----------------------------------
 
 **FilteredStream**
 
-  This value defines a stream where filtered messages get sent to.
-  You can disable this behavior by setting "".
+  This value defines the stream filtered messages get sent to.
+  You can disable this behavior by setting the value to "".
   By default this parameter is set to "".
   
   
@@ -52,19 +52,20 @@ Parameters (from SimpleFilter)
 Examples
 --------
 
+This example accepts only accesslog entries with a return status of
+2xx or 3xx not originated from staging systems.
+
 .. code-block:: yaml
 
-	This example accepts only accesslog entries that returned status 2xx or 3xx
-	and were not coming from staging systems.
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: console
 	   Modulators:
-	     - filter.RegExp
-	       FilterExpressionNot: " stage\."
-	       FilterExpression: "HTTP/1\.1\" [23]\d\d"
-	
-	
+	     - filter.RegExp:
+	       FilterExpressionNot: " stage\\."
+	       FilterExpression: "HTTP/1\\.1\\\" [23]\\d\\d"
+
+
+
 
 

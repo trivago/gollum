@@ -15,14 +15,14 @@ func TestMetadataCopy(t *testing.T) {
 
 	// mock config
 	setupConf, _ := tcontainer.ConvertToMarshalMap(
-		map[string]interface{}{"foo": []string{"format.Hostname"}},
+		map[string]interface{}{
+			"foo": []string{"format.Hostname"},
+			"bar": []string{},
+		},
 		strings.ToLower)
 
 	config := core.NewPluginConfig("", "format.MetadataCopy")
-	config.Override("WriteTo", []interface{}{
-		setupConf,
-		"bar",
-	})
+	config.Override("WriteTo", setupConf)
 	// --
 
 	plugin, err := core.NewPluginWithConfig(config)
@@ -51,8 +51,8 @@ func TestMetadataCopyApplyToHandling(t *testing.T) {
 
 	// mock config
 	config := core.NewPluginConfig("", "format.MetadataCopy")
-	config.Override("WriteTo", []interface{}{
-		"bar",
+	config.Override("WriteTo", map[string]interface{}{
+		"bar": []string{},
 	})
 	config.Override("ApplyTo", "foo")
 	// --

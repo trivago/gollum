@@ -26,63 +26,71 @@ import (
 	"github.com/trivago/tgo"
 )
 
-// Spooling producer plugin
+// Spooling producer
 //
-// The Spooling producer buffers messages and sends them again to the previous
-// stream stored in the message. This means the message must have been routed
-// at least once before reaching the spooling producer. If the previous and
-// current stream is identical the message is sent to the fallback.
-// The Formatter configuration value is forced to "format.Serialize" and
-// cannot be changed.
+// This producer is meant to be used as a fallback if another producer fails to
+// send messages, e.g. because a service is down. It does not really produce
+// messages to some other service, it buffers them on disk for a certain time
+// and inserts them back to the system after this period.
 //
-// Configuration example
+// Parameters
 //
-//  - "producer.Spooling":
-//    Path: "/var/run/gollum/spooling"
-//    BatchMaxCount: 100
-//    BatchTimeoutSec: 5
-//    MaxFileSizeMB: 512
-//    MaxFileAgeMin: 1
-//    MessageSizeByte: 8192
-//    RespoolDelaySec: 10
-//    MaxMessagesSec: 100
-//    RevertStreamOnDrop: false
+// - Path: Sets the output directory for spooling files. Spooling files will
+// be stored as "<path>/<stream name>/<number>.spl".
+// By default this parameter is set to "/var/run/gollum/spooling".
 //
-// Path sets the output directory for spooling files. Spooling files will
-// Files will be stored as "<path>/<stream>/<number>.spl". By default this is
-// set to "/var/run/gollum/spooling".
+// - MaxFileSizeMB: Sets the size limit in MB that causes a spool file rotation.
+// Reading messages back into the system will start only after a file is
+// rotated.
+// By default this parameter is set to 512.
 //
-// BatchMaxCount defines the maximum number of messages stored in memory before
-// a write to file is triggered. Set to 100 by default.
+// - MaxFileAgeMin: Defines the duration in minutes after which a spool file
+// rotation is triggered (regardless of MaxFileSizeMB). Reading messages back
+// into the system will start only after a file is rotated.
+// By default this parameter is set to 1.
 //
-// BatchTimeoutSec defines the maximum number of seconds to wait after the last
-// message arrived before a batch is flushed automatically. By default this is
-// set to 5.
+// - MaxMessagesSec: Sets the maximum number of messages that will be respooled
+// per second. Setting this value to 0 will cause respooling to send as fast as
+// possible.
+// By default this parameter is set to 100.
 //
-// MaxFileSizeMB sets the size in MB when a spooling file is rotated. Reading
-// will start only after a file is rotated. Set to 512 MB by default.
+// - RespoolDelaySec: Defines the number of seconds to wait before trying to
+// load existing spool files from disk after a restart. This setting can be used
+// to define a safe timeframe for gollum to set up all required connections and
+// resources before putting additionl load on it.
+// By default this parameter is set to 10.
 //
-// MaxFileAgeMin defines the time in minutes after a spooling file is rotated.
-// Reading will start only after a file is rotated. This setting divided by two
-// will be used to define the wait time for reading, too.
-// Set to 1 minute by default.
+// - RevertStreamOnFallback: This allows the spooling fallback to handle the
+// messages that would have been sent back by the spooler if it would have
+// handled the message. When set to true it will revert the stream of the
+// message to the previous stream ID before sending it to the Fallback stream.
+// By default this parameter is set to false.
 //
-// BufferSizeByte defines the initial size of the buffer that is used to parse
+// - BufferSizeByte: Defines the initial size of the buffer that is used to read
 // messages from a spool file. If a message is larger than this size, the buffer
-// will be resized. By default this is set to 8192.
+// will be resized.
+// By default this parameter is set to 8192.
 //
-// RespoolDelaySec sets the number of seconds to wait before trying to load
-// existing spool files after a restart. This is useful for configurations that
-// contain dynamic streams. By default this is set to 10.
+// - Batch/MaxCount: defines the maximum number of messages stored in memory before
+// a write to file is triggered.
+// By default this parameter is set to 100.
 //
-// MaxMessagesSec sets the maximum number of messages that can be respooled per
-// second. By default this is set to 100. Setting this value to 0 will cause
-// respooling to work as fast as possible.
+// - Batch/TimeoutSec: defines the maximum number of seconds to wait after the last
+// message arrived before a batch is flushed automatically.
+// By default this parameter is set to 5.
 //
-// RevertStreamOnDrop can be used to revert the message stream before dropping
-// the message. This can be useful if you e.g. want to write messages that
-// could not be spooled to stream separated files on disk. Set to false by
-// default.
+// Examples
+//
+// This example will collect messages from the fallback stream and buffer them
+// for 10 minutes. After 10 minutes the first messages will be written back to
+// the system as fast as possible.
+//
+//  spooling:
+//    Type: producer.Spooling
+//    Stream: fallback
+//    MaxMessagesSec: 0
+//    MaxFileAgeMin: 10
+//
 type Spooling struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	outfile               map[core.MessageStreamID]*spoolFile
@@ -90,11 +98,11 @@ type Spooling struct {
 	rotation              components.RotateConfig `gollumdoc:"embed_type"`
 	path                  string                  `config:"Path" default:"/var/run/gollum/spooling"`
 	maxFileSize           int64                   `config:"MaxFileSizeMB" default:"512" metric:"mb"`
-	batchMaxCount         int                     `config:"Batch/MaxCount" default:"100"`
-	bufferSizeByte        int                     `config:"BufferSizeByte" default:"8192"`
-	revertOnDrop          bool                    `config:"RevertStreamOnDrop"`
-	respoolDuration       time.Duration           `config:"RespoolDelaySec" default:"10" metric:"sec"`
 	maxFileAge            time.Duration           `config:"MaxFileAgeMin" default:"1" metric:"min"`
+	respoolDuration       time.Duration           `config:"RespoolDelaySec" default:"10" metric:"sec"`
+	revertOnDrop          bool                    `config:"RevertStreamOnFallback" default:"false"`
+	bufferSizeByte        int                     `config:"BufferSizeByte" default:"8192"`
+	batchMaxCount         int                     `config:"Batch/MaxCount" default:"100"`
 	batchTimeout          time.Duration           `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	readDelay             time.Duration
 	spoolCheck            *time.Timer

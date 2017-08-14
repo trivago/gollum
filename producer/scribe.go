@@ -15,6 +15,7 @@
 package producer
 
 import (
+	"fmt"
 	"github.com/artyom/fb303"
 	"github.com/artyom/scribe"
 	"github.com/artyom/thrift"
@@ -25,66 +26,62 @@ import (
 	"time"
 )
 
-// Scribe producer plugin
-///
-// The scribe producer allows sending messages to Facebook's scribe.
+// Scribe producer
 //
-// Configuration example
+// This producer allows sending messages to Facebook's scribe service.
 //
-//  - "producer.Scribe":
-//    Address: "localhost:1463"
-//    ConnectionBufferSizeKB: 1024
-//    BatchMaxCount: 8192
-//    BatchFlushCount: 4096
-//    BatchTimeoutSec: 5
-//	  HeartBeatIntervalSec: 5
+// Parameters
+//
+// - Address: Defines the host and port of a scrive endpoint.
+// By default this parameter is set to "localhost:1463".
+//
+// - ConnectionBufferSizeKB: Sets the connection socket buffer size in KB.
+// By default this parameter is set to 1024.
+//
+// - HeartBeatIntervalSec: Defines the interval in seconds used to query scribe
+// for status updates.
+// By default this parameter is set to 1.
+//
+// - WindowSize: Defines the maximum number of messages send to scribe in one
+// call. The WindowSize will reduce when scribe is returing "try later" to
+// reduce load on the scribe server. It will slowly rise again for each
+// successful write until WindowSize is reached again.
+// By default this parameter is set to 2048.
+//
+// - ConnectionTimeoutSec: Defines the time in seconds after which a connection
+// timeout is assumed. This can happen during writes or status reads.
+// By default this parameter is set to 5.
+//
+// - Category: Maps a stream to a scribe category. You can define the wildcard
+// stream (*) here, too. When set, all streams that do not have a specific
+// mapping will go to this category (including reserved streams like _GOLLUM_).
+// If no category mappings are set the stream name is used as category.
+// By default this parameter is set to an empty list.
+//
+// Examples
+//
+//  logs:
+//    Type: producer.Scribe"
+//    Stream: ["*", "_GOLLUM"]
+//    Address: "scribe01:1463"
+//    HeartBeatIntervalSec: 10
 //    Category:
-//      "console" : "console"
-//      "_GOLLUM_"  : "_GOLLUM_"
-//
-// Address defines the host and port to connect to.
-// By default this is set to "localhost:1463".
-//
-// ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
-// is set to 1024, i.e. 1 MB buffer.
-//
-// BatchMaxCount defines the maximum number of messages that can be buffered
-// before a flush is mandatory. If the buffer is full and a flush is still
-// underway or cannot be triggered out of other reasons, the producer will
-// block. By default this is set to 8192.
-//
-// BatchFlushCount defines the number of messages to be buffered before they are
-// written to disk. This setting is clamped to BatchMaxCount.
-// By default this is set to BatchMaxCount / 2.
-//
-// BatchTimeoutSec defines the maximum number of seconds to wait after the last
-// message arrived before a batch is flushed automatically. By default this is
-// set to 5. This also defines the maximum time allowed for messages to be
-// sent to the server.
-//
-// HeartBeatIntervalSec defines the interval used to query scribe for status
-// updates. By default this is set to 5sec.
-//
-// Category maps a stream to a specific scribe category. You can define the
-// wildcard stream (*) here, too. When set, all streams that do not have a
-// specific mapping will go to this category (including _GOLLUM_).
-// If no category mappings are set the stream name is used.
+//      "access"   : "accesslogs"
+//      "error"    : "errorlogs"
+//      "_GOLLUM_" : "gollumlogs"
 type Scribe struct {
-	core.BufferedProducer `gollumdoc:"embed_type"`
-	scribe                *scribe.ScribeClient
-	transport             *thrift.TFramedTransport
-	socket                *thrift.TSocket
-	category              map[core.MessageStreamID]string
-	batch                 core.MessageBatch
-	lastHeartBeat         time.Time
-	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
-	heartBeatInterval     time.Duration `config:"HeartBeatIntervalSec" default:"5" metric:"sec"`
-	batchMaxCount         int           `config:"Batch/MaxCount" default:"8192"`
-	batchFlushCount       int           `config:"Batch/FlushCount" default:"4096"`
-	bufferSizeByte        int           `config:"ConnectionBufferSizeKB" default:"1024" metric:"kb"`
-	windowSize            int
-	counters              map[string]*int64
-	lastMetricUpdate      time.Time
+	core.BatchedProducer `gollumdoc:"embed_type"`
+	scribe               *scribe.ScribeClient
+	transport            *thrift.TFramedTransport
+	socket               *thrift.TSocket
+	categoryGuard        *sync.RWMutex
+	category             map[core.MessageStreamID]string
+	lastHeartBeat        time.Time
+	windowSize           int
+	bufferSizeByte       int           `config:"ConnectionBufferSizeKB" default:"1024" metric:"kb"`
+	heartBeatInterval    time.Duration `config:"HeartBeatIntervalSec" default:"5" metric:"sec"`
+	maxWindowSize        int           `config:"WindowSize" default:"2048"`
+	connectionTimeout    time.Duration `config:"ConnectionTimeoutSec" default:"5" metric:"sec"`
 }
 
 const (
@@ -103,17 +100,14 @@ func init() {
 func (prod *Scribe) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 	host := conf.GetString("Address", "localhost:1463")
-
-	prod.bufferSizeByte = int(conf.GetInt("ConnectionBufferSizeKB", 1<<10) << 10) // 1 MB
 	prod.category = conf.GetStreamMap("Categories", "")
-	prod.batchFlushCount = tmath.MinI(prod.batchFlushCount, prod.batchMaxCount)
-	prod.windowSize = prod.batchMaxCount
-	prod.batch = core.NewMessageBatch(prod.batchMaxCount)
+	prod.windowSize = prod.maxWindowSize
+	prod.categoryGuard = new(sync.RWMutex)
 
 	// Initialize scribe connection
 
 	var err error
-	prod.socket, err = thrift.NewTSocketTimeout(host, prod.batchTimeout)
+	prod.socket, err = thrift.NewTSocketTimeout(host, prod.connectionTimeout)
 	conf.Errors.Push(err)
 
 	prod.transport = thrift.NewTFramedTransport(prod.socket)
@@ -127,17 +121,6 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) {
 		metricName := scribeMetricMessages + category
 		tgo.Metric.New(metricName)
 		tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
-	}
-}
-
-func (prod *Scribe) bufferMessage(msg *core.Message) {
-	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
-}
-
-func (prod *Scribe) sendBatchOnTimeOut() {
-	// Flush if necessary
-	if prod.batch.ReachedTimeThreshold(prod.batchTimeout) || prod.batch.ReachedSizeThreshold(prod.batchFlushCount) {
-		prod.sendBatch()
 	}
 }
 
@@ -156,37 +139,42 @@ func (prod *Scribe) tryOpenConnection() bool {
 	if time.Since(prod.lastHeartBeat) < prod.heartBeatInterval {
 		return true // ### return, assume alive ###
 	}
+	prod.lastHeartBeat = time.Now()
 
 	// Check status only when not sending, otherwise scribe gets confused
-	prod.lastHeartBeat = time.Now()
-	prod.batch.WaitForFlush(0)
-
-	if status, err := prod.scribe.GetStatus(); err != nil {
-		prod.Logger.Error("Status error:", err)
-	} else {
+	err := prod.Batch.AfterFlushDo(func() error {
+		status, err := prod.scribe.GetStatus()
+		if err != nil {
+			return err
+		}
 		switch status {
 		case fb303.FbStatus_DEAD:
-			prod.Logger.Warning("Status reported as dead.")
+			return fmt.Errorf("Service dead")
 		case fb303.FbStatus_STOPPING:
-			prod.Logger.Warning("Status reported as stopping.")
+			return fmt.Errorf("Service stopping")
 		case fb303.FbStatus_STOPPED:
-			prod.Logger.Warning("Status reported as stopped.")
-		default:
-			return true // ### return, all is well ###
+			return fmt.Errorf("Service stopped")
 		}
+		return nil // ### return, all is well ###
+	})
+
+	if err == nil {
+		return true
 	}
 
-	// TBD: health check? (ex-fuse breaker)
+	prod.Logger.WithError(err).Error("Scribe status check failed")
 	prod.transport.Close()
 	return false
 }
 
-func (prod *Scribe) sendBatch() {
+func (prod *Scribe) sendBatch() core.AssemblyFunc {
 	if prod.tryOpenConnection() {
-		prod.batch.Flush(prod.transformMessages)
-	} else if prod.IsStopping() {
-		prod.batch.Flush(prod.tryFallbackForMessages)
+		return prod.transformMessages
 	}
+	if prod.IsStopping() {
+		return prod.tryFallbackForMessages
+	}
+	return nil
 }
 
 func (prod *Scribe) tryFallbackForMessages(messages []*core.Message) {
@@ -195,20 +183,36 @@ func (prod *Scribe) tryFallbackForMessages(messages []*core.Message) {
 	}
 }
 
+func (prod *Scribe) addCategory(streamID core.MessageStreamID) string {
+	prod.categoryGuard.Lock()
+	defer prod.categoryGuard.Unlock()
+
+	category, exists := prod.category[core.WildcardStreamID]
+	if exists {
+		return category
+	}
+
+	category = core.StreamRegistry.GetStreamName(streamID)
+
+	metricName := scribeMetricMessages + category
+	tgo.Metric.New(metricName)
+	tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
+
+	prod.category[streamID] = category
+	return category
+}
+
 func (prod *Scribe) transformMessages(messages []*core.Message) {
 	logBuffer := make([]*scribe.LogEntry, len(messages))
 
 	// Convert messages to scribe log format
 	for idx, msg := range messages {
+		prod.categoryGuard.RLock()
 		category, exists := prod.category[msg.GetStreamID()]
+		prod.categoryGuard.RUnlock()
+
 		if !exists {
-			if category, exists = prod.category[core.WildcardStreamID]; !exists {
-				category = core.StreamRegistry.GetStreamName(msg.GetStreamID())
-			}
-			metricName := scribeMetricMessages + category
-			tgo.Metric.New(metricName)
-			tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
-			prod.category[msg.GetStreamID()] = category
+			category = prod.addCategory(msg.GetStreamID())
 		}
 
 		logBuffer[idx] = &scribe.LogEntry{
@@ -234,26 +238,26 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 			}
 
 			// Grow the window on success so we don't get stuck at 1
-			if prod.windowSize < prod.batchMaxCount {
-				prod.windowSize = tmath.MinI(prod.windowSize*2, prod.batchMaxCount)
+			if prod.windowSize < prod.maxWindowSize {
+				prod.windowSize = tmath.MinI(prod.windowSize*2, prod.maxWindowSize)
 			}
 
 			return // ### return, success ###
 		}
 
 		if err != nil || resultCode != scribe.ResultCode_TRY_LATER {
-			prod.Logger.Errorf("Log error %d: %s", resultCode, err.Error())
+			prod.Logger.WithError(err).Errorf("Scribe error %d", resultCode)
 
-			// TBD: health check? (ex-fuse breaker)
 			prod.transport.Close() // reconnect
-
 			prod.tryFallbackForMessages(messages[idxStart:])
 			return // ### return, failure ###
 		}
 
+		// Scribe said "try again".
+		// Reduce window size to reduce load on server
+
 		prod.windowSize = tmath.MaxI(1, prod.windowSize/2)
 		tgo.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
-
 		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)
 	}
 
@@ -268,11 +272,10 @@ func (prod *Scribe) close() {
 	}()
 
 	prod.DefaultClose()
-	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
 }
 
 // Produce writes to a buffer that is sent to scribe.
 func (prod *Scribe) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
-	prod.TickerMessageControlLoop(prod.bufferMessage, prod.batchTimeout, prod.sendBatchOnTimeOut)
+	prod.BatchMessageLoop(workers, prod.sendBatch)
 }

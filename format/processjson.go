@@ -42,7 +42,7 @@ import (
 // found e.g. at http://dev.maxmind.com/geoip/geoip2/geolite2/.
 // By default this parameter is set to "".
 //
-// - TrimValues: Allows trimming of whitespaces from the beggining and end of
+// - TrimValues: Allows trimming of whitespaces from the beginning and end of
 // each value after processing took place.
 // By default this parameter is set to true.
 //

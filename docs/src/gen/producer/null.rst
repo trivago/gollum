@@ -9,51 +9,51 @@ messages without notice.
 
 
 
-Parameters (from DirectProducer)
---------------------------------
+Parameters
+----------
 
-**Enable**
+**Enable** (default: true)
 
-  switches the consumer on or off. By default this value is set to true.
-  
-  
-
-**ID**
-
-  allows this producer to be found by other plugins by name. By default this
-  is set to "" which does not register this producer.
-  
+  Switches this plugin on or off.
   
 
-**ShutdownTimeoutMs**
-
-  sets a timeout in milliseconds that will be used to detect
-  a blocking producer during shutdown. By default this is set to 1 second.
-  Decreasing this value may lead to lost messages during shutdown. Increasing
-  this value will increase shutdown time.
-  
-  
+Parameters (from core.SimpleProducer)
+-------------------------------------
 
 **Streams**
 
-  contains either a single string or a list of strings defining the
-  message channels this producer will consume. By default this is set to "*"
-  which means "listen to all routers but the internal".
+  Defines a list of streams the producer will receive from. This
+  parameter is mandatory. Specifying "*" causes the producer to receive messages
+  from all streams except internal internal ones (e.g. _GOLLUM_).
+  By default this parameter is set to an empty list.
   
   
 
 **FallbackStream**
 
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  Defines a stream to route messages to if delivery fails.
+  The message is reset to its original state before being routed, i.e. all
+  modifications done to the message after leaving the consumer are removed.
+  Setting this paramater to "" will cause messages to be discared when delivery
+  fails.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a producer is
+  allowed to take to shut down. After this timeout the producer is always
+  considered to have shut down.  Decreasing this value may lead to lost
+  messages during shutdown. Raising it may increase shutdown time.
   
   
 
 **Modulators**
 
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
+  Defines a list of modulators to be applied to a message when
+  it arrives at this producer. If a modulator changes the stream of a message
+  the message is NOT routed to this stream anymore.
+  By default this parameter is set to an empty list.
   
   
 
@@ -65,7 +65,8 @@ Examples
 	 TrashCan:
 	   Type: producer.Null
 	   Streams: trash
-	
-	
+
+
+
 
 

@@ -181,14 +181,14 @@ package will be placed in ``tgo/tsync``.
 
 **From**
 
-.. code:: golang
+.. code:: go
 
     c := shared.MaxI(a,b)
     spin := shared.NewSpinner(shared.SpinPriorityLow)
 
 **To**
 
-.. code:: golang
+.. code:: go
 
     c := tmath.MaxI(a,b)
     spin := tsync.NewSpinner(tsync.SpinPriorityLow)
@@ -322,19 +322,188 @@ struct tags.
     }
 
 
+Message handling
+`````````````````
+
+Message handling has changed from the way 0.4.x does it.
+Messages now support MetaData and contain a copy of the "original" data next to the actual payload.
+In addition to this, messages are now backed by a memory pool and are passed around using pointers.
+All this is reflected in new function signatures and new message member functions.
+
+**From**
+
+.. code:: go
+
+    func (format *Sequence) Format(msg core.Message) ([]byte, core.MessageStreamID) {
+        basePayload, stream := format.base.Format(msg)
+        baseLength := len(basePayload)
+        sequenceStr := strconv.FormatUint(msg.Sequence, 10) + format.separator
+
+        payload := make([]byte, len(sequenceStr)+baseLength)
+        len := copy(payload, []byte(sequenceStr))
+        copy(payload[len:], basePayload)
+
+        return payload, stream
+    }
+
+**To**
+
+.. code:: go
+
+    func (format *Sequence) ApplyFormatter(msg *core.Message) error {
+        seq := atomic.AddInt64(format.seq, 1)
+        sequenceStr := strconv.FormatInt(seq, 10)
+        content := format.GetAppliedContent(msg)
+
+        dataSize := len(sequenceStr) + len(format.separator) + len(content)
+        payload := core.MessageDataPool.Get(dataSize)
+
+        offset := copy(payload, []byte(sequenceStr))
+        offset += copy(payload[offset:], format.separator)
+        copy(payload[offset:], content)
+
+        format.SetAppliedContent(msg, payload)
+        return nil
+    }
+
+This example shows most of the changes related to the new message structure.
+
+1. As the sequence number has been removed from the message struct, plugins relying on it need to implement it themselves.
+2. As messages now support metadata, you need to specify whether you want to affect metadata or the payload.
+   In formatter plugins this is reflected by the GetAppliedContent method, which is backed by the "ApplyTo" config parameter.
+3. If you require a new payload buffer you should now utilize core.MessageDataPool.
+
+Things that you don't see in this example are the following:
+
+1. Buffers returned by core.MessageDataPool tend to be overallocated, i.e. they can be resized without reallocation in most cases.
+   As of this methods to resize the payload have been added.
+2. If you need to create a copy of the complete message use the Clone() method
+
+Formatting pipeline
+````````````````````
+
+In version 0.4.x you had to take care about message changes by yourself on many different occasions.
+With 0.5.0 the message flow has been moved completely to the core framework.
+As of this you don't need to worry about routing, or resetting data to it's original state. The framework will do this for you.
+
+**From**
+
+.. code:: go
+
+    func (prod *Redis) getValueAndKey(msg core.Message) (v []byte, k string) {
+        value, _ := prod.Format(msg) // Creates a copy and we must not forget this step
+
+        if prod.keyFormat == nil {
+            return value, prod.key
+        }
+
+        if prod.keyFromParsed {     // Ordering is crucial here
+            keyMsg := msg
+            keyMsg.Data = value
+            key, _ := prod.keyFormat.Format(keyMsg)
+            return value, string(key)
+        }
+
+        key, _ := prod.keyFormat.Format(msg)
+        return value, string(key)
+    }
+
+
+    func (prod *Redis) storeString(msg core.Message) {
+        value, key := prod.getValueAndKey(msg)
+
+        result := prod.client.Set(key, string(value), 0)
+        if result.Err() != nil {
+            Log.Error.Print("Redis: ", result.Err())
+            prod.Drop(msg) // Good thing we stored a copy of the message ...
+        }
+    }
+
+**To**
+
+.. code:: go
+
+    func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v, f, k []byte) {
+        meta := msg.GetMetadata()
+        key := meta.GetValue(prod.key)     // Due to metadata fields...
+        field := meta.GetValue(prod.field) // ... this is now a lot easier
+
+        return msg.GetPayload(), field, key
+    }
+
+    func (prod *Redis) storeString(msg *core.Message) {
+        // The message arrives here after formatting
+        value, key := prod.getValueAndKey(msg)
+
+        result := prod.client.Set(string(key), string(value), time.Duration(0))
+        if result.Err() != nil {
+            prod.Logger.WithError(result.Err()).Error("Failed to set value")
+            prod.TryFallback(msg)          // Will send the original (unformatted) message. Always.
+        }
+    }
+
+
 New features
 ----------------
 
-- updated index.rst `[view commit] <http://github.com/trivago/gollum/commit/bfd219a6879f656b58f8f92d5345a85edbd67336>`__
-- fixed copyright `[view commit] <http://github.com/trivago/gollum/commit/329dac003ef6bdc84fbd3154d5be4a8d6f49b013>`__
-- updated docs `[view commit] <http://github.com/trivago/gollum/commit/2a6667648b8e5278b0f445e3c8c0a8fd207cbf65>`__
-- ...
+- Filters and Formatters have been merged into one list
+- You can now use a filter or formatter more than once in the same plugin
+- Consumers can now do filtering and formatting, too
+- Messages can now store metadata. Formatters can affect the payload or a metadata field
+- All plugins now have an automatic log scope
+- Message payloads are now backed by a memory pool
+- Messages now store the original message, i.e. a backup of the payload state after consumer processing
+- Gollum now provides per-stream metrics
+- Plugins are now able to implement health checks that can be queried via http
+- New base types for producers: Direct, Buffered, Batched
+- Plugin configurations now support nested structures
+- The configuration process has been simplified a lot by adding automatic error handling and struct tags
+- All plugin configuration keys are now case insensitive
+- Added a new formatter format.GrokToJSON
+- Added a new formatter format.JSONToInflux10
+- Added a new formatter format.Double
+- Added a new formatter format.MetadataCopy
+- Added a new formatter format.Trim
+- Consumer.File now supports filesystem events
+- Consumers can now define the number of go routines used for formatting/filtering
+- All AWS plugins now support role switching
+- All AWS plugins are now based on the same credentials code
 
-
-Fixed
+Bugfixes
 ----------------
 
-- updated index.rst `[view commit] <http://github.com/trivago/gollum/commit/bfd219a6879f656b58f8f92d5345a85edbd67336>`__
-- fixed copyright `[view commit] <http://github.com/trivago/gollum/commit/329dac003ef6bdc84fbd3154d5be4a8d6f49b013>`__
-- updated docs `[view commit] <http://github.com/trivago/gollum/commit/2a6667648b8e5278b0f445e3c8c0a8fd207cbf65>`__
-- ...
+
+- The plugin lifecycle has been reimplemented to avoid gollum being stuck waiting for plugins to change state
+- Integration test suite added
+- Producer.HTTPRequest port handling fixed
+- The test-config command will now produce more meaningful results
+- Duplicating messages now properly duplicates the whole message and not just the struct
+- Several race conditions have been fixed
+- Producer.ElasticSearch is now based on a more up-to-date library
+- Producer.AwsS3 is now behaving more like producer.File
+- Gollum metrics can now bind to a specific address instead of just a port
+
+Breaking changes
+----------------
+
+- The config format has changed to improve automatic processing
+- A lot of plugins have been renamed to avoid confusion and to better reflect their behavior
+- A lot of plugins parameters have been renamed
+- The instances plugin parameter has been removed
+- Most of gollum's metrics have been renamed
+- Plugin base types have been renamed
+- All message handling function signatures have changed to use pointers
+- All formatters don't daisy chain anymore as they can now be listed in proper order
+- Stream plugins have been renamed to Router plugins
+- Routers are not allowed to modify message content anymore
+- filter.All and format.Forward have been removed as they are not required anymore
+- Producer formatter listss dedicated to format a key or similar constructs have been removed
+- Logging framework switched to logrus
+- The package gollum.shared has been removed in favor of trivago.tgo
+- Fuses have been removed from all plugins
+- The general message sequence number has been removed
+- The term "drop" has been replaced by the term "fallback" to emphasise it's use
+- The \_DROPPED\_ stream has been removed. Messages are discarded if no fallback is set
+- Formatters can still the stream of a message but cannot trigger routing by themselves
+- Compiling contrib plugins now requires a specific loader.go to be added
+- The docker file on docker hub is now a lot smaller and only contains the gollum binary

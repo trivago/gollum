@@ -1,5 +1,5 @@
-hash: c3caa5c87d435351e40681b598bb94c31c14f4fe190e0d95035f303aaff9697a
-updated: 2017-07-20T14:33:23.250022994+02:00
+hash: db76d2fa34a49aa74c4d9df3b3c1f4583fa472872e2f13675040fe07d422f67e
+updated: 2017-08-10T15:42:16.733737914+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
@@ -76,7 +76,7 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/golang/protobuf
-  version: 0a4f71a498b7c4812f64969510bcb4eca251e33a
+  version: 1909bc2f63dc92bb931deace8b8312c4db72d12f
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -88,7 +88,7 @@ imports:
 - name: github.com/klauspost/crc32
   version: bab58d77464aa9cf4e84200c3276da0831fe0c03
 - name: github.com/mattn/go-colorable
-  version: 3fa8c76f9daed4067e4a806fb7e4dc86455c6d6a
+  version: c4c76971792b28a17ff5dd0b76a2732b3f1d3d4f
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mgutz/ansi
@@ -96,7 +96,7 @@ imports:
 - name: github.com/miekg/pcap
   version: 51d9d986bf8d5f524d65bf31c353e10271d54aaa
 - name: github.com/mmcloughlin/geohash
-  version: 525f3a7fc47c279c04049e07697970039310755d
+  version: 71fdd146e641f67705553200404b1bc426871d7e
 - name: github.com/mssola/user_agent
   version: 07efe2b857fb8c02d2dd85c12d0145f58554ec7c
 - name: github.com/oschwald/maxminddb-golang
@@ -110,7 +110,7 @@ imports:
 - name: github.com/pkg/errors
   version: c605e284fe17294bda444b34710735b29d1a9d90
 - name: github.com/quipo/statsd
-  version: 39c3fe59a6c334d5aefddf41f3c16595301c80e1
+  version: eaafca512970e346bd4a4d223c8db72856885d35
   subpackages:
   - event
 - name: github.com/rcrowley/go-metrics
@@ -122,7 +122,7 @@ imports:
 - name: github.com/trivago/grok
   version: af18cdd9faf3e06aedce0974c7e4012efc87658e
 - name: github.com/trivago/tgo
-  version: 92b6796af0cd3e2434e28816e07ae6d12c4233cc
+  version: e4d1ddd28c17dd89ed26327cf69fded22060671b
   subpackages:
   - tcontainer
   - terrors
@@ -137,14 +137,15 @@ imports:
   - tsync
   - ttesting
 - name: github.com/x-cray/logrus-prefixed-formatter
-  version: 0b2c791a02f18788b281dc30e243a0632dad695b
+  version: bb2702d423886830dee131692131d35648c382e2
 - name: golang.org/x/crypto
-  version: 4bc1c249b153ce1da9f55437759cec51fe6acabb
+  version: b176d7def5d71bdd214203491f89843ed217f420
   subpackages:
   - bcrypt
   - blowfish
+  - ssh/terminal
 - name: golang.org/x/sys
-  version: 7a4fde3fda8ef580a89dbae8138c26041be14299
+  version: e42485b6e20ae7d2304ec72e535b103ed350cc02
   subpackages:
   - unix
   - windows
@@ -156,12 +157,12 @@ imports:
   - internal/syslogparser/rfc3164
   - internal/syslogparser/rfc5424
 - name: gopkg.in/olivere/elastic.v5
-  version: f5030c016b49a6fb0e1958bc765562246c0a912c
+  version: edbef41beaacc2ee95e61af8faff04e67c01e268
   subpackages:
   - config
   - uritemplates
 - name: gopkg.in/oschwald/geoip2-golang.v1
   version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4
 - name: gopkg.in/yaml.v2
-  version: 3b4ad1db5b2a649883ff3782f5f9f6fb52be71af
+  version: 25c4ec802a7d637f88d584ab26798e94ad14c13b
 testImports: []

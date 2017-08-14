@@ -35,6 +35,7 @@ func init() {
 // Expect is a helper construct for unittesting
 type Expect struct {
 	scope  string
+	group  string
 	t      *testing.T
 	silent bool
 }
@@ -67,6 +68,17 @@ func NewSilentExpect(t *testing.T) Expect {
 	}
 }
 
+// StartGroup starts a new test groups. Errors will be prefixed with the name of
+// this group until EndGroup is called.
+func (e *Expect) StartGroup(name string) {
+	e.group = name
+}
+
+// EndGroup closes a test group. See StartGroup.
+func (e *Expect) EndGroup() {
+	e.group = ""
+}
+
 func (e Expect) error(message string) {
 	if e.silent {
 		return
@@ -76,7 +88,12 @@ func (e Expect) error(message string) {
 		file = file[basePathIdx+len(expectBasePath):]
 	}
 
-	fmt.Printf("\t%s:%d: %s -> %s\n", file, line, e.scope, message)
+	scope := e.scope
+	if e.group != "" {
+		scope += "/" + e.group
+	}
+
+	fmt.Printf("\t%s:%d: %s -> %s\n", file, line, scope, message)
 	e.t.Fail()
 }
 

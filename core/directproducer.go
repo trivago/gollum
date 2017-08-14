@@ -20,35 +20,11 @@ import (
 
 // DirectProducer plugin base type
 //
-// This type defines a common baseclass for producers. All producers should
-// derive from this class, but not necessarily need to.
-//
-// Parameters
-//
-// - Enable: switches the consumer on or off. By default this value is set to true.
-//
-// - ID: allows this producer to be found by other plugins by name. By default this
-// is set to "" which does not register this producer.
-//
-// - ShutdownTimeoutMs: sets a timeout in milliseconds that will be used to detect
-// a blocking producer during shutdown. By default this is set to 1 second.
-// Decreasing this value may lead to lost messages during shutdown. Increasing
-// this value will increase shutdown time.
-//
-// - Streams: contains either a single string or a list of strings defining the
-// message channels this producer will consume. By default this is set to "*"
-// which means "listen to all routers but the internal".
-//
-// - FallbackStream: defines the stream used for messages that are sent to the fallback after
-// a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
-//
-// - Modulators: sets formatter and filter to use. Each formatter has its own set of options
-// which can be set here, too. By default this is set to format.Forward.
-// Each producer decides if and when to use a Formatter.
+// This type defines a common baseclass for producers.
 //
 type DirectProducer struct {
-	SimpleProducer
-	onMessage func(*Message)
+	SimpleProducer `gollumdoc:"embed_type"`
+	onMessage      func(*Message)
 }
 
 // Configure initializes the standard producer config values.
@@ -88,7 +64,8 @@ func (prod *DirectProducer) MessageControlLoop(onMessage func(*Message)) {
 // TickerMessageControlLoop is like MessageLoop but executes a given function at
 // every given interval tick, too. If the onTick function takes longer than
 // interval, the next tick will be delayed until onTick finishes.
-func (prod *DirectProducer) TickerMessageControlLoop(onMessage func(*Message), interval time.Duration, onTimeOut func()) {
+func (prod *DirectProducer) TickerMessageControlLoop(onMessage func(*Message),
+	interval time.Duration, onTimeOut func()) {
 	prod.setState(PluginStateActive)
 	prod.onMessage = onMessage
 	prod.TickerControlLoop(interval, onTimeOut)

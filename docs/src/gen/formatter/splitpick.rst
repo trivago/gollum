@@ -3,8 +3,8 @@
 SplitPick
 =========
 
-This formatter splits data into an array by using a given delimiter and
-extracts a given index out of that array. The value of that index will be
+This formatter splits data into an array by using the given delimiter and
+extracts the given index from that array. The value of that index will be
 written back.
 
 
@@ -27,14 +27,23 @@ Parameters
   
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
@@ -50,7 +59,8 @@ Examples
 	     - format.SplitPick:
 	       Index: 2
 	       Delimiter: ":"
-	
-	
+
+
+
 
 

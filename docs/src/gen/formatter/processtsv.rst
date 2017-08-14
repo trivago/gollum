@@ -22,19 +22,19 @@ Parameters
 
 **QuotedValue**
 
-  When set to true values that start and end with a quotation
+  When set to true, values that start and end with a quotation
   mark are not scanned for delimiter characters. I.e. those values will not be
-  splitted when containing a delimiter character.
+  split even if they contain delimiter characters.
   By default this parameter is set to false.
   
   
 
 **Directives**
 
-  Defines an array of actions to be applied to the TSV encoded
-  data. Directives are processed in order of their appearance. Directives start
+  Defines an array of actions to apply to the TSV encoded
+  data. Directives are processed in order of appearance. Directives start
   with the index of the field, followed by an action followed by additional
-  parameters if necessary. Parameters, key and action are separated by using
+  parameters if necessary. Parameters, key and action are separated by
   the ":" character.
   By default this parameter is set to an empty list.
   
@@ -43,7 +43,7 @@ Parameters
   **replace**
 
     <string>  <new string>
-    Replace a given string inside the field's value with a new one.
+    Replace a given string inside the field's value with another one.
     
     
 
@@ -71,7 +71,7 @@ Parameters
   **quote**
 
     
-    Put the field's value into quotation marks after all directives have been
+    Surround the field's value with quotation marks after all directives have been
     processed.
     
     
@@ -79,12 +79,12 @@ Parameters
   **time**
 
     <from fromat> <to format>
-    Read a timestamp with a given format compatible to time.Parse and transform
+    Read a timestamp in the specified time.Parse-compatible format and transform
     it into another format compatible with time.Format.
     
     
 
-** ... **
+** (unnamed) **
 
     remove
     Removes the field from the result
@@ -153,14 +153,23 @@ Parameters
   (no documentation available)
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
@@ -179,7 +188,8 @@ Examples
 	         - "0:time:20060102150405:2006-01-02 15\\:04\\:05"
 	         - "2:remove"
 	         - "11:agent:os:engine:engine_version"
-	
-	
+
+
+
 
 

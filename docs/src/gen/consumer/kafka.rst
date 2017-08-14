@@ -3,14 +3,17 @@
 Kafka
 =====
 
-This consumer reads data from a given kafka topic. It is based on the sarama
-library so most settings are mapped to the settings from this library.
+This consumer reads data from a kafka topic. It is based on the sarama
+library; most settings are mapped to the settings from this library.
 
 
 
 
 Metadata
 --------
+
+*NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
+
 
 **topic**
 
@@ -27,9 +30,14 @@ Metadata
 Parameters
 ----------
 
-**Servers** (default: localhost:9092)
+**Enable** (default: true)
 
-  Defines the list of all kafka brokers to initally connect to when
+  Switches this plugin on or off.
+  
+
+**Servers**
+
+  Defines the list of all kafka brokers to initially connect to when
   querying topic metadata. This list requires at least one borker to work and
   ideally contains all the brokers in the cluster.
   By default this parameter is set to ["localhost:9092"].
@@ -52,8 +60,8 @@ Parameters
 
 **GroupId**
 
-  Sets the consumer group of this consumer. When left empty consumer
-  groups are not used. This setting requires Version Kafka version >= 0.9.
+  Sets the consumer group of this consumer. If empty, consumer
+  groups are not used. This setting requires Kafka version >= 0.9.
   By default this parameter is set to "".
   
   
@@ -68,12 +76,21 @@ Parameters
   
   
 
+**SetMetadata** (default: false)
+
+  When this value is set to "true", the fields mentioned in the metadata
+  section will be added to each message. Adding metadata will have a
+  performance impact on systems with high throughput.
+  By default this parameter is set to "false".
+  
+  
+
 **DefaultOffset**
 
-  Defines the inital offest when starting to read the topic.
-  Valid values are "oldest" and "newest". If OffsetFile is defined the
-  DefaultOffset setting will only be used in case the file does not exist.
-  If GroupId is defined this setting will only be used for the first request.
+  Defines the initial offest when starting to read the topic.
+  Valid values are "oldest" and "newest". If OffsetFile
+  is defined and the file exists, the DefaultOffset parameter is ignored.
+  If GroupId is defined, this setting will only be used for the first request.
   By default this parameter is set to "newest".
   
   
@@ -81,8 +98,8 @@ Parameters
 **OffsetFile**
 
   Defines the path to a file that holds the current offset of a
-  given partition. If the consumer is restarted that offset is used to continue
-  reading. This setting is disabled when using "". Please note that offsets
+  given partition. If the consumer is restarted, reading continues from that
+  offset. To disable this setting, set it to "". Please note that offsets
   stored in the file might be outdated. In that case DefaultOffset "oldest"
   will be used.
   By default this parameter is set to "".
@@ -99,9 +116,9 @@ Parameters
 **Ordered**
 
   Forces partitions to be read one-by-one in a round robin fashion
-  instead of reading them all in parallel. Please note that this can restore
-  the original ordering but does not necessarily do. The term ordered refers
-  to an ordered reading of all partitions instead of reading them randomly.
+  instead of reading them all in parallel. Please note that this may restore
+  the original ordering but does not necessarily do so. The term "ordered" refers
+  to an ordered reading of all partitions, as opposed to reading them randomly.
   By default this parameter is set to false.
   
   
@@ -137,6 +154,14 @@ Parameters
   
   
 
+**DefaultFetchSizeByte**
+
+  Defines the average amout of data to fetch per
+  request. This value must be greater than 0.
+  By default this parameter is set to 32768.
+  
+  
+
 **FetchTimeoutMs**
 
   Defines the time in milliseconds to wait on reaching
@@ -155,7 +180,7 @@ Parameters
 **PresistTimoutMs** (default: 5000, unit: ms)
 
   Defines the interval in milliseconds in which data is
-  written to the OffsetFile. Short durations reduce the amount of duplicate
+  written to the OffsetFile. A short duration reduces the amount of duplicate
   messages after a crash but increases I/O. When using GroupId this setting
   controls the pause time after receiving errors.
   By default this parameter is set to 5000.
@@ -196,16 +221,16 @@ Parameters
 
 **TlsKeyLocation**
 
-  Defines the path to the client's private key (PEM) used for
-  TLS based authentication.
+  Defines the path to the client's PEM-formatted private key
+  used for TLS based authentication.
   By default this parameter is set to "".
   
   
 
 **TlsCertificateLocation**
 
-  Defines the path to the client's public key (PEM)
-  used for TLS based authentication.
+  Defines the path to the client's PEM-formatted
+  public key used for TLS based authentication.
   By default this parameter is set to "".
   
   
@@ -244,27 +269,20 @@ Parameters
 
 **SaslUsername**
 
-  Defines the username used with SASL/PLAIN authentication.
+  Defines the username for SASL/PLAIN authentication.
   By default this parameter is set to "gollum".
   
   
 
 **SaslPassword**
 
-  Defines the password used with SASL/PLAIN authentication.
+  Defines the password for SASL/PLAIN authentication.
   By default this parameter is set to "".
   
   
 
-Parameters (from SimpleConsumer)
---------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
+Parameters (from core.SimpleConsumer)
+-------------------------------------
 
 **Streams**
 
@@ -316,19 +334,24 @@ Parameters (from SimpleConsumer)
 Examples
 --------
 
+This config reads the topic "logs" from a cluster with 4 brokers.
+
 .. code-block:: yaml
 
-	This config reads the topic "logs" from a cluster with 4 brokers.
-	
 	 kafkaIn:
-	 	Type: consumer.Kafka
-	     Streams: logs
-	   	Topic: logs
-	   	ClientId: "gollum log reader"
-	   	DefaultOffset: newest
-	   	OffsetFile: /var/gollum/logs.offset
-	   	Servers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
-	
-	
+	   Type: consumer.Kafka
+	   Streams: logs
+	   Topic: logs
+	   ClientId: "gollum log reader"
+	   DefaultOffset: newest
+	   OffsetFile: /var/gollum/logs.offset
+	   Servers:
+	     - "kafka0:9092"
+	     - "kafka1:9092"
+	     - "kafka2:9092"
+	     - "kafka3:9092"
+
+
+
 
 

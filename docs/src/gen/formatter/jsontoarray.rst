@@ -3,10 +3,11 @@
 JSONToArray
 ===========
 
-JSONToArray "flattens" a JSON object by selecting specific fields and putting
-the values of them into a separated list.
+JSONToArray "flattens" a JSON object by selecting specific fields
+and creating a delimiter-separated string of their values.
 
-An json input of `{"foo":"value1","bar":"value2"}` can be transformed in a list like `value1,value2`.
+A JSON input like `{"foo":"value1","bar":"value2"}` can be transformed
+into a list like `value1,value2`.
 
 
 
@@ -16,46 +17,57 @@ Parameters
 
 **Fields**
 
-  The list of all keys which used to create the final text list.
+  List of strings specifying the JSON keys to retrieve from the input
   
   
 
 **Separator** (default: ,)
 
-  This value used as separator for the final text list.
+  The delimited string to insert between each value in the generated
+  string.
   By default this parameter is set to ",".
   
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+This example get the `foo` and `bar` fields from a json document
+and create a payload of `foo_value:bar_value`:
+
 .. code-block:: yaml
 
-	This example get the `foo` and `bar` fields from a json document
-	and create a payload of `foo_value:bar_value`:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.JSONToArray
-	         Fields:
-	           - foo
-	           - bar
-	         Separator: ;
-	
-	
+	       Separator: ;
+	       Fields:
+	         - foo
+	         - bar
+
+
+
 
 

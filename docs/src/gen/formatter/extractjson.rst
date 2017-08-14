@@ -14,7 +14,7 @@ Parameters
 
 **Field**
 
-  Defines the JSON key to extract.If the field does not exist an
+  Defines the JSON key to extract. If the field does not exist an
   empty string is returned. Field paths can be defined in a format accepted by
   tgo.MarshalMap.Path.
   By default this parameter is set to "".
@@ -38,14 +38,23 @@ Parameters
   
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
@@ -61,7 +70,8 @@ Examples
 	     - formatter.ExtractJSON
 	       Field: host
 	       ApplyTo: host
-	
-	
+
+
+
 
 

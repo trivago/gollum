@@ -1,11 +1,16 @@
 syntax = "proto2";
 option go_package = "core";
 
+message serializedMessageData {
+        required bytes Data = 1;
+        map<string, bytes> Metadata = 2;
+}
+
 message serializedMessage {
         required uint64 StreamID = 1;
-        required uint64 PrevStreamID = 2;
-        required int64 Timestamp = 3;
-        //required uint64 Sequence = 4;
-        required bytes Data = 5;
-        map<string, bytes> Metadata = 6;
+        required serializedMessageData Data = 2;
+        optional uint64 PrevStreamID = 3;
+        optional uint64 OrigStreamID = 4;
+        optional int64 Timestamp = 5;
+        optional serializedMessageData Original = 6;
 }

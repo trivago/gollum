@@ -12,48 +12,58 @@ each newline character.
 Metadata
 --------
 
+*NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
+
+
 **pipe**
 
-  name of the pipe the message was received on (set)
+  Name of the pipe the message was received on (set)
   
   
 
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Pipe** (default: stdin)
 
   Defines the pipe to read from. This can be "stdin" or the path
-  to a named pipe. If the named pipe is not existing it will be creared.
+  to a named pipe. If the named pipe doesn't exist, it will be created.
   By default this paramater is set to "stdin".
   
   
 
 **Permissions** (default: 0644)
 
-  Accepts an octal number string containing the unix file
-  permissions used when creating a named pipe.
+  Defines the UNIX filesystem permissions used when creating
+  the named pipe as an octal number.
   By default this paramater is set to "0664".
   
   
 
 **ExitOnEOF** (default: true)
 
-  Can be set to true to trigger an exit signal if the pipe is closed
-  i.e. when EOF is detected.
+  If set to true, the plusing triggers an exit signal if the
+  pipe is closed, i.e. when EOF is detected.
   By default this paramater is set to "true".
   
   
 
-Parameters (from SimpleConsumer)
---------------------------------
+**SetMetadata** (default: false)
 
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
+  When this value is set to "true", the fields mentioned in the metadata
+  section will be added to each message. Adding metadata will have a
+  performance impact on systems with high throughput.
+  By default this parameter is set to "false".
   
   
+
+Parameters (from core.SimpleConsumer)
+-------------------------------------
 
 **Streams**
 
@@ -105,15 +115,16 @@ Parameters (from SimpleConsumer)
 Examples
 --------
 
+This config reads data from stdin e.g. when starting gollum via unix pipe.
+
 .. code-block:: yaml
 
-	This config reads data from stdin e.g. when starting gollum via unix pipe.
-	
 	 ConsoleIn:
 	   Type: consumer.Console
 	   Streams: console
 	   Pipe: stdin
-	
-	
+
+
+
 
 

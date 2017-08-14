@@ -12,17 +12,23 @@ http API. The producer expects a json payload.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Retry/Count**
 
-  Set the amount of retries before a Elasticsearch request fail finally.
+  Set the amount of retries before a Elasticsearch request
+  fail finally.
   By default this parameter is set to "3".
   
   
 
 **Retry/TimeToWaitSec**
 
-  This value denotes the time in seconds after which a failed dataset will be
-  transmitted again.
+  This value denotes the time in seconds after which a
+  failed dataset will be  transmitted again.
   By default this parameter is set to "3".
   
   
@@ -30,8 +36,8 @@ Parameters
 **SetGzip**
 
   This value enables or disables gzip compression for Elasticsearch
-  requests (disabled by default). This option is used one to one for the library package.
-  See: http://godoc.org/gopkg.in/olivere/elastic.v5#SetGzip
+  requests (disabled by default). This option is used one to one for the library
+  package. See http://godoc.org/gopkg.in/olivere/elastic.v5#SetGzip
   By default this parameter is set to "false".
   
   
@@ -44,15 +50,15 @@ Parameters
 
 **User**
 
-  This value used as username credential for the elasticsearch server.
+  This value used as the username for the elasticsearch server.
   By default this parameter is set to "".
   
   
 
 **Password**
 
-  This value used as password credential for the elasticsearch server.
-  By default both settings is set to "".
+  This value used as the password for the elasticsearch server.
+  By default this parameter is set to "".
   
   
 
@@ -65,42 +71,47 @@ Parameters
 
 **StreamProperties/<streamName>/Index**
 
-  The value defines the Elasticsearch index which used for the stream.
+  The value defines the Elasticsearch
+  index used for the stream.
   
   
 
 **StreamProperties/<streamName>/Type**
 
-  This value defines the document type which used for the stream.
+  This value defines the document type
+  used for the stream.
   
   
 
 **StreamProperties/<streamName>/DayBasedIndex**
 
-  This value can be set to "true" to append the date of the message to the
-  index as in "<index>_YYYY-MM-DD".
-  NOTE: This setting need more performance because it is necessary to check if an index exist for each message!
+  This value can be set to "true"
+  to append the date of the message to the index as in "<index>_YYYY-MM-DD".
+  NOTE: This setting incurs a performance penalty because it is necessary to
+  check if an index exists for each message!
   By default this parameter is set to "false".
   
   
 
 **StreamProperties/<streamName>/Mapping**
 
-  This value is a map which used for the document field mapping.
-  As document type the already definded type is reused for the field mapping
-  See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
+  This value is a map which is used
+  for the document field mapping. As document type, the already defined type is
+  reused for the field mapping. See
+  https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
   
   
 
 **StreamProperties/<streamName>/Settings**
 
-  This value is a map which is used for the index settings.
-  See https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
+  This value is a map which is used
+  for the index settings. See
+  https://www.elastic.co/guide/en/elasticsearch/reference/5.4/indices-create-index.html#mappings
   
   
 
-Parameters (from BatchedProducer)
----------------------------------
+Parameters (from core.BatchedProducer)
+--------------------------------------
 
 **Batch/MaxCount** (default: 8192)
 
@@ -126,80 +137,73 @@ Parameters (from BatchedProducer)
   
   
 
-Parameters (from DirectProducer)
---------------------------------
-
-**Enable**
-
-  switches the consumer on or off. By default this value is set to true.
-  
-  
-
-**ID**
-
-  allows this producer to be found by other plugins by name. By default this
-  is set to "" which does not register this producer.
-  
-  
-
-**ShutdownTimeoutMs**
-
-  sets a timeout in milliseconds that will be used to detect
-  a blocking producer during shutdown. By default this is set to 1 second.
-  Decreasing this value may lead to lost messages during shutdown. Increasing
-  this value will increase shutdown time.
-  
-  
+Parameters (from core.SimpleProducer)
+-------------------------------------
 
 **Streams**
 
-  contains either a single string or a list of strings defining the
-  message channels this producer will consume. By default this is set to "*"
-  which means "listen to all routers but the internal".
+  Defines a list of streams the producer will receive from. This
+  parameter is mandatory. Specifying "*" causes the producer to receive messages
+  from all streams except internal internal ones (e.g. _GOLLUM_).
+  By default this parameter is set to an empty list.
   
   
 
 **FallbackStream**
 
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  Defines a stream to route messages to if delivery fails.
+  The message is reset to its original state before being routed, i.e. all
+  modifications done to the message after leaving the consumer are removed.
+  Setting this paramater to "" will cause messages to be discared when delivery
+  fails.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a producer is
+  allowed to take to shut down. After this timeout the producer is always
+  considered to have shut down.  Decreasing this value may lead to lost
+  messages during shutdown. Raising it may increase shutdown time.
   
   
 
 **Modulators**
 
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
+  Defines a list of modulators to be applied to a message when
+  it arrives at this producer. If a modulator changes the stream of a message
+  the message is NOT routed to this stream anymore.
+  By default this parameter is set to an empty list.
   
   
 
 Examples
 --------
 
+This example starts a simple twitter example producer for local running ElasticSearch:
+
 .. code-block:: yaml
 
-	This example starts a simple twitter example producer for local running ElasticSearch:
-	
 	 producerElasticSearch:
-		  Type: producer.ElasticSearch
+	   Type: producer.ElasticSearch
 	   Streams: tweets_stream
-		  SetGzip: true
+	   SetGzip: true
 	   Servers:
 	     - http://127.0.0.1:9200
 	   StreamProperties:
-			tweets_stream:
-				Index: twitter
-				DayBasedIndex: true
-				Type: tweet
-				Mapping:
-					# index mapping for payload
-					user: keyword
-					message: text
-				Settings:
-					number_of_shards: 1
-					number_of_replicas: 1
-	
-	
+	     tweets_stream:
+	       Index: twitter
+	       DayBasedIndex: true
+	       Type: tweet
+	       Mapping:
+	         # index mapping for payload
+	         user: keyword
+	         message: text
+	       Settings:
+	         number_of_shards: 1
+	         number_of_replicas: 1
+
+
+
 
 

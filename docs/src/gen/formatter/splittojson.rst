@@ -3,8 +3,8 @@
 SplitToJSON
 ===========
 
-SplitToJSON is a formatter that splits a message by a given token and puts
-the result into a JSON object by using an array based mapping
+SplitToJSON is a formatter that splits a message by a given token and creates
+a JSON object of the split values by assigning each value to a predefined property.
 
 
 
@@ -14,56 +14,66 @@ Parameters
 
 **Keys**
 
-  This value defines an array of keys to apply to the tokens generated
-  by splitting a message by `SplitBy`. The keys listed here are applied to the resulting
-  token array by index.
+  This value defines an array of JSON keys to which the split message's parts
+  should be assigned to. The keys are applied to the resulting token array by index.
   
   
 
 **SplitBy** (default: |)
 
-  This value defines the separator character to use when processing a message.
+  This value defines the separator character to use when splitting a message.
   By default this parameter is set to "|".
   
   
 
 **KeepJSON** (default: true)
 
-  This value can be set to "false" to escape texts that are JSON
-  payloads as regualar strings. Otherwise JSON payload will be taken as-is and
-  set to the corresponding key.
+  This value can be set to "false" to escape JSON payload texts
+  as regualar strings. Otherwise JSON payload will be taken as-is and set to the
+  corresponding key.
   By default this parameter is set to "true".
   
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+This example will format a input of `value1,value2,value3` to a json
+string of `{"foo":"value1", "bar":"value2"}`:
+
 .. code-block:: yaml
 
-	This example will format a input of `value1,value2,value3` to a json string of `{"foo":"value1", "bar":"value2"}`:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.SplitToJSON:
-	         SplitBy: ","
-	         Keys:
-	           - foo
-	           - bar
-	
-	
+	       SplitBy: ","
+	       Keys:
+	         - foo
+	         - bar
+
+
+
 
 

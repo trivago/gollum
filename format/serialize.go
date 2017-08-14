@@ -21,11 +21,11 @@ import (
 // Serialize formatter plugin
 //
 // Serialize is a formatter that serializes a message for later retrieval.
-// The formatter use the internal protobuf based function from msg.Serialize().
+// The formatter uses the internal protobuf based function from msg.Serialize().
 //
 // Examples
 //
-// This example serialize all consumed messages:
+// This example serializes all consumed messages:
 //
 //  exampleConsumer:
 //    Type: consumer.Console

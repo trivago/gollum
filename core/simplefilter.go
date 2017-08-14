@@ -25,8 +25,8 @@ import (
 //
 // Parameters
 //
-// - FilteredStream: This value defines a stream where filtered messages get sent to.
-// You can disable this behavior by setting "".
+// - FilteredStream: This value defines the stream filtered messages get sent to.
+// You can disable this behavior by setting the value to "".
 // By default this parameter is set to "".
 //
 type SimpleFilter struct {

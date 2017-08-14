@@ -18,12 +18,21 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Clear formatter plugin
-// Clear is a formatter that clears the message
-// Configuration example
+// Clear formatter
 //
-//  - format.Clear:
-//	ApplyTo: "payload" # payload or <metaKey>
+// This formatter erases the message payload or deletes a metadata key.
+//
+// Examples
+//
+// This example removes the "pipe" key from the metadata produced by
+// consumer.Console.
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: stdin
+//    Modulators:
+//      - format.Clear
+//        ApplyTo: pipe
 type Clear struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 }
@@ -38,6 +47,6 @@ func (format *Clear) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Clear) ApplyFormatter(msg *core.Message) error {
-	format.SetAppliedContent(msg, []byte{})
+	format.SetAppliedContent(msg, nil)
 	return nil
 }

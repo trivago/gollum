@@ -18,27 +18,31 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Envelope formatter plugin
-// Envelope is a formatter that allows prefixing and/or postfixing a message
-// with configurable strings.
-// Configuration example
+// Envelope formatter
 //
-//  - "stream.Broadcast":
-//    Formatter: "format.Envelope"
-//    	Formatter: "format.Forward"
-//    	Prefix: ""
-//    	Postfix: "\n"
+// This formatter adds content to the beginning and/or end of a message.
 //
-// Envelope\Prefix defines the message prefix. By default this is set to "".
-// Special characters like \n \r \t will be transformed into the actual control
-// characters.
+// Parameters
 //
-// Envelope\Postfix defines the message postfix. By default this is set to "\n".
-// Special characters like \n \r \t will be transformed into the actual control
-// characters.
+// - Prefix: Defines a string that is added to the front of the message.
+// Special characters like \n \r or \t can be used without additional escaping.
+// By default this parameter is set to "".
 //
-// Envelope\Formatter defines the formatter for the data transferred as
-// message. By default this is set to "format.Forward"
+// - Postfix: Defines a string that is added to the end of the message.
+// Special characters like \n \r or \t can be used without additional escaping.
+// By default this parameter is set to "\n".
+//
+// Examples
+//
+// This example adds a line number and a newline character to each message
+// printed to the console.
+//
+//  exampleProducer:
+//    Type: producer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.Sequence
+//      - format.Envelope
 type Envelope struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	postfix              string `config:"Postfix" default:"\n"`

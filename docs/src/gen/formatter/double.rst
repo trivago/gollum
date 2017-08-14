@@ -3,9 +3,9 @@
 Double
 ======
 
-Double is a formatter that doubles the message and glues both parts
-together by using a separator. Both parts of the new message may be
-formatted differently
+Double is a formatter that appends a delimiter string and a second copy of
+the message's contents to the message. Independent sets of formatters may
+be applied to both duplicates.
 
 
 
@@ -30,45 +30,63 @@ Parameters
 
 **Left**
 
-  A optional formatter list which are used for the left side.
-  This parameter is set to "empty list" by default.
+  An optional list of formatters. The first copy of the message (left
+  of the delimiter) is passed through these filters.
+  This parameter is set to an empty list by default.
+  
+  
+
+**Left**
+
+  An optional list of formatters. The second copy of the mssage (right
+  of the delimiter) is passed through these filters.
+  This parameter is set to an empty list by default.
   
   
 
 **Right**
 
-  A optional formatter list which are used for the right side.
-  This parameter is set to "empty list" by default.
-  
+  (no documentation available)
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+This example creates a message of the form "<orig>|<base64>", where <orig> is
+the original console input and <base64> its Base64-encoded equivalent.
+
 .. code-block:: yaml
 
-	This example create a message where you find a "input|base64" pair of the original console input:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.Double:
-		      Separator: "|"
-	   	  Right:
+	       Separator: "|"
+	       Right:
 	         - format.Base64Encode
-	
-	
+
+
+
 
 

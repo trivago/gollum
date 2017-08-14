@@ -3,8 +3,9 @@
 Timestamp
 =========
 
-Timestamp is a formatter that allows prefixing a message with a timestamp
-(time of arrival at gollum) as well as postfixing it with a delimiter string.
+Timestamp is a formatter that allows prefixing messages with a timestamp
+(time of arrival at gollum). The timestamp format is freely configurable
+and can e.g. contain a delimiter sequence at the end.
 
 
 
@@ -14,38 +15,48 @@ Parameters
 
 **Timestamp** (default: 2006-01-02 15:04:05 MST | )
 
-  This value defines a Go time format string that is used to format the actual
-  timestamp that prefixes the message.
+  This value defines a Go time format string that is used to f
+  ormat the timestamp.
   By default this parameter is set to  "2006-01-02 15:04:05 MST | ".
   
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+This example will set a time string to the meta data field `time`:
+
 .. code-block:: yaml
 
-	This example will set a time string to the meta data field `time`:
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.Timestamp:
-	         Timestamp: "2006-01-02T15:04:05.000 MST"
-	         ApplyTo: time
-	
-	
+	       Timestamp: "2006-01-02T15:04:05.000 MST"
+	       ApplyTo: time
+
+
+
 
 

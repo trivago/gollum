@@ -39,17 +39,17 @@ import (
 // can be used as a placeholder for the stream name.
 // By default this parameter is set to "/var/log/gollum.log".
 //
-// - FileOverwrite: This value enables files to be overwritten instead of appending new data
+// - FileOverwrite: This value causes the file to be overwritten instead of appending new data
 // to it.
 // By default this parameter is set to "false".
 //
-// - Permissions: This value accepts an octal number string that contains the unix file
-// permissions used when creating a file.
-// By default this parameter is set to "0664".
+// - Permissions: Defines the UNIX filesystem permissions used when creating
+// the named file as an octal number.
+// By default this paramater is set to "0664".
 //
-// - FolderPermissions: This value accepts an octal number string that contains the unix file
-// permissions used when creating a folder.
-// By default this parameter is set to "0755".
+// - FolderPermissions: Defines the UNIX filesystem permissions used when creating
+// the folders as an octal number.
+// By default this paramater is set to "0755".
 //
 // Examples
 //
@@ -61,11 +61,10 @@ import (
 //    Streams: "*"
 //    File: /tmp/gollum.log
 //    Batch:
-// 		MaxCount: 128
-//    	FlushCount: 64
-//    	TimeoutSec: 60
+//      MaxCount: 128
+//      FlushCount: 64
+//      TimeoutSec: 60
 //      FlushTimeoutSec: 3
-//
 type File struct {
 	core.DirectProducer `gollumdoc:"embed_type"`
 

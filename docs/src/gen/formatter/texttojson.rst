@@ -69,30 +69,18 @@ Parameters
   There are some special cases which will cause the parser
   to do additional actions.
   
+  * When writing a value without a key, the state name will become the key.
   
-
-** ... **
-
-    When writing a value without a key, the state name will become the key.
-    
-    
-
-** ... **
-
-    If two keys are written in a row the first key will hold a null value.
-    
-    
-
-** ... **
-
-    Writing a key while writing array elements will close the array.
-    
-    
+  * If two keys are written in a row the first key will hold a null value.
+  
+  * Writing a key while writing array elements will close the array.
+  
+  
 
 **Directive flags**
 
   Flags can modify the parser behavior and can be used to
-  store values on a stack accross multiple directives.
+  store values on a stack across multiple directives.
   
   
 
@@ -211,24 +199,33 @@ Parameters
     
     
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+The following example parses JSON data.
+
 .. code-block:: yaml
 
-	The following example parses JSON data.
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: console
@@ -251,7 +248,8 @@ Examples
 	         - "array     :,:   array     :      : val    "
 	         - "array     :\":  arrString :      :        "
 	         - "arrString :\":  array     :      : esc    "
-	
-	
+
+
+
 
 

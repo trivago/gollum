@@ -8,8 +8,8 @@ import (
 
 // SplitPick formatter
 //
-// This formatter splits data into an array by using a given delimiter and
-// extracts a given index out of that array. The value of that index will be
+// This formatter splits data into an array by using the given delimiter and
+// extracts the given index from that array. The value of that index will be
 // written back.
 //
 // Parameters

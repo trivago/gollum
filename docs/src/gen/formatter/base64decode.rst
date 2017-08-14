@@ -3,7 +3,7 @@
 Base64Decode
 ============
 
-Base64Decode is a formatter that decodes a base64 message.
+Base64Decode is a formatter that decodes base64 encoded messages.
 If a message is not or only partly base64 encoded an error will be logged
 and the decoded part is returned. RFC 4648 is expected.
 
@@ -15,36 +15,47 @@ Parameters
 
 **Base64Dictionary**
 
-  This value defines the 64-character base64 lookup dictionary to use.
-  When left empty a dictionary as defined by RFC4648 is used.
+  This value defines the 64-character base64 lookup
+  dictionary to use. When left empty, a dictionary as defined by RFC4648 is used.
   By default this parameter is set to "".
   
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+This example expects base64 strings from the console and decodes them before
+transmitting the message payload.
+
 .. code-block:: yaml
 
-	This example expect a base64 string inout to the console and decode this for the message payload.
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
 	     - format.Base64Decode
-	
-	
+
+
+
 
 

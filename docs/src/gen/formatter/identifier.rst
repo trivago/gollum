@@ -3,9 +3,9 @@
 Identifier
 ==========
 
-This formatter can be used to generate a (mostly) unique 64 bit identifier
-number from the message payload, timestamp and/or sequence number. The number
-will be converted to a human readable form.
+This formatter generates a (mostly) unique 64 bit identifier number from
+the message payload, timestamp and/or sequence number. The number is be
+converted to a human readable form.
 
 
 
@@ -47,25 +47,34 @@ Parameters
     
     
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+This example will generate a payload checksum and store it to a metadata
+field called "checksum".
+
 .. code-block:: yaml
 
-	This example will generate a payload checksum and store it to a metadata
-	field called "checksum".
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: console
@@ -73,7 +82,8 @@ Examples
 	     - formatter.Identifier
 	       Generator: hash
 	       ApplyTo: checksum
-	
-	
+
+
+
 
 

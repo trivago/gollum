@@ -14,6 +14,11 @@ sending the message. See producer.Proxy as an example target producer.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address**
 
   Defines the protocol, host and port or the unix domain socket to
@@ -99,15 +104,8 @@ Parameters
   
   
 
-Parameters (from SimpleConsumer)
---------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
+Parameters (from core.SimpleConsumer)
+-------------------------------------
 
 **Streams**
 
@@ -159,17 +157,18 @@ Parameters (from SimpleConsumer)
 Examples
 --------
 
+This example will accepts 64bit length encoded data on TCP port 5880.
+
 .. code-block:: yaml
 
-	This example will accepts 64bit length encoded data on TCP port 5880.
-	
 	 proxyReceive:
 	   Type: consumer.Proxy
 	   Streams: proxyData
 	   Address: ":5880"
 	   Partitioner: binary
 	   Size: 8
-	
-	
+
+
+
 
 

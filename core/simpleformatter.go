@@ -18,18 +18,26 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// SimpleFormatter defines the standard formatter implementation.
+// SimpleFormatter formatter
+//
+// This type defines a common baseclass for formatters. Formatter plugins
+// may derive from this class.
 //
 // Parameters
 //
-// - ApplyTo: This value chooses the part of the message the formatting should be
-// applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+// - ApplyTo: This value chooses the part of the message the formatting
+// should be applied to. Use "" to target the message payload; other values
+// specify the name of a metadata field to target.
 // By default this parameter is set to "".
 //
+// - SkipIfEmpty: When set to true, this formatter will not be applied to data
+// that is empty or - in case of metadata - not existing.
+// By default this parameter is set to false
 type SimpleFormatter struct {
 	Logger            logrus.FieldLogger
 	GetAppliedContent GetAppliedContent
 	SetAppliedContent SetAppliedContent
+	SkipIfEmpty       bool `config:"SkipIfEmpty"`
 }
 
 // Configure sets up all values required by SimpleFormatter.
@@ -39,6 +47,14 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	applyTo := conf.GetString("ApplyTo", "")
 	format.GetAppliedContent = GetAppliedContentGetFunction(applyTo)
 	format.SetAppliedContent = GetAppliedContentSetFunction(applyTo)
+}
+
+// CanBeApplied returns true if the formatter can be applied to this message
+func (format *SimpleFormatter) CanBeApplied(msg *Message) bool {
+	if format.SkipIfEmpty {
+		return len(format.GetAppliedContent(msg)) > 0
+	}
+	return true
 }
 
 // SetLogger sets the scoped logger to be used for this formatter

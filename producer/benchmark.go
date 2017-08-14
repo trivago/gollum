@@ -21,8 +21,8 @@ import (
 
 // Benchmark producer
 //
-// This producer is meant to give more meaningful results in benchmark
-// situations than producer.Null as it is based on a buffered producers.
+// This producer is meant to provide more meaningful results in benchmark
+// situations than producer.Null, as it is based on core.BufferedProducer.
 //
 // Examples
 //

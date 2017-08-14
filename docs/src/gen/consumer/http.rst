@@ -12,6 +12,11 @@ incoming HTTP request.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **Address** (default: :80)
 
   Defines the TCP port and optional IP address to listen on.
@@ -23,7 +28,7 @@ Parameters
 **ReadTimeoutSec** (default: 3, unit: sec)
 
   Defines the maximum duration in seconds before timing out
-  the HTTP read request. Sets  http.Server.ReadTimeout; for details, see its
+  the HTTP read request. Sets http.Server.ReadTimeout; for details, see its
   Go documentation.
   
   
@@ -64,15 +69,8 @@ Parameters
   
   
 
-Parameters (from SimpleConsumer)
---------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
+Parameters (from core.SimpleConsumer)
+-------------------------------------
 
 **Streams**
 
@@ -124,16 +122,17 @@ Parameters (from SimpleConsumer)
 Examples
 --------
 
+This example listens on port 9090 and writes to the stream "http_in_00".
+
 .. code-block:: yaml
 
-	This example listens on port 9090 and writes to the stream "http_in_00".
-	
 	  "HttpIn00":
 	    Type: "consumer.HTTP"
 	    Streams: "http_in_00"
 	    Address: "localhost:9090"
 	    WithHeaders: false
-	
-	
+
+
+
 
 

@@ -29,47 +29,49 @@ import (
 	"sync"
 )
 
-// HTTPRequest producer plugin
+// HTTPRequest producer
 //
 // The HTTPRequest producer sends messages as HTTP requests to a given webserver.
 //
-// * If RawData = true, the incoming messages are expected to contain complete
-//   HTTP requests in "wire format", such as::
+// In RawData mode, incoming messages are expected to contain complete
+// HTTP requests in "wire format", such as:
+// ::
 //
-//     POST /foo/bar HTTP/1.0\n
-//     Content-type: text/plain\n
-//     Content-length: 24
-//     \n
-//     Dummy test\n
-//     Request data\n
+//   POST /foo/bar HTTP/1.0\n
+//   Content-type: text/plain\n
+//   Content-length: 24
+//   \n
+//   Dummy test\n
+//   Request data\n
 //
-//   In this mode, the message's contents is parsed as an HTTP request and
-//   sent to the destination server (virtually) unchanged. If the message
-//   cannot be parsed as an HTTP request, an error is logged. Only the scheme,
-//   host and port components of the "Address" URL are used; any path and query
-//   parameters are ignored. The "Encoding" parameter is ignored.
+// In this mode, the message's contents is parsed as an HTTP request and
+// sent to the destination server (virtually) unchanged. If the message
+// cannot be parsed as an HTTP request, an error is logged. Only the scheme,
+// host and port components of the "Address" URL are used; any path and query
+// parameters are ignored. The "Encoding" parameter is ignored.
 //
-// * If RawData = false, a POST request is made to the destination server
-//   for each incoming message, using the complete URL in "Address". The
-//   incoming message's contents are delivered in the POST request's body
-//   and Content-type is set to the value of "Encoding"
+// If RawData mode is off, a POST request is made to the destination server
+// for each incoming message, using the complete URL in "Address". The
+// incoming message's contents are delivered in the POST request's body
+// and Content-type is set to the value of "Encoding"
 //
-// Configuration example
+// Parameters
 //
-//  - "producer.HTTPRequest":
+// - Address: defines the URL to send http requests to. If the value doesn't
+// contain "://",  it is prepended with "http://", so short forms like
+// "localhost:8088" are accepted. The default value is "http://localhost:80".
+//
+// - RawData: Turns "RawData" mode on. See the description above.
+//
+// - Encoding: Defines the payload encoding when RawData is set to false.
+//
+// Examples
+//
+//  HttpOut01:
+//    Type: producer.HTTPRequest
+//    Streams: http_01
+//    Address: "http://localhost:8099/test"
 //    RawData: true
-//    Encoding: "text/plain; charset=utf-8"
-//    Address: "http://localhost:80"
-//
-// Address defines the URL to send http requests to. Set by default
-// to "http://localhost:80". If the value doesn't contain "://",
-// it is prepended with "http://", so short forms like "localhost:8088"
-// are accepted.
-//
-// RawData chooses how to interpret and relay the incoming data
-//
-// Encoding defines the payload encoding when RawData is set to false.
-// Set to "text/plain; charset=utf-8" by default.
 //
 type HTTPRequest struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`

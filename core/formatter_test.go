@@ -69,9 +69,25 @@ func TestFormatterModulatorApplyFormatter(t *testing.T) {
 
 	msg := NewMessage(nil, []byte("test"), nil, InvalidStreamID)
 
-	expect.Nil(formatterModulator.ApplyFormatter(msg))
+	expect.NoError(formatterModulator.ApplyFormatter(msg))
 	expect.True(formatter.ConfigureHasCalled)
 	expect.True(formatter.ApplyFormatterHasCalled)
+}
+
+func TestFormatterModulatorApplyFormatterSkipIfEmpty(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	formatter, err := getDummyFormatter()
+	formatter.SkipIfEmpty = true
+	expect.NoError(err)
+
+	formatterModulator := NewFormatterModulator(formatter)
+
+	msg := NewMessage(nil, []byte(""), nil, InvalidStreamID)
+
+	expect.NoError(formatterModulator.ApplyFormatter(msg))
+	expect.True(formatter.ConfigureHasCalled)
+	expect.False(formatter.ApplyFormatterHasCalled)
 }
 
 func TestFormatterModulatorModulate(t *testing.T) {

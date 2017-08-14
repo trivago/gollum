@@ -27,7 +27,7 @@ import (
 
 // Proxy producer plugin
 //
-// This producer is compatible to consumer.proxy.
+// This producer is a compatible with the Proxy consumer plugin.
 // Responses to messages sent to the given address are sent back to the original
 // consumer of it is a compatible message source. As with consumer.proxy the
 // returned messages are partitioned by common message length algorithms.
@@ -70,11 +70,11 @@ import (
 //
 // - Offset: This value defines the offset used by the binary and text partitioner.
 // This setting is ignored by the fixed partitioner.
-// By default this paramter is set to "0".
+// By default this parameter is set to "0".
 //
 // - Size: This value defines the size in bytes used by the binary or fixed partitioner.
 // For `binary` this can be set to 1,2,4 or 8,  for `fixed` this defines the size of a message.
-// BY default this paramter is set to "4" for `binary` or "1" for `fixed` partitioner.
+// BY default this parameter is set to "4" for `binary` or "1" for `fixed` partitioner.
 //
 // Examples
 //

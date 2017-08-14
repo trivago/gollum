@@ -40,10 +40,12 @@ const (
 
 // Kafka consumer
 //
-// This consumer reads data from a given kafka topic. It is based on the sarama
-// library so most settings are mapped to the settings from this library.
+// This consumer reads data from a kafka topic. It is based on the sarama
+// library; most settings are mapped to the settings from this library.
 //
 // Metadata
+//
+// *NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
 //
 // - topic: Contains the name of the kafka topic
 //
@@ -51,7 +53,7 @@ const (
 //
 // Parameters
 //
-// - Servers: Defines the list of all kafka brokers to initally connect to when
+// - Servers: Defines the list of all kafka brokers to initially connect to when
 // querying topic metadata. This list requires at least one borker to work and
 // ideally contains all the brokers in the cluster.
 // By default this parameter is set to ["localhost:9092"].
@@ -62,8 +64,8 @@ const (
 // - ClientId: Sets the client id used in requests by this consumer.
 // By default this parameter is set to "gollum".
 //
-// - GroupId: Sets the consumer group of this consumer. When left empty consumer
-// groups are not used. This setting requires Version Kafka version >= 0.9.
+// - GroupId: Sets the consumer group of this consumer. If empty, consumer
+// groups are not used. This setting requires Kafka version >= 0.9.
 // By default this parameter is set to "".
 //
 // - Version: Defines the kafka protocol version to use. Common values are 0.8.2,
@@ -72,15 +74,20 @@ const (
 // version is chosen. If GroupId is set to a value < "0.9", "0.9.0.1" will be used.
 // By default this parameter is set to "0.8.2".
 //
-// - DefaultOffset: Defines the inital offest when starting to read the topic.
-// Valid values are "oldest" and "newest". If OffsetFile is defined the
-// DefaultOffset setting will only be used in case the file does not exist.
-// If GroupId is defined this setting will only be used for the first request.
+// - SetMetadata: When this value is set to "true", the fields mentioned in the metadata
+// section will be added to each message. Adding metadata will have a
+// performance impact on systems with high throughput.
+// By default this parameter is set to "false".
+//
+// - DefaultOffset: Defines the initial offest when starting to read the topic.
+// Valid values are "oldest" and "newest". If OffsetFile
+// is defined and the file exists, the DefaultOffset parameter is ignored.
+// If GroupId is defined, this setting will only be used for the first request.
 // By default this parameter is set to "newest".
 //
 // - OffsetFile: Defines the path to a file that holds the current offset of a
-// given partition. If the consumer is restarted that offset is used to continue
-// reading. This setting is disabled when using "". Please note that offsets
+// given partition. If the consumer is restarted, reading continues from that
+// offset. To disable this setting, set it to "". Please note that offsets
 // stored in the file might be outdated. In that case DefaultOffset "oldest"
 // will be used.
 // By default this parameter is set to "".
@@ -89,9 +96,9 @@ const (
 // By default this parameter is set to "0755".
 //
 // - Ordered: Forces partitions to be read one-by-one in a round robin fashion
-// instead of reading them all in parallel. Please note that this can restore
-// the original ordering but does not necessarily do. The term ordered refers
-// to an ordered reading of all partitions instead of reading them randomly.
+// instead of reading them all in parallel. Please note that this may restore
+// the original ordering but does not necessarily do so. The term "ordered" refers
+// to an ordered reading of all partitions, as opposed to reading them randomly.
 // By default this parameter is set to false.
 //
 // - MaxOpenRequests: Defines the number of simultaneous connections to a
@@ -109,6 +116,10 @@ const (
 // request. If less data is available the broker will wait.
 // By default this parameter is set to 1.
 //
+// - DefaultFetchSizeByte: Defines the average amout of data to fetch per
+// request. This value must be greater than 0.
+// By default this parameter is set to 32768.
+//
 // - FetchTimeoutMs: Defines the time in milliseconds to wait on reaching
 // MinFetchSizeByte before fetching new data regardless of size.
 // By default this parameter is set to 250.
@@ -117,7 +128,7 @@ const (
 // By default this parameter is set to 8192.
 //
 // - PresistTimoutMs: Defines the interval in milliseconds in which data is
-// written to the OffsetFile. Short durations reduce the amount of duplicate
+// written to the OffsetFile. A short duration reduces the amount of duplicate
 // messages after a crash but increases I/O. When using GroupId this setting
 // controls the pause time after receiving errors.
 // By default this parameter is set to 5000.
@@ -138,12 +149,12 @@ const (
 // communicating with brokers.
 // By default this parameter is set to false.
 //
-// - TlsKeyLocation: Defines the path to the client's private key (PEM) used for
-// TLS based authentication.
+// - TlsKeyLocation: Defines the path to the client's PEM-formatted private key
+// used for TLS based authentication.
 // By default this parameter is set to "".
 //
-// - TlsCertificateLocation: Defines the path to the client's public key (PEM)
-// used for TLS based authentication.
+// - TlsCertificateLocation: Defines the path to the client's PEM-formatted
+// public key used for TLS based authentication.
 // By default this parameter is set to "".
 //
 // - TlsCaLocation: Defines the path to the CA certificate(s) for verifying a
@@ -162,10 +173,10 @@ const (
 // communicating with brokers.
 // By default this parameter is set to false.
 //
-// - SaslUsername: Defines the username used with SASL/PLAIN authentication.
+// - SaslUsername: Defines the username for SASL/PLAIN authentication.
 // By default this parameter is set to "gollum".
 //
-// - SaslPassword: Defines the password used with SASL/PLAIN authentication.
+// - SaslPassword: Defines the password for SASL/PLAIN authentication.
 // By default this parameter is set to "".
 //
 // Examples
@@ -173,18 +184,23 @@ const (
 // This config reads the topic "logs" from a cluster with 4 brokers.
 //
 //  kafkaIn:
-//  	Type: consumer.Kafka
-//      Streams: logs
-//    	Topic: logs
-//    	ClientId: "gollum log reader"
-//    	DefaultOffset: newest
-//    	OffsetFile: /var/gollum/logs.offset
-//    	Servers: ["kafka0:9092","kafka1:9092","kafka2:9092","kafka3:9092"]
+//    Type: consumer.Kafka
+//    Streams: logs
+//    Topic: logs
+//    ClientId: "gollum log reader"
+//    DefaultOffset: newest
+//    OffsetFile: /var/gollum/logs.offset
+//    Servers:
+//      - "kafka0:9092"
+//      - "kafka1:9092"
+//      - "kafka2:9092"
+//      - "kafka3:9092"
 type Kafka struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	servers             []string      `config:"Servers" default:"localhost:9092"`
+	servers             []string      `config:"Servers"`
 	topic               string        `config:"Topic" default:"default"`
 	group               string        `config:"GroupId"`
+	hasToSetMetadata    bool          `config:"SetMetadata" default:"false"`
 	offsetFile          string        `config:"OffsetFile"`
 	persistTimeout      time.Duration `config:"PresistTimoutMs" default:"5000" metric:"ms"`
 	orderedRead         bool          `config:"Ordered"`
@@ -303,7 +319,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 
 	cons.config.Consumer.Fetch.Min = int32(conf.GetInt("MinFetchSizeByte", 1))
 	cons.config.Consumer.Fetch.Max = int32(conf.GetInt("MaxFetchSizeByte", 0))
-	cons.config.Consumer.Fetch.Default = cons.config.Consumer.Fetch.Max
+	cons.config.Consumer.Fetch.Default = int32(conf.GetInt("DefaultFetchSizeByte", 32768))
 	cons.config.Consumer.MaxWaitTime = time.Duration(conf.GetInt("FetchTimeoutMs", 250)) * time.Millisecond
 
 	if cons.group != "" {
@@ -333,7 +349,7 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			cons.Logger.Errorf("Failed to open kafka offset file: %s", err.Error())
+			cons.Logger.Warningf("Failed to open kafka offset file: %s", err.Error())
 		} else {
 			// Decode the JSON file into the partition -> offset map
 			encodedOffsets := make(map[string]int64)
@@ -505,12 +521,16 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 }
 
 func (cons *Kafka) enqueueEvent(event *kafka.ConsumerMessage) {
-	metaData := core.Metadata{}
+	if cons.hasToSetMetadata {
+		metaData := core.Metadata{}
 
-	metaData.SetValue("topic", []byte(event.Topic))
-	metaData.SetValue("key", event.Key)
+		metaData.SetValue("topic", []byte(event.Topic))
+		metaData.SetValue("key", event.Key)
 
-	cons.EnqueueWithMetadata(event.Value, metaData)
+		cons.EnqueueWithMetadata(event.Value, metaData)
+	} else {
+		cons.SimpleConsumer.Enqueue(event.Value)
+	}
 }
 
 func (cons *Kafka) startReadTopic(topic string) {

@@ -36,8 +36,9 @@ const (
 
 // Socket consumer plugin
 //
-// The socket consumer reads messages directly as-is from a given socket.
-// Messages are separated from the stream by using a specific partitioner method.
+// The socket consumer reads messages as-is from a given network or filesystem
+// socket. Messages are separated from the stream by using a specific partitioner
+// method.
 //
 // Parameters
 //
@@ -46,52 +47,56 @@ const (
 // like "unix:///var/gollum.socket".
 // By default this parameter is set to ":5880".
 //
-// - Permissions: This value sets the file permissions for "unix://" based connections as an
-// four digit octal number string.
+// - Permissions: This value sets the filesystem permissions for UNIX domain
+// sockets as a four-digit octal number.
 // By default this parameter is set to "0770".
 //
-// - Acknowledge: This value can be set to a non-empty value to inform the writer on success
-// or error. On success the given string is send. Any error will close the
-// connection. If Acknowledge is enabled and a IP-Address is given to Address, TCP is
-// used to open the connection, otherwise UDP is used.
-// If an error occurs during write "NOT <Acknowledge>" is returned. You can set this parameter to "" for disabling.
+// - Acknowledge: This value can be set to a non-empty value to inform the writer
+// on success or error. On success, the given string is sent. Any error will close
+// the connection. If Acknowledge is enabled and "Address" is set to an IP address,
+// TCP is used to open the connection, otherwise UDP is used. If an error occurs
+// during write, "NOT <Acknowledge>" is returned. To disable this parameter, set it
+// to "".
 // By default this parameter is set to "".
 //
-// - Partitioner: This value defines the algorithm used to read messages from the router.
-// By default this is set to "delimiter". The following options are available:
-//  - "delimiter": separates messages by looking for a delimiter string.
+// - Partitioner: This value defines the algorithm used to read messages from the
+// router. By default this is set to "delimiter". The following options are available:
+//  - "delimiter": Separates messages by looking for a delimiter string.
 //  The delimiter is removed from the message.
-//  - "ascii": reads an ASCII number at a given offset until a given delimiter is found.
+//  - "ascii": Reads an ASCII number at a given offset until a given delimiter is found.
 //  Everything to the right of and including the delimiter is removed from the message.
-//  - "binary": reads a binary number at a given offset and size.
-//  - "binary_le": is an alias for "binary".
-//  - "binary_be": is the same as "binary" but uses big endian encoding.
-//  - "fixed": assumes fixed size messages.
+//  - "binary": Reads a binary number at a given offset and size.
+//  - "binary_le": An alias for "binary".
+//  - "binary_be": The same as "binary" but uses big endian encoding.
+//  - "fixed": Assumes fixed size messages.
 //
-// - Delimiter: This value defines the delimiter used by the text and delimiter partitioner.
+// - Delimiter: This value defines the delimiter used by the text and delimiter
+// partitioners.
 // By default this parameter is set to "\n".
 //
-// - Offset: This value defines the offset used by the binary and text partitioner.
+// - Offset: This value defines the offset used by the binary and text partitioners.
 // This setting is ignored by the fixed partitioner.
 // By default this parameter is set to "0".
 //
-// - Size: This value defines the size in bytes used by the binary or fixed partitioner.
-// For binary this can be set to 1,2,4 or 8. By default 4 is chosen.
-// For fixed this defines the size of a message.
-// By default this parameter is set to "1".
+// - Size: This value defines the size in bytes used by the binary and fixed
+// partitioners. For binary, this can be set to 1,2,4 or 8. The default value
+// is 4. For fixed , this defines the size of a message. By default this parameter
+// is set to "1".
 //
-// - ReconnectAfterSec: This value defines the number of seconds to wait before a connection
-// is tried to be reopened again.
+// - ReconnectAfterSec: This value defines the number of seconds to wait before a
+// connection is retried.
 // By default this parameter is set to "2".
 //
-// - AckTimoutSec: This value defines the number of seconds waited for an acknowledge to succeed.
+// - AckTimoutSec: This value defines the number of seconds to wait for acknowledges
+// to succeed.
 // By default this parameter is set to "2".
 //
-// - ReadTimoutSec: This value defines the number of seconds that waited for data to be received.
+// - ReadTimoutSec: This value defines the number of seconds to wait for data
+// to be received.
 // By default this parameter is set to "5".
 //
-// - RemoveOldSocket: This value toggles removing existing files with the same name as the
-// socket (unix://<path>) prior to connecting.
+// - RemoveOldSocket: If set to true, any existing file with the same name as the
+// socket (unix://<path>) is removed prior to connecting.
 // By default this parameter is set to "true".
 //
 //

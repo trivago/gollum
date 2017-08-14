@@ -3,17 +3,21 @@
 File
 ====
 
-The file consumer allows to read from files while looking for a delimiter
-that marks the end of a message. If the file is part of e.g. a log rotation
-the file consumer can be set to a symbolic link of the latest file and
-(optionally) be told to reopen the file by sending a SIGHUP. A symlink to
-a file will automatically be reopened if the underlying file is changed.
+The File consumer reads messages from a file, looking for a customizable
+delimiter sequence that marks the end of a message. If the file is part of
+e.g. a log rotation, the consumer can be set to read from a symbolic link
+pointing to the current file and (optionally) be told to reopen the file
+by sending a SIGHUP. A symlink to a file will automatically be reopened
+if the underlying file is changed.
 
 
 
 
 Metadata
 --------
+
+*NOTE: The metadata will only set if the parameter `SetMetadata` is active.*
+
 
 **file**
 
@@ -30,69 +34,80 @@ Metadata
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **File**
 
-  This value is a mandatory setting and contains the file to read. The file will be
-  read from beginning to end and the reader will stay attached until the
-  consumer is stopped. I.e. appends to the attached file will be recognized
-  automatically.
+  This value is a mandatory setting and contains the name of the
+  file to read. The file will be read from beginning to end and the reader
+  will stay attached until the consumer is stopped, so appends to the
+  file will be recognized automatically.
   
   
 
 **OffsetFile**
 
-  This value defines the path to a file that stores the current offset inside
-  the given file. If the consumer is restarted that offset is used to continue
-  reading. You can set this parameter to "" for disabling.
+  This value defines the path to a file that stores the
+  current offset inside the source file. If the consumer is restarted, that
+  offset is used to continue reading from the previous position. To disable
+  this setting, set it to "".
   By default this parameter is set to "".
   
   
 
 **Delimiter** (default: \n)
 
-  This value defines the end of a message inside the file.
+  This value defines the delimiter sequence to expect at the
+  end of each message in the file.
   By default this parameter is set to "\n".
   
   
 
 **ObserveMode** (default: poll)
 
-  This value defines the mode how to observe the target file.
-  You can decide between `poll` and `watch`.
-  NOTE: The watch implementation uses [fsnotify/fsnotify](https://github.com/fsnotify/fsnotify) package.
-  If your source file is rotating (moving or removing) please check carefully if your file system and
-  distribution supports the `RENAME` and `REMOVE` events which are mandatory for stable consuming.
+  This value select how the source file is observed. Available
+  values are `poll` and `watch`.  NOTE: The watch implementation uses
+  the [fsnotify/fsnotify](https://github.com/fsnotify/fsnotify) package.
+  If your source file is rotated (moved or removed), please verify that
+  your file system and distribution support the `RENAME` and `REMOVE` events;
+  the consumer's stability depends on them.
   By default this parameter is set to `poll`.
   
   
 
 **DefaultOffset**
 
-  This value defines where to start reading the file. Valid values are
-  "oldest" and "newest". If OffsetFile is defined the DefaultOffset setting
-  will be ignored unless the file does not exist.
+  This value defines the default offset from which to start
+  reading within the file. Valid values are  "oldest" and "newest". If OffsetFile
+  is defined and the file exists, the DefaultOffset parameter is ignored.
   By default this parameter is set to "newest".
   
   
 
 **PollingDelay**
 
-  This value defines the time duration how long the consumer will wait to check a file for new content
-  after hitting the end of file (EOF) in milliseconds (ms).
-  Note: This settings take only an effect if the consumer is running in `poll` mode!
+  This value defines the duration the consumer waits between
+  checking the source file for new content after hitting the end of file (EOF).
+  The value is in milliseconds (ms). NOTE: This settings only takes effect if the consumer
+  is running in `poll` mode!
   By default this parameter is set to "100".
   
   
 
-Parameters (from SimpleConsumer)
---------------------------------
+**SetMetadata** (default: false)
 
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
+  When this value is set to "true", the fields mentioned in the metadata
+  section will be added to each message. Adding metadata will have a
+  performance impact on systems with high throughput.
+  By default this parameter is set to "false".
   
   
+
+Parameters (from core.SimpleConsumer)
+-------------------------------------
 
 **Streams**
 
@@ -144,10 +159,10 @@ Parameters (from SimpleConsumer)
 Examples
 --------
 
+This example will read the `/var/log/system.log` file and create a message for each new entry.
+
 .. code-block:: yaml
 
-	This example will read the `/var/log/system.log` file and create a message for each new entry.
-	
 	 FileIn:
 	   Type: consumer.File
 	   File: /var/log/system.log
@@ -156,7 +171,8 @@ Examples
 	   Delimiter: "\n"
 	   ObserveMode: poll
 	   PollingDelay: 100
-	
-	
+
+
+
 
 

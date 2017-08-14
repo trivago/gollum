@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -25,6 +26,23 @@ type sliceIterator struct {
 	position int
 }
 
+// Parser state
+type section uint8
+
+const (
+	sectionStart section = iota
+	sectionMetadata
+	sectionParameters
+	sectionConfigurationExample
+)
+
+// Magic constants
+const (
+	headingMetadata             string = "Metadata"
+	headingParameters           string = "Parameters"
+	headingConfigurationExample string = "Examples"
+)
+
 // next returns the current string and advances the iterator
 func (iter *sliceIterator) next() (string, string, int) {
 	if iter.position > len(iter.slice)-1 {
@@ -46,30 +64,61 @@ func (iter *sliceIterator) peek() (string, string, int) {
 		iter.position
 }
 
-// Parser state
-type section uint8
-
-const (
-	sectionStart section = iota
-	sectionMetadata
-	sectionParameters
-	sectionConfigurationExample
-)
-
-// Magic constants
-const (
-	headingMetadata             string = "Metadata"
-	headingParameters           string = "Parameters"
-	headingConfigurationExample string = "Examples"
-)
-
-// NewPluginDocument creates a new PluginDocument object for the named plugin
-func NewPluginDocument(packageName string, pluginName string) PluginDocument {
+// NewPluginDocument creates a PluginDocument from the GollumPlugin
+func NewPluginDocument(plugin GollumPlugin) PluginDocument {
 	pluginDocument := PluginDocument{
-		PackageName: packageName,
-		PluginName:  pluginName,
-		//ParameterSets: make(map[string][]Definition),
+		PackageName: plugin.Pkg,
+		PluginName:  plugin.Name,
 	}
+
+	// The "Enable" parameter is implemented in the coordinator / plugonconfig
+	// and not inherited from simple*** types. Documentation for this option is
+	// hardcoded here, becacuse inheriting from the simple*** types is voluntary,
+	// and it would be counterproductive to contrive support in the RST generaotor
+	// just for fishing this parameter from the core.
+	switch plugin.Pkg {
+	case "consumer", "producer", "router":
+		pluginDocument.Parameters.add(&Definition{
+			name: "Enable",
+			desc: "Switches this plugin on or off.",
+			dfl:  "true",
+		})
+	}
+
+	// Parse the comment string
+	pluginDocument.ParseString(plugin.Comment)
+
+	// Set Param values from struct tags
+	for _, stParamDef := range plugin.StructTagParams.slice {
+
+		if docParamDef, found := pluginDocument.Parameters.findByName(stParamDef.name); found {
+			// Parameter is already documented, add values from struct tags
+			docParamDef.unit = stParamDef.unit
+			docParamDef.dfl = stParamDef.dfl
+
+		} else {
+			// Undocumented parameter
+			pluginDocument.Parameters.add(stParamDef)
+		}
+	}
+
+	// - Recursively generate PluginDocuments for all embedded types (SimpleProducer etc.)
+	//   with embedTag in this plugin's embed declaration
+	// - Include their parameter lists in this doc
+	// - Include their metadata lists in this doc
+	for _, embed := range plugin.Embeds {
+		importDir := getImportDir(embed.pkg)
+		astPackage := parseSourcePath(importDir)
+		for _, embedPugin := range findGollumPlugins(astPackage) {
+			if embedPugin.Pkg == embed.pkg && embedPugin.Name == embed.name {
+				// Recursion
+				doc := NewPluginDocument(embedPugin)
+				pluginDocument.InheritParameters(doc)
+				pluginDocument.InheritMetadata(doc)
+			}
+		}
+	}
+
 	return pluginDocument
 }
 
@@ -184,8 +233,8 @@ func (doc *PluginDocument) ParseString(comment string) {
 
 	// Metadata and Parameters sections are assumed to contain (recursive) definition lists
 	// Description and Examples are taken as-is
-	doc.Metadata = newDefinitionListFromString(metadataText)
-	doc.Parameters = newDefinitionListFromString(parametersText)
+	doc.Metadata.parseAndAppendString(metadataText)
+	doc.Parameters.parseAndAppendString(parametersText)
 }
 
 // InheritMetadata imports the .Metadata property of `document` into this document's
@@ -195,11 +244,13 @@ func (doc *PluginDocument) InheritMetadata(parentDoc PluginDocument) {
 		doc.InheritedMetadata = make(map[string]DefinitionList)
 	}
 
+	// Inherit the parent's direct metadata fields, but exclude locally defined params
 	doc.InheritedMetadata[parentDoc.PackageName+"."+parentDoc.PluginName] =
-		parentDoc.Metadata
+		parentDoc.Metadata.subtractList(doc.Metadata)
 
-	for parentName, set := range parentDoc.InheritedMetadata {
-		doc.InheritedMetadata[parentName] = set
+	// Inherit the parent's inherited metadata fields, but exclude locally defined params
+	for parentName, metadataSet := range parentDoc.InheritedMetadata {
+		doc.InheritedMetadata[parentName] = metadataSet.subtractList(doc.Metadata)
 	}
 }
 
@@ -210,11 +261,13 @@ func (doc *PluginDocument) InheritParameters(parentDoc PluginDocument) {
 		doc.InheritedParameters = make(map[string]DefinitionList)
 	}
 
+	// Inherit the parent's direct parameters, but exclude locally defined params
 	doc.InheritedParameters[parentDoc.PackageName+"."+parentDoc.PluginName] =
-		parentDoc.Parameters
+		parentDoc.Parameters.subtractList(doc.Parameters)
 
+	// Inherit the parent's inherited params, but exclude locally defined params
 	for parentName, paramSet := range parentDoc.InheritedParameters {
-		doc.InheritedParameters[parentName] = paramSet
+		doc.InheritedParameters[parentName] = paramSet.subtractList(doc.Parameters)
 	}
 }
 
@@ -275,14 +328,15 @@ func (doc PluginDocument) GetRST() string {
 	}
 
 	// Print inherited metadata
-	for parentName, definitions := range doc.InheritedMetadata {
-		if len(definitions.slice) == 0 {
+	for _, parentName := range sortInheritedKeys(doc.InheritedMetadata) {
+		if len(doc.InheritedMetadata[parentName].slice) == 0 {
 			// Skip title for empty sets
 			continue
 		}
 		result += formatRstHeading(
-			"Metadata (from " + strings.TrimPrefix(parentName, "core.") + ")")
-		result += definitions.getRST(false, 0)
+			"Metadata (from " + /* strings.TrimPrefix(*/ parentName /*, "core.") */ + ")")
+
+		result += doc.InheritedMetadata[parentName].getRST(false, 0)
 	}
 
 	// Print native parameters
@@ -292,22 +346,40 @@ func (doc PluginDocument) GetRST() string {
 	}
 
 	// Print inherited parameters
-	for parentName, definitions := range doc.InheritedParameters {
-		if len(definitions.slice) == 0 {
+	for _, parentName := range sortInheritedKeys(doc.InheritedParameters) {
+		if len(doc.InheritedParameters[parentName].slice) == 0 {
 			// Skip title for empty param sets
 			continue
 		}
 		result += formatRstHeading(
-			"Parameters (from " + strings.TrimPrefix(parentName, "core.") + ")")
-		result += definitions.getRST(true, 0)
+			"Parameters (from " + /* strings.TrimPrefix(*/ parentName /*, "core.") */ + ")")
+		result += doc.InheritedParameters[parentName].getRST(true, 0)
 	}
 
 	// Print config example
 	if len(doc.Example) > 0 {
 		result += formatRstHeading("Examples")
-		result += ".. code-block:: yaml\n\n"
+		codeBlock := false
+
 		for _, line := range strings.Split(doc.Example, "\n") {
-			result += "\t" + line + "\n"
+
+			if strings.Index(line, " ") == 0 {
+				if !codeBlock {
+					result += ".. code-block:: yaml\n\n"
+					codeBlock = true
+				}
+			} else {
+				if codeBlock {
+					result += "\n"
+					codeBlock = false
+				}
+			}
+
+			if codeBlock {
+				result += "\t" + line + "\n"
+			} else {
+				result += line + "\n"
+			}
 		}
 	}
 
@@ -317,4 +389,14 @@ func (doc PluginDocument) GetRST() string {
 // Returns str as an RST heading
 func formatRstHeading(str string) string {
 	return str + "\n" + strings.Repeat("-", len(str)) + "\n\n"
+}
+
+//
+func sortInheritedKeys(defListMap map[string]DefinitionList) []string {
+	var keys []string
+	for k := range defListMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

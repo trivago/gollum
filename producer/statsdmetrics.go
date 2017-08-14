@@ -22,66 +22,76 @@ import (
 	"time"
 )
 
-// Statsd producer plugin
-// This producer sends increment events to a statsd server.
-// Configuration example
+// StatsdMetrics producer
 //
-//  - "producer.Statsd":
-//    BatchMaxMessages: 500
-//    BatchTimeoutSec: 10
-//    Prefix: "gollum."
-//    Server: "localhost:8125"
-//    UseMessage: false
-//    UseGauge: false
-//    StreamMapping:
-//      "*" : "default"
+// This producer samples the messages it receives and sends metrics about them
+// to statsd.
 //
-// BatchMaxMessages defines the maximum number of messages to send per
-// batch. By default this is set to 500.
+// Parameters
 //
-// BatchTimeoutSec defines the number of seconds after which a batch is
-// flushed automatically. By default this is set to 10.
+// - Server: Defines the server and port to send statsd metrics to.
+// By default this parameter is set to "localhost:8125".
 //
-// Prefix defines the prefix for stats metric names. By default this
-// is set to "gollum.".
+// - Prefix: Defines a string that is prepended to every statsd metric name.
+// By default this parameter is set to "gollum.".
 //
-// Server defines the server and port to send statsd metrics to. By default
-// this is set to "localhost:8125".
+// - StreamMapping: Defines a translation from gollum stream to statsd metric
+// name. If no mapping is given the gollum stream name is used as the metric
+// name.
+// By default this parameter is set to an empty list.
 //
-// UseMessage defines whether to cast the message to string and increment
-// the metric by that value. If this is set to true and the message fails
-// to cast to an integer, then the message with be ignored. If this is set
-// to false then each message will increment by 1. By default this is set
-// to false.
+// - UseMessage: Switch between just counting all messages arriving at this
+// producer or summing up the message content. If UseMessage is set to true, the
+// contents will be parsed as an integer, i.e. a string containing a human
+// readable number is expected.
+// By default the parameter is set to false.
 //
-// UseGauge defines whether to send gauge metrics instead of counter
-// metrics. If this is set to true then every stream in streamMap that
-// does not receive any messages in a batch will have a gauge value of 0
-// sent for that batch. By default this is set to false.
+// - UseGauge: When set to true the statsd data format will switch from counter
+// to gauge. Every stream that does not receive any message but is liste in
+// StreamMapping will have a gauge value of 0.
+// By default this is parameter is set to false.
 //
-// StreamMapping defines a translation from gollum stream to statsd metric
-// name. If no mapping is given the gollum stream name is used as the
-// metric name.
-type Statsd struct {
+// - Batch/MaxMessages: Defines the maximum number of messages to collect per
+// batch.
+// By default this parameter is set to 500.
+//
+// - Batch/TimeoutSec: Defines the number of seconds after which a batch is
+// processed, regardless of MaxMessages being reached or not.
+// By default this parameter is set to 10.
+//
+// Examples
+//
+// This example will collect all messages going through gollum and sending
+// metrics about the different datastreams to statsd at least every 5 seconds.
+// Metrics will be send as "logs.streamName".
+//
+//  metricsCollector:
+//    Type: producer.StatsdMetrics
+//    Stream: "*"
+//    Server: "stats01:8125"
+//    BatchTimeoutSec: 5
+//    Prefix: "logs."
+//    UseGauge: true
+type StatsdMetrics struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	streamMap             map[core.MessageStreamID]string
 	client                *statsd.StatsdClient
 	batch                 core.MessageBatch
-	flushFrequency        time.Duration `config:"BatchTimeoutSec" default:"10" metric:"sec"`
-	useMessage            bool          `config:"UseMessage"`
-	useGauge              bool          `config:"UseGauge"`
+	flushFrequency        time.Duration `config:"Batch/TimeoutSec" default:"10" metric:"sec"`
+	useMessage            bool          `config:"UseMessage" default:"false"`
+	useGauge              bool          `config:"UseGauge" default:"false"`
 }
 
 func init() {
-	core.TypeRegistry.Register(Statsd{})
+	core.TypeRegistry.Register(StatsdMetrics{})
 }
 
 // Configure initializes this producer with values from a plugin config.
-func (prod *Statsd) Configure(conf core.PluginConfigReader) {
+func (prod *StatsdMetrics) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
-	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 500)))
+	prod.batch = core.NewMessageBatch(int(conf.GetInt("Batch/MaxMessages", 500)))
 
 	server := conf.GetString("Server", "localhost:8125")
 	prefix := conf.GetString("Prefix", "gollum.")
@@ -89,11 +99,11 @@ func (prod *Statsd) Configure(conf core.PluginConfigReader) {
 	conf.Errors.Push(prod.client.CreateSocket())
 }
 
-func (prod *Statsd) bufferMessage(msg *core.Message) {
+func (prod *StatsdMetrics) bufferMessage(msg *core.Message) {
 	prod.batch.AppendOrFlush(msg, prod.sendBatch, prod.IsActiveOrStopping, prod.TryFallback)
 }
 
-func (prod *Statsd) sendBatchOnTimeOut() {
+func (prod *StatsdMetrics) sendBatchOnTimeOut() {
 	// Flush if necessary
 	if prod.batch.ReachedTimeThreshold(prod.flushFrequency) || prod.batch.ReachedSizeThreshold(prod.batch.Len()/2) {
 		prod.sendBatch()
@@ -102,17 +112,17 @@ func (prod *Statsd) sendBatchOnTimeOut() {
 	}
 }
 
-func (prod *Statsd) sendBatch() {
+func (prod *StatsdMetrics) sendBatch() {
 	prod.batch.Flush(prod.transformMessages)
 }
 
-func (prod *Statsd) tryFallbackForMessages(messages []*core.Message) {
+func (prod *StatsdMetrics) tryFallbackForMessages(messages []*core.Message) {
 	for _, msg := range messages {
 		prod.TryFallback(msg)
 	}
 }
 
-func (prod *Statsd) transformMessages(messages []*core.Message) {
+func (prod *StatsdMetrics) transformMessages(messages []*core.Message) {
 	metricValues := make(map[string]int64)
 
 	// Format and sort
@@ -154,7 +164,7 @@ func (prod *Statsd) transformMessages(messages []*core.Message) {
 		}
 	}
 
-	// Send to Statsd
+	// Send to StatsdMetrics
 	for metric, val := range metricValues {
 		if prod.useGauge {
 			prod.client.Gauge(metric, val)
@@ -164,7 +174,7 @@ func (prod *Statsd) transformMessages(messages []*core.Message) {
 	}
 }
 
-func (prod *Statsd) close() {
+func (prod *StatsdMetrics) close() {
 	defer prod.WorkerDone()
 	prod.CloseMessageChannel(prod.bufferMessage)
 	prod.batch.Close(prod.transformMessages, prod.GetShutdownTimeout())
@@ -172,7 +182,7 @@ func (prod *Statsd) close() {
 }
 
 // Produce writes to stdout or stderr.
-func (prod *Statsd) Produce(workers *sync.WaitGroup) {
+func (prod *StatsdMetrics) Produce(workers *sync.WaitGroup) {
 	prod.AddMainWorker(workers)
 	prod.TickerMessageControlLoop(prod.bufferMessage, prod.flushFrequency, prod.sendBatchOnTimeOut)
 }

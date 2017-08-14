@@ -31,10 +31,11 @@ import (
 // - Stream: This value specifies the name of the stream this plugin is supposed to
 // read messages from.
 //
-// - Filters: A optional list of zero or more Filter plugins to connect to this router.
+// - Filters: This value defines an optional list of Filter plugins to connect to
+// this router.
 //
-// - TimeoutMs: This value set a timeout in milliseconds until a message should handled by the router.
-// You can disable this behavior by setting "0".
+// - TimeoutMs: This value sets a timeout in milliseconds until a message should
+// handled by the router. You can disable this behavior by setting it to "0".
 // By default this parameter is set to "0".
 //
 type SimpleRouter struct {

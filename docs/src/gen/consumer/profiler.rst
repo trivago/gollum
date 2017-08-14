@@ -15,24 +15,16 @@ During execution, [Batches] batches of [Runs] messages are generated, with a
 [DelayMs] ms delay between each message. Each message's payload is randomly
 selected from the set of template payloads above.
 
-Example:
-
-  # Generate a short message every 0.5s, useful for testing and debugging
-  JunkGenerator:
-    Type: "consumer.Profiler"
-    Message: "%20s"
-    Streams: "junkstream"
-    Characters: "abcdefghijklmZ"
-    KeepRunning: true
-    Runs: 10000
-    Batches: 3000000
-    DelayMs: 500
-
 
 
 
 Parameters
 ----------
+
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
 
 **Runs** (default: 10000)
 
@@ -82,15 +74,8 @@ Parameters
   
   
 
-Parameters (from SimpleConsumer)
---------------------------------
-
-**Enable**
-
-  switches the consumer on or off.
-  By default this parameter is set to true.
-  
-  
+Parameters (from core.SimpleConsumer)
+-------------------------------------
 
 **Streams**
 
@@ -138,6 +123,25 @@ Parameters (from SimpleConsumer)
   By default this parameter is set to 1024.
   
   
+
+Examples
+--------
+
+Generate a short message every 0.5s, useful for testing and debugging
+
+.. code-block:: yaml
+
+	  JunkGenerator:
+	    Type: "consumer.Profiler"
+	    Message: "%20s"
+	    Streams: "junkstream"
+	    Characters: "abcdefghijklmZ"
+	    KeepRunning: true
+	    Runs: 10000
+	    Batches: 3000000
+	    DelayMs: 500
+
+
 
 
 

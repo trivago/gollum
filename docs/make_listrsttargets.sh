@@ -11,4 +11,5 @@ find "${modules_dir}" -maxdepth 1 -type f -name '*.go' -not -name '*_test.go' |
     grep -vE "${exclude}" |
     sed "s^${modules_dir}^${target_dir}^"  |
     sed 's|\.go$|.rst|' |
-    sort
+    sort --ignore-case
+    

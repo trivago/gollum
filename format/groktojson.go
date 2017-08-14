@@ -23,24 +23,27 @@ import (
 
 // GrokToJSON formatter plugin
 //
-// GrokToJSON is a formatter that applies regex filters on messages.
+// GrokToJSON is a formatter that applies regex filters to messages.
 // It works by combining text patterns into something that matches your logs.
-// See https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_grok_basics to get
-// more information about grok basics.
+// See https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_grok_basics
+// for more information about Grok.
 //
 // The output format is JSON.
 //
 // Parameters
 //
-// - Patterns: A a list of grok patterns that will be executed on the given message.
+// - Patterns: A list of grok patterns that will be applied to messages.
 // The first matching pattern will be used to parse the message.
 //
 // Examples
 //
-// This example will transform the an unstructured input to a structured json output.
-// Example input:
+// This example transforms unstructured input into a structured json output.
+// Input:
+//
 //  us-west.servicename.webserver0.this.is.the.measurement 12.0 1497003802
+//
 // Output:
+//
 //  {
 //    "datacenter": "us-west",
 //    "service": "servicename",
@@ -51,17 +54,17 @@ import (
 //  }
 //
 // Config:
+//
 //  exampleConsumer:
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
 //      - format.GrokToJSON:
-//          Patterns:
-//            - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.gauge-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_gauge:float}\s*%{INT:time}
-//            - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.latency-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_latency:float}\s*%{INT:time}
-//            - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.derive-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_derive:float}\s*%{INT:time}
-//            - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value:float}\s*%{INT:time}
-//
+//        Patterns:
+//          - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.gauge-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_gauge:float}\s*%{INT:time}
+//          - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.latency-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_latency:float}\s*%{INT:time}
+//          - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.derive-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_derive:float}\s*%{INT:time}
+//          - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value:float}\s*%{INT:time}
 type GrokToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	exp                  []*grok.CompiledGrok

@@ -27,26 +27,35 @@ Parameters
   
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+In this example is the `format.Runlength` used as "subformatter" from the `format.MetadataCopy`.
+The `format.MetadataCopy` formatter copies the payload to the defined meta data field.
+At the end the `format.Runlength` formatter will transform the meta data value to the length.
+
 .. code-block:: yaml
 
-	In this example is the `format.Runlength` used as "subformatter" from the `format.MetadataCopy`.
-	The `format.MetadataCopy` formatter copies the payload to the defined meta data field.
-	At the end the `format.Runlength` formatter will transform the meta data value to the length.
-	
 	 exampleConsumer:
 	   Type: consumer.Console
 	   Streams: "*"
@@ -56,8 +65,9 @@ Examples
 	           - original_length:
 	             - format.Runlength:
 	                 Separator: ""
-		                StoreRunlengthOnly: true
-	
-	
+
+	                StoreRunlengthOnly: true
+
+
 
 

@@ -22,19 +22,31 @@ import (
 	"text/template"
 )
 
-// TemplateJSON formatter plugin
-// TemplateJSON is a formatter that evaluates a text template with an input
-// of a JSON message.
-// Configuration example
+// TemplateJSON formatter
 //
-//  - format.TemplateJSON:
-//      Template: ""
-//      ApplyTo: "payload" # payload or <metaKey>
+// This formatter unmarshals the given data as JSON and applies the results to
+// the given go template. The JSON data will be replaced with the rendered
+// template result. The template language is described in the go documentation:
+// https://golang.org/pkg/text/template/#hdr-Actions
 //
+// Parameters
 //
-// Template defines the template to execute with text/template.
-// This value is empty by default. If the template fails to execute the output
-// of TemplateJSONFormatter is returned.
+// - Template: Defines the go template to execute with the received JSON data.
+// If the template cannot be parsed or the JSON payload cannot be unmarshaled,
+// the incoming JSON data is preserved.
+// By default this parameter is set to "".
+//
+// Examples
+//
+// This example extracts the fields "Name" and "Surname" from a JSON encoded
+// payload and writes them both back as a plain text result.
+//
+//  exampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.TemplateJSON:
+//        Template: "{{.Name}} {{.Surname}}"
 type TemplateJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	template             *template.Template
@@ -48,7 +60,7 @@ func init() {
 func (format *TemplateJSON) Configure(conf core.PluginConfigReader) {
 	var err error
 	tpl := conf.GetString("Template", "")
-	format.template, err = template.New("TemplateJSON").Parse(tpl)
+	format.template, err = template.New("Template").Parse(tpl)
 	conf.Errors.Push(err)
 }
 

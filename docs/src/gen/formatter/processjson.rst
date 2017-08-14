@@ -24,7 +24,7 @@ Parameters
 
 **TrimValues** (default: true)
 
-  Allows trimming of whitespaces from the beggining and end of
+  Allows trimming of whitespaces from the beginning and end of
   each value after processing took place.
   By default this parameter is set to true.
   
@@ -220,14 +220,23 @@ Parameters
       
       
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
@@ -247,7 +256,8 @@ Examples
 	         - "client:ip"
 	         - "client:geoip:location:country"
 	         - "ua:agent:ua:os:engine:engine_version"
-	
-	
+
+
+
 
 

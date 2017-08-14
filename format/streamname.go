@@ -18,27 +18,35 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// StreamName formatter plugin
-// StreamName is a formatter that prefixes a message with the StreamName.
-// Configuration example
+// StreamName formatter
 //
-//  - format.StreamName:
-//      Separator: " "
-//      UseHistory: false
-//      ApplyTo: "payload" # payload or <metaKey>
+// This formatter prefixes data with the name of the current or previous stream.
 //
-// UseHistory can be set to true to not use the current but the previous
-// stream name. This can be useful to e.g. get the name of the stream messages
-// were sent to the fallback from. By default this is set to false.
+// Parameters
 //
-// Separator sets the separator character placed after the stream name.
-// This is set to " " by default.
+// - UsePrevious: Set to true to use the name of the previous stream.
+// By default this parameter is set to false.
 //
-// ApplyTo defines the formatter content to use
+// - Separator: Defines the separator string used between stream name and data.
+// By default this parameter is set to ":".
+//
+// Examples
+//
+// This example prefixes the message with the most recent routing history.
+//
+//  exampleProducer:
+//    Type: producer.Console
+//    Streams: "*"
+//    Modulators:
+//      - format.StreamName:
+//        Separator: ", "
+//        UsePrevious: true
+//      - format.StreamName:
+//        Separator: ": "
 type StreamName struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            []byte `config:"Separator" default:":"`
-	usePrevious          bool   `config:"UseHistory"`
+	usePrevious          bool   `config:"UsePrevious"`
 }
 
 func init() {

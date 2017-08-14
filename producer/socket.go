@@ -25,48 +25,54 @@ import (
 
 // Socket producer plugin
 //
-// The socket producer connects to a service over a TCP, UDP or unix domain
-// socket based connection.
+// The socket producer connects to a service over TCP, UDP or a UNIX domain
+// socket.
 //
-// Configuration example
+// Parameters
 //
-//  - "producer.Socket":
-//    Enable: true
-//    Address: ":5880"
-//    ConnectionBufferSizeKB: 1024
-//    BatchMaxCount: 8192
-//    BatchFlushCount: 4096
-//    BatchTimeoutSec: 5
-//    Acknowledge: ""
+// - Address: Defines the address to connect to. This can either be any ip
+// address and port like "localhost:5880" or a file like "unix:///var/gollum.socket".
+// By default this parameter is set to ":5880".
 //
-// Address stores the identifier to connect to.
-// This can either be any ip address and port like "localhost:5880" or a file
-// like "unix:///var/gollum.socket". By default this is set to ":5880".
+// - ConnectionBufferSizeKB: This value sets the connection buffer size in KB.
+// By default this parameter is set to "1024".
 //
-// ConnectionBufferSizeKB sets the connection buffer size in KB. By default this
-// is set to 1024, i.e. 1 MB buffer.
-//
-// BatchMaxCount defines the maximum number of messages that can be buffered
+// - Batch/MaxCount: This value defines the maximum number of messages that can be buffered
 // before a flush is mandatory. If the buffer is full and a flush is still
-// underway or cannot be triggered out of other reasons, the producer will
-// block. By default this is set to 8192.
+// underway or cannot be triggered out of other reasons, the producer will block.
+// By default this parameter is set to "8192".
 //
-// BatchFlushCount defines the number of messages to be buffered before they are
+// - Batch/FlushCount: This value defines the number of messages to be buffered before they are
 // written to disk. This setting is clamped to BatchMaxCount.
-// By default this is set to BatchMaxCount / 2.
+// By default this parameter is set to "Batch/MaxCount / 2".
 //
-// BatchTimeoutSec defines the maximum number of seconds to wait after the last
-// message arrived before a batch is flushed automatically. By default this is
-// set to 5.
+// - Batch/TimeoutSec: This value defines the maximum number of seconds to wait after the last
+// message arrived before a batch is flushed automatically.
+// By default this parameter is set to "5".
 //
-// Acknowledge can be set to a non-empty value to expect the given string as a
+// - Acknowledge: This value can be set to a non-empty value to expect the given string as a
 // response from the server after a batch has been sent.
-// This setting is disabled by default, i.e. set to "".
 // If Acknowledge is enabled and a IP-Address is given to Address, TCP is used
 // to open the connection, otherwise UDP is used.
+// By default this parameter is set to "".
 //
-// AckTimeoutMs defines the time in milliseconds to wait for a response from the
-// server. After this timeout the send is marked as failed. Defaults to 2000.
+// - AckTimeoutMs: This value defines the time in milliseconds to wait for a response from the
+// server. After this timeout the send is marked as failed.
+// By default this parameter is set to "2000".
+//
+// Examples
+//
+// This example starts a socket producer on localhost port 5880:
+//
+//  SocketOut:
+//    Type: producer.Socket
+//    Address: ":5880"
+//    Batch
+//      MaxCount: 1024
+//      FlushCount: 512
+//      TimeoutSec: 3
+//    AckTimeoutMs: 1000
+//
 type Socket struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	connection            net.Conn
@@ -74,12 +80,12 @@ type Socket struct {
 	assembly              core.WriterAssembly
 	protocol              string
 	address               string
-	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	ackTimeout            time.Duration `config:"AckTimeoutMs" default:"2000" metric:"ms"`
-	batchMaxCount         int           `config:"Batch/MaxCount" default:"8192"`
-	batchFlushCount       int           `config:"Batch/FlushCount" default:"4096"`
 	bufferSizeByte        int           `config:"ConnectionBufferSizeKB" default:"1024" metric:"kb"`
 	acknowledge           string        `config:"Acknowledge"`
+	batchTimeout          time.Duration `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
+	batchMaxCount         int           `config:"Batch/MaxCount" default:"8192"`
+	batchFlushCount       int           `config:"Batch/FlushCount" default:"4096"`
 }
 
 type bufferedConn interface {

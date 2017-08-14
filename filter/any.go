@@ -19,23 +19,33 @@ import (
 )
 
 // Any filter plugin
-// This plugin blocks messages after a certain number of messages per second
-// has been reached.
-// Configuration example
-//	- "yourStreamId":
-//	  type: "stream.Broadcast"
-//	    filters:
-//	      - "filter.Any"
-//	      Any:
-//		- "filter.JSON"
-//		- "filter.RegEx"
 //
-// AnyFilter defines a list of filters that should be checked before filtering
+// This plugin takes a list of filters and applies each of them to incoming
+// messages until a an accepting filter is found. If any of the listed filters
+// accept the message, it is passed through, otherwise, the message is dropper.
+//
+// Parameters
+//
+// - AnyFilters: Defines a list of filters that should be checked before filtering
 // a message. Filters are checked in order, and if the message passes
-// then no further filters are checked. By default this list is empty.
+// then no further filters are checked.
+//
+// Examples
+//
+// This example will accept valid json or messages from "exceptionStream":
+//
+//  ExampleConsumer:
+//    Type: consumer.Console
+//    Streams: "*"
+//    Modulators:
+//      - filter.Any:
+//        AnyFilters:
+//          - filter.JSON
+//          - filter.Stream:
+//            Only: exceptionStream
 type Any struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
-	filters           core.FilterArray `config:"Any"`
+	filters           core.FilterArray `config:"AnyFilters"`
 }
 
 func init() {

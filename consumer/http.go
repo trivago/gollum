@@ -40,7 +40,7 @@ import (
 // Syntax: [hostname|address]:<port>
 //
 // - ReadTimeoutSec: Defines the maximum duration in seconds before timing out
-// the HTTP read request. Sets  http.Server.ReadTimeout; for details, see its
+// the HTTP read request. Sets http.Server.ReadTimeout; for details, see its
 // Go documentation.
 //
 // - WithHeaders: If true, relays the complete HTTP request to the generated

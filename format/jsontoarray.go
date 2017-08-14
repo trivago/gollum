@@ -23,16 +23,18 @@ import (
 
 // JSONToArray formatter plugin
 //
-// JSONToArray "flattens" a JSON object by selecting specific fields and putting
-// the values of them into a separated list.
+// JSONToArray "flattens" a JSON object by selecting specific fields
+// and creating a delimiter-separated string of their values.
 //
-// An json input of `{"foo":"value1","bar":"value2"}` can be transformed in a list like `value1,value2`.
+// A JSON input like `{"foo":"value1","bar":"value2"}` can be transformed
+// into a list like `value1,value2`.
 //
 // Parameters
 //
-// - Fields: The list of all keys which used to create the final text list.
+// - Fields: List of strings specifying the JSON keys to retrieve from the input
 //
-// - Separator: This value used as separator for the final text list.
+// - Separator: The delimited string to insert between each value in the generated
+// string.
 // By default this parameter is set to ",".
 //
 // Examples
@@ -45,11 +47,10 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.JSONToArray
-//          Fields:
-//            - foo
-//            - bar
-//          Separator: ;
-//
+//        Separator: ;
+//        Fields:
+//          - foo
+//          - bar
 type JSONToArray struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            string   `config:"Separator" default:","`

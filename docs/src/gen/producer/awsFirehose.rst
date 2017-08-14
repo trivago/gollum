@@ -11,26 +11,32 @@ This producer sends data to an AWS Firehose stream.
 Parameters
 ----------
 
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
+
 **StreamMapping**
 
-  This value defines a translation from gollum stream to firehose stream
-  name. If no mapping is given the gollum stream name is used as firehose
-  stream name.
+  This value defines a translation from gollum stream names
+  to firehose stream names. If no mapping is given, the gollum stream name is
+  used as the firehose stream name.
   By default this parameter is set to "empty"
   
   
 
 **RecordMaxMessages** (default: 1)
 
-  This value defines the number of messages which send in one record to aws firehose.
+  This value defines the number of messages to send
+  in one record to aws firehose.
   By default this parameter is set to "1".
   
   
 
 **RecordMessageDelimiter** (default: \n)
 
-  This value defines the string to delimit messages within
-  a firehose record.
+  This value defines the delimiter string to use between
+  messages within a firehose record.
   By default this parameter is set to "\n".
   
   
@@ -40,99 +46,6 @@ Parameters
   This value defines the timeframe in milliseconds in which a second
   batch send can be triggered.
   By default this parameter is set to "1000".
-  
-  
-
-Parameters (from BatchedProducer)
----------------------------------
-
-**Batch/MaxCount** (default: 8192)
-
-  Defines the maximum number of messages per batch. If this
-  limit is reached a flush is always triggered.
-  By default this parameter is set to 8192.
-  
-  
-
-**Batch/FlushCount** (default: 4096)
-
-  Defines the minimum number of messages required to flush
-  a batch. If this limit is reached a flush might be triggered.
-  By default this parameter is set to 4096.
-  
-  
-
-**Batch/TimeoutSec** (default: 5, unit: sec)
-
-  Defines the maximum time in seconds messages can stay in
-  the internal buffer before being flushed.
-  By default this parameter is set to 5.
-  
-  
-
-Parameters (from DirectProducer)
---------------------------------
-
-**Enable**
-
-  switches the consumer on or off. By default this value is set to true.
-  
-  
-
-**ID**
-
-  allows this producer to be found by other plugins by name. By default this
-  is set to "" which does not register this producer.
-  
-  
-
-**ShutdownTimeoutMs**
-
-  sets a timeout in milliseconds that will be used to detect
-  a blocking producer during shutdown. By default this is set to 1 second.
-  Decreasing this value may lead to lost messages during shutdown. Increasing
-  this value will increase shutdown time.
-  
-  
-
-**Streams**
-
-  contains either a single string or a list of strings defining the
-  message channels this producer will consume. By default this is set to "*"
-  which means "listen to all routers but the internal".
-  
-  
-
-**FallbackStream**
-
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
-  
-  
-
-**Modulators**
-
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
-  
-  
-
-Parameters (from components.AwsMultiClient)
--------------------------------------------
-
-**Region** (default: us-east-1)
-
-  This value defines the used aws region.
-  By default this is set to "us-east-1"
-  
-  
-
-**Endpoint**
-
-  This value defines the used aws api endpoint. If no endpoint is set
-  the client needs to set the right endpoint for the used region.
-  By default this is set to "".
   
   
 
@@ -211,26 +124,113 @@ Parameters (from components.AwsCredentials)
   
   
 
+Parameters (from components.AwsMultiClient)
+-------------------------------------------
+
+**Region** (default: us-east-1)
+
+  This value defines the used aws region.
+  By default this is set to "us-east-1"
+  
+  
+
+**Endpoint**
+
+  This value defines the used aws api endpoint. If no endpoint is set
+  the client needs to set the right endpoint for the used region.
+  By default this is set to "".
+  
+  
+
+Parameters (from core.BatchedProducer)
+--------------------------------------
+
+**Batch/MaxCount** (default: 8192)
+
+  Defines the maximum number of messages per batch. If this
+  limit is reached a flush is always triggered.
+  By default this parameter is set to 8192.
+  
+  
+
+**Batch/FlushCount** (default: 4096)
+
+  Defines the minimum number of messages required to flush
+  a batch. If this limit is reached a flush might be triggered.
+  By default this parameter is set to 4096.
+  
+  
+
+**Batch/TimeoutSec** (default: 5, unit: sec)
+
+  Defines the maximum time in seconds messages can stay in
+  the internal buffer before being flushed.
+  By default this parameter is set to 5.
+  
+  
+
+Parameters (from core.SimpleProducer)
+-------------------------------------
+
+**Streams**
+
+  Defines a list of streams the producer will receive from. This
+  parameter is mandatory. Specifying "*" causes the producer to receive messages
+  from all streams except internal internal ones (e.g. _GOLLUM_).
+  By default this parameter is set to an empty list.
+  
+  
+
+**FallbackStream**
+
+  Defines a stream to route messages to if delivery fails.
+  The message is reset to its original state before being routed, i.e. all
+  modifications done to the message after leaving the consumer are removed.
+  Setting this paramater to "" will cause messages to be discared when delivery
+  fails.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a producer is
+  allowed to take to shut down. After this timeout the producer is always
+  considered to have shut down.  Decreasing this value may lead to lost
+  messages during shutdown. Raising it may increase shutdown time.
+  
+  
+
+**Modulators**
+
+  Defines a list of modulators to be applied to a message when
+  it arrives at this producer. If a modulator changes the stream of a message
+  the message is NOT routed to this stream anymore.
+  By default this parameter is set to an empty list.
+  
+  
+
 Examples
 --------
 
+This example set up a simple aws firehose producer:
+
 .. code-block:: yaml
 
-	This example set up a simple aws firehose producer:
-	
 	 firehoseOut:
 	   Type: producer.AwsFirehose
+	   Streams: "*"
+	   StreamMapping:
+	     "*": default
 	   Credential:
 	     Type: shared
 	     File: /Users/<USERNAME>/.aws/credentials
 	     Profile: default
 	   Region: eu-west-1
-	   StreamMapping:
-	     "*": default
 	   RecordMaxMessages: 1
 	   RecordMessageDelimiter: "\n"
 	   SendTimeframeSec: 1
-	
-	
+
+
+
 
 

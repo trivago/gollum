@@ -3,7 +3,7 @@
 Proxy
 =====
 
-This producer is compatible to consumer.proxy.
+This producer is a compatible with the Proxy consumer plugin.
 Responses to messages sent to the given address are sent back to the original
 consumer of it is a compatible message source. As with consumer.proxy the
 returned messages are partitioned by common message length algorithms.
@@ -13,6 +13,11 @@ returned messages are partitioned by common message length algorithms.
 
 Parameters
 ----------
+
+**Enable** (default: true)
+
+  Switches this plugin on or off.
+  
 
 **Address**
 
@@ -96,7 +101,7 @@ Parameters
 
   This value defines the offset used by the binary and text partitioner.
   This setting is ignored by the fixed partitioner.
-  By default this paramter is set to "0".
+  By default this parameter is set to "0".
   
   
 
@@ -104,12 +109,12 @@ Parameters
 
   This value defines the size in bytes used by the binary or fixed partitioner.
   For `binary` this can be set to 1,2,4 or 8,  for `fixed` this defines the size of a message.
-  BY default this paramter is set to "4" for `binary` or "1" for `fixed` partitioner.
+  BY default this parameter is set to "4" for `binary` or "1" for `fixed` partitioner.
   
   
 
-Parameters (from BufferedProducer)
-----------------------------------
+Parameters (from core.BufferedProducer)
+---------------------------------------
 
 **Channel**
 
@@ -120,73 +125,67 @@ Parameters (from BufferedProducer)
 
 **ChannelTimeoutMs** (default: 0, unit: ms)
 
-  This value defines a timeout for each message before the message will discarded.
-  You can set this parameter to "0" for disabling the timeout.
+  This value defines a timeout for each message
+  before the message will discarded. To disable the timeout, set this
+  parameter to 0.
   By default this parameter is set to "0".
   
   
 
-Parameters (from DirectProducer)
---------------------------------
-
-**Enable**
-
-  switches the consumer on or off. By default this value is set to true.
-  
-  
-
-**ID**
-
-  allows this producer to be found by other plugins by name. By default this
-  is set to "" which does not register this producer.
-  
-  
-
-**ShutdownTimeoutMs**
-
-  sets a timeout in milliseconds that will be used to detect
-  a blocking producer during shutdown. By default this is set to 1 second.
-  Decreasing this value may lead to lost messages during shutdown. Increasing
-  this value will increase shutdown time.
-  
-  
+Parameters (from core.SimpleProducer)
+-------------------------------------
 
 **Streams**
 
-  contains either a single string or a list of strings defining the
-  message channels this producer will consume. By default this is set to "*"
-  which means "listen to all routers but the internal".
+  Defines a list of streams the producer will receive from. This
+  parameter is mandatory. Specifying "*" causes the producer to receive messages
+  from all streams except internal internal ones (e.g. _GOLLUM_).
+  By default this parameter is set to an empty list.
   
   
 
 **FallbackStream**
 
-  defines the stream used for messages that are sent to the fallback after
-  a timeout (see ChannelTimeoutMs). By default this is _DROPPED_.
+  Defines a stream to route messages to if delivery fails.
+  The message is reset to its original state before being routed, i.e. all
+  modifications done to the message after leaving the consumer are removed.
+  Setting this paramater to "" will cause messages to be discared when delivery
+  fails.
+  
+  
+
+**ShutdownTimeoutMs** (default: 1000, unit: ms)
+
+  Defines the maximum time in milliseconds a producer is
+  allowed to take to shut down. After this timeout the producer is always
+  considered to have shut down.  Decreasing this value may lead to lost
+  messages during shutdown. Raising it may increase shutdown time.
   
   
 
 **Modulators**
 
-  sets formatter and filter to use. Each formatter has its own set of options
-  which can be set here, too. By default this is set to format.Forward.
-  Each producer decides if and when to use a Formatter.
+  Defines a list of modulators to be applied to a message when
+  it arrives at this producer. If a modulator changes the stream of a message
+  the message is NOT routed to this stream anymore.
+  By default this parameter is set to an empty list.
   
   
 
 Examples
 --------
 
+This example will send 64bit length encoded data on TCP port 5880.
+
 .. code-block:: yaml
 
-	This example will send 64bit length encoded data on TCP port 5880.
-	
 	 proxyOut:
 	   Type: producer.Proxy
 	   Address: ":5880"
 	   Partitioner: binary
 	   Size: 8
-	
-	
+
+
+
 
 

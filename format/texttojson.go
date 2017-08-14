@@ -78,14 +78,12 @@ const (
 // - Directive rules: There are some special cases which will cause the parser
 // to do additional actions.
 //
-//  - When writing a value without a key, the state name will become the key.
-//
-//  - If two keys are written in a row the first key will hold a null value.
-//
-//  - Writing a key while writing array elements will close the array.
+// * When writing a value without a key, the state name will become the key.
+// * If two keys are written in a row the first key will hold a null value.
+// * Writing a key while writing array elements will close the array.
 //
 // - Directive flags: Flags can modify the parser behavior and can be used to
-// store values on a stack accross multiple directives.
+// store values on a stack across multiple directives.
 //
 //  - continue: Prepend the token to the next match.
 //

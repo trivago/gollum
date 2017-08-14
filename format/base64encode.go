@@ -22,7 +22,7 @@ import (
 
 // Base64Encode formatter
 //
-// Base64Encode allows to convert data into a Base64 string. Custom dictionaries
+// Base64Encode is a formatter that decodes Base64 encoded strings. Custom dictionaries
 // are supported, by default RFC 4648 standard encoding is used.
 //
 // Parameters

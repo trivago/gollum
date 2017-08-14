@@ -29,8 +29,9 @@ import (
 // - Channel: This value defines the capacity of the message buffer.
 // By default this parameter is set to "8192".
 //
-// - ChannelTimeoutMs: This value defines a timeout for each message before the message will discarded.
-// You can set this parameter to "0" for disabling the timeout.
+// - ChannelTimeoutMs: This value defines a timeout for each message
+// before the message will discarded. To disable the timeout, set this
+// parameter to 0.
 // By default this parameter is set to "0".
 //
 //

@@ -24,14 +24,20 @@ import (
 
 // Console producer plugin
 //
-// The console producer writes messages to the standard output streams.
+// The console producer writes messages to standard output or standard error.
 //
-// Configuration example
+// Parameters
 //
-//  - "producer.Console":
-//    Console: "stdout"
+// - Console: Chooses the output device; either "stdout" or "stderr".
+// By default this is set to "stdout".
 //
-// Console may either be "stdout" or "stderr". By default it is set to "stdout".
+// Examples
+//
+//   StdErrPrinter:
+//     Type: producer.Console
+//     Streams: myerrorstream
+//     Console: stderr
+//
 type Console struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	console               *os.File

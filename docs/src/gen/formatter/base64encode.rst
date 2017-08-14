@@ -3,7 +3,7 @@
 Base64Encode
 ============
 
-Base64Encode allows to convert data into a Base64 string. Custom dictionaries
+Base64Encode is a formatter that decodes Base64 encoded strings. Custom dictionaries
 are supported, by default RFC 4648 standard encoding is used.
 
 
@@ -20,31 +20,41 @@ Parameters
   
   
 
-Parameters (from SimpleFormatter)
----------------------------------
+Parameters (from core.SimpleFormatter)
+--------------------------------------
 
 **ApplyTo**
 
-  This value chooses the part of the message the formatting should be
-  applied to. Use "" to target the message payload; other values specify the name of a metadata field to target.
+  This value chooses the part of the message the formatting
+  should be applied to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
   By default this parameter is set to "".
+  
+  
+
+**SkipIfEmpty**
+
+  When set to true, this formatter will not be applied to data
+  that is empty or - in case of metadata - not existing.
+  By default this parameter is set to false
   
   
 
 Examples
 --------
 
+This example uses RFC 4648 URL encoding to format incoming data.
+
 .. code-block:: yaml
 
-	This example uses RFC 4648 URL encoding to format incoming data.
-	
 	 ExampleConsumer:
 	   Type: consumer.Console
 	   Streams: console
 	   Modulators:
 	     - formatter.Base64Encode
 	       Dictionary: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-	
-	
+
+
+
 
 

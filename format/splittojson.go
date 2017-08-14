@@ -24,37 +24,36 @@ import (
 
 // SplitToJSON formatter plugin
 //
-// SplitToJSON is a formatter that splits a message by a given token and puts
-// the result into a JSON object by using an array based mapping
+// SplitToJSON is a formatter that splits a message by a given token and creates
+// a JSON object of the split values by assigning each value to a predefined property.
 //
 // Parameters
 //
-// - Keys: This value defines an array of keys to apply to the tokens generated
-// by splitting a message by `SplitBy`. The keys listed here are applied to the resulting
-// token array by index.
+// - Keys: This value defines an array of JSON keys to which the split message's parts
+// should be assigned to. The keys are applied to the resulting token array by index.
 //
-// - SplitBy: This value defines the separator character to use when processing a message.
+// - SplitBy: This value defines the separator character to use when splitting a message.
 // By default this parameter is set to "|".
 //
-// - KeepJSON: This value can be set to "false" to escape texts that are JSON
-// payloads as regualar strings. Otherwise JSON payload will be taken as-is and
-// set to the corresponding key.
+// - KeepJSON: This value can be set to "false" to escape JSON payload texts
+// as regualar strings. Otherwise JSON payload will be taken as-is and set to the
+// corresponding key.
 // By default this parameter is set to "true".
 //
 // Examples
 //
-// This example will format a input of `value1,value2,value3` to a json string of `{"foo":"value1", "bar":"value2"}`:
+// This example will format a input of `value1,value2,value3` to a json
+// string of `{"foo":"value1", "bar":"value2"}`:
 //
 //  exampleConsumer:
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
 //      - format.SplitToJSON:
-//          SplitBy: ","
-//          Keys:
-//            - foo
-//            - bar
-//
+//        SplitBy: ","
+//        Keys:
+//          - foo
+//          - bar
 type SplitToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	token                []byte   `config:"SplitBy" default:"|"`

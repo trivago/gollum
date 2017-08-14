@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-// KafkaProducer librdkafka producer plugin
+// KafkaProducer producer
 //
 // NOTICE: This producer is not included in standard builds. To enable it
 // you need to trigger a custom build with native plugins enabled.
@@ -33,132 +33,124 @@ import (
 // backed by the native librdkafka (0.8.6) library so most settings relate
 // to that library.
 //
-// Configuration example
+// Parameters
 //
-//  - "native.KafkaProducer":
-//    ClientId: "weblog"
-//    RequiredAcks: 1
-//    TimeoutMs: 1500
-//    SendRetries: 0
-//    Compression: "none"
-//    BatchSizeMaxKB: 1024
-//    BatchMaxMessages: 100000
-//    BatchMinMessages: 1000
-//    BatchTimeoutMs: 1000
-//    ServerTimeoutSec: 60
-//    ServerMaxFails: 3
-//    MetadataTimeoutMs: 1500
-//    MetadataRefreshMs: 300000
-//    SecurityProtocol: "plaintext"
-//    SslCipherSuites: ""
-//    SslKeyLocation: ""
-//    SslKeyPassword: ""
-//    SslCertificateLocation: ""
-//    SslCaLocation: ""
-//    SslCrlLocation: ""
-//    SaslMechanism: ""
-//    SaslUsername: ""
-//    SaslPassword: ""
-//    KeyFormatter: ""
-//    Servers:
-//    	- "localhost:9092"
-//    Topic:
-//      "console" : "console"
+// - Servers: Defines a list of ideally all brokers in the cluster. At least one
+// broker is required.
+// By default this parameter is set to an empty list.
 //
-// SendRetries is mapped to message.send.max.retries.
-// This defines the number of times librdkafka will try to re-send a message
-// if it did not succeed. Set to 0 by default (don't retry).
+// - Topic: Defines a stream to topic mapping. If a stream is not mapped the
+// stream name is used as topic.
+// By default this parameter is set to an empty list.
 //
-// Compression is mapped to compression.codec. Please note that "zip" has to be
-// used instead of "gzip". Possible values are "none", "zip" and "snappy".
-// By default this is set to "none".
+// - ClientId: Sets the kafka client id used by this producer.
+// By default this parameter is set to "gollum".
 //
-// TimeoutMs is mapped to request.timeout.ms.
-// This defines the number of milliseconds to wait until a request is marked
-// as failed. By default this is set to 1.5sec.
+// - Compression: Defines the compression algorithm to use.
+// Possible values are "none", "zip" and "snappy".
+// By default this parameter is set to "none".
 //
-// BatchSizeMaxKB is mapped to message.max.bytes (x1024).
-// This defines the maximum message size in KB. By default this is set to 1 MB.
-// Messages above this size are rejected.
+// - RequiredAcks: Defines the numbers of acknowledgements required until a
+// message is marked as "sent".
+// By default this parameter is set to 1.
 //
-// BatchMaxMessages is mapped to queue.buffering.max.messages.
-// This defines the maximum number of messages that can be pending at any given
-// moment in time. If this limit is hit additional messages will be rejected.
-// This value is set to 100.000 by default and should be adjusted according to
-// your average message throughput.
+// - ServerTimeoutSec: Defines the time in seconds after which a server is
+// defined as "not reachable".
+// By default this parameter is set to 1.
 //
-// BatchMinMessages is mapped to batch.num.messages.
-// This defines the minimum number of messages required for a batch to be sent.
-// This is set to 1000 by default and should be significantly lower than
+// - ServerMaxFails: Defines the number of retries after which a server is
+// marked as "failing".
+// By default this parameter is set to 3.
+//
+// - MetadataTimeoutMs: Number of milliseconds a metadata request may take until
+// considered as failed.
+// By default this parameter is set to 1500.
+//
+// - MetadataRefreshMs: Interval in milliseconds for querying metadata.
+// By default this parameter is set to 300000.
+//
+// - TimeoutMs: Defines the number of milliseconds to wait until a request is
+// marked as failed.
+// By default this parameter is set to 1500.
+//
+// - Batch/TimeoutMs: Defines the number of milliseconds to wait until a batch
+// is flushed to kafka.
+// By default this parameter is set to 1000.
+//
+// - Batch/SizeMaxKB: Defines the maximum message size in KB.  Messages above
+// this size are rejected.
+// By default this parameter is set to 1024.
+//
+// - Batch/MinMessages: Defines the minimum number of messages required for a
+// batch to be sent. This value should be significantly lower than
 // BatchMaxMessages to avoid messages to be rejected.
+// By default this parameter is set to 1000.
 //
-// BatchTimeoutMs is mapped to queue.buffering.max.ms.
-// This defines the number of milliseconds to wait until a batch is flushed to
-// kafka. Set to 1sec by default.
+// - Batch/MaxMessages: Defines the maximum number of messages that are marked as
+// pending at any given moment in time. If this limit is hit, additional
+// messages will be rejected. This should be adjusted according to your maximum
+// message throughput.
+// By default this parameter is set to 100000.
 //
-// ServerTimeoutSec is mapped to socket.timeout.ms.
-// Defines the time in seconds after a server is defined as "not reachable".
-// Set to 1 minute by default.
+// - SendRetries: Defines the number of times librdkafka will try to re-send a
+// message if it did not succeed.
+// By default this parameter is set to 0.
 //
-// ServerMaxFails is mapped to socket.max.fails.
-// Number of retries after a server is marked as "failing".
+// - KeyFrom: Defines the metadata field that contains the string to be used as
+// the key passed to kafka. When set to an empty string no key is used.
+// By default this parameter is set to "".
 //
-// MetadataTimeoutMs is mapped to metadata.request.timeout.ms.
-// Number of milliseconds a metadata request may take until considered as failed.
-// Set to 1.5 seconds by default.
+// - SaslMechanism: Defines the SASL mechanism to use for authentication.
+// Accepted values are GSSAPI, PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512.
+// By default this parameter is set to "".
 //
-// MetadataRefreshMs is mapped to topic.metadata.refresh.interval.ms.
-// Interval in milliseconds for querying metadata. Set to 5 minutes by default.
+// - SaslUsername: Sets the SASL username for use with the PLAIN mechanism.
+// By default this parameter is set to "".
 //
-// SecurityProtocol is mapped to security.protocol.
-// Protocol used to communicate with brokers. Set to plaintext by default.
+// - SaslPassword: Sets the SASL password for use with the PLAIN mechanism.
+// By default this parameter is set to "".
 //
-// SslCipherSuites is mapped to ssl.cipher.suites.
-// Cipher Suites to use when connection via TLS/SSL. Not set by default.
+// - SecurityProtocol: Protocol used to communicate with brokers.
+// Accepted values are 	plaintext, ssl, sasl_plaintext and sasl_ssl.
+// By default this parameter is set to "plaintext".
 //
-// SslKeyLocation is mapped to ssl.key.location.
-// Path to client's private key (PEM) for used for authentication. Not set by default.
+// - SslCipherSuites: Defines the Cipher Suites to use when connection via
+// TLS/SSL. For allowed values see man page for ciphers(1).
+// By default this parameter is set to "".
 //
-// SslKeyPassword is mapped to ssl.key.password.
-// Private key passphrase. Not set by default.
+// - SslKeyLocation: Path to the client's private key (PEM) used for
+// authentication.
+// By default this parameter is set to "".
 //
-// SslCertificateLocation is mapped to ssl.certificate.location.
-// Path to client's public key (PEM) used for authentication. Not set by default.
+// - SslKeyPassword: Contains the private key passphrase.
+// By default this parameter is set to "".
 //
-// SslCaLocation is mapped to ssl.ca.location.
-// File or directory path to CA certificate(s) for verifying the broker's key. Not set by default.
+// - SslCertificateLocation: Path to the client's public key (PEM) used for
+// authentication.
+// By default this parameter is set to "".
 //
-// SslCrlLocation is mapped to ssl.crl.location.
-// Path to CRL for verifying broker's certificate validity. Not set by default.
+// - SslCaLocation: File or directory path to the CA certificate(s) used for
+// verifying the broker's key.
+// By default this parameter is set to "".
 //
-// SaslMechanism is mapped to sasl.mechanisms.
-// SASL mechanism to use for authentication. Not set by default.
+// - SslCrlLocation: Path to the CRL used to verify the broker's certificate
+// validity.
+// By default this parameter is set to "".
 //
-// SaslUsername is mapped to sasl.username.
-// SASL username for use with the PLAIN mechanism. Not set by default.
+// Examples:
 //
-// SaslPassword is mapped to sasl.password.
-// SASL password for use with the PLAIN mechanism. Not set by default.
-//
-// Servers defines the list of brokers to produce messages to.
-//
-// Topic defines a stream to topic mapping.
-// If a stream is not mapped a topic named like the stream is assumed.
-//
-// KeyFrom defines the metadata field that contains the string to be used as
-// the key passed to kafka. By default KeyField contains an empty string which
-// sends no key to kafka.
-//
-// KeyFormatterFirst can be set to true to apply the key formatter to the
-// unformatted message. By default this is set to false, so that key formatter
-// uses the message after Formatter has been applied.
-// KeyFormatter does never affect the payload of the message sent to kafka.
-//
-// FilterAfterFormat behaves like Filter but allows filters to be executed
-// after the formatter has run. By default no such filter is set.
+//  kafkaWriter:
+//    Type: native.KafkaProducer
+//    Streams: logs
+//    Compression: zip
+//    Servers:
+//    	- "kafka01:9092"
+//    	- "kafka02:9092"
+//    	- "kafka03:9092"
+//    	- "kafka04:9092"
 type KafkaProducer struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	servers               []string `config:"Servers" default:"localhost:9092"`
+	servers               []string `config:"Servers"`
 	clientID              string   `config:"ClientId" default:"gollum"`
 	client                *kafka.Client
 	config                kafka.Config
@@ -245,7 +237,6 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 		multiplicator /= 100
 	}*/
 
-	prod.config.Set("client.id", conf.GetString("ClientId", "gollum"))
 	prod.config.Set("metadata.broker.list", strings.Join(prod.servers, ","))
 	prod.config.Set("sasl.mechanisms", conf.GetString("SaslMechanism", ""))
 	prod.config.Set("sasl.password", conf.GetString("SaslPassword", ""))
@@ -256,16 +247,16 @@ func (prod *KafkaProducer) Configure(conf core.PluginConfigReader) error {
 	prod.config.Set("ssl.crl.location", conf.GetString("SslCrlLocation", ""))
 	prod.config.Set("ssl.key.location", conf.GetString("SslKeyLocation", ""))
 	prod.config.Set("ssl.key.password", conf.GetString("SslKeyPassword", ""))
-	prod.config.SetI("message.max.bytes", int(conf.GetInt("BatchSizeMaxKB", 1<<10))<<10)
+	prod.config.SetI("message.max.bytes", int(conf.GetInt("Batch/SizeMaxKB", 1<<10))<<10)
 	prod.config.SetI("metadata.request.timeout.ms", int(conf.GetInt("MetadataTimeoutMs", 1500)))
 	prod.config.SetI("topic.metadata.refresh.interval.ms", int(conf.GetInt("MetadataRefreshMs", 300000)))
 	prod.config.SetI("socket.max.fails", int(conf.GetInt("ServerMaxFails", 3)))
 	prod.config.SetI("socket.timeout.ms", int(conf.GetInt("ServerTimeoutSec", 60)*1000))
 	prod.config.SetB("socket.keepalive.enable", true)
 	prod.config.SetI("message.send.max.retries", int(conf.GetInt("SendRetries", 0)))
-	prod.config.SetI("queue.buffering.max.messages", int(conf.GetInt("BatchMaxMessages", 100000)))
-	prod.config.SetI("queue.buffering.max.ms", int(conf.GetInt("BatchTimeoutMs", 1000)))
-	prod.config.SetI("batch.num.messages", int(conf.GetInt("BatchMinMessages", 1000)))
+	prod.config.SetI("queue.buffering.max.messages", int(conf.GetInt("Batch/MaxMessages", 100000)))
+	prod.config.SetI("queue.buffering.max.ms", int(conf.GetInt("Batch/TimeoutMs", 1000)))
+	prod.config.SetI("batch.num.messages", int(conf.GetInt("Batch/MinMessages", 1000)))
 	//prod.config.SetI("protocol.version", verNumber)
 
 	securityProtocol := strings.ToLower(conf.GetString("SecurityProtocol", protocolPlaintext))
@@ -350,16 +341,18 @@ func (prod *KafkaProducer) produceMessage(msg *core.Message) {
 		topic = prod.registerNewTopic(topicName, msg.GetStreamID())
 	}
 
-	serializedOriginal, err := msg.SerializeOriginal()
+	serializedMsg, err := msg.Serialize()
 	if err != nil {
 		prod.Logger.Error(err)
 	}
 
-	metadata := msg.GetMetadata()
 	kafkaMsg := &messageWrapper{
-		key:   metadata.GetValue(prod.keyField),
 		value: msg.GetPayload(),
-		user:  serializedOriginal,
+		user:  serializedMsg,
+	}
+
+	if metadata := msg.TryGetMetadata(); metadata != nil {
+		kafkaMsg.key = metadata.GetValue(prod.keyField)
 	}
 
 	if err := topic.handle.Produce(kafkaMsg); err != nil {
@@ -386,7 +379,7 @@ func (prod *KafkaProducer) storeRTT(msg *core.Message) {
 // OnMessageDelivered gets called by librdkafka on message delivery success
 func (prod *KafkaProducer) OnMessageDelivered(userdata []byte) {
 	if msg, err := core.DeserializeMessage(userdata); err == nil {
-		prod.storeRTT(&msg)
+		prod.storeRTT(msg)
 	} else {
 		prod.Logger.Error(err)
 	}
@@ -396,8 +389,8 @@ func (prod *KafkaProducer) OnMessageDelivered(userdata []byte) {
 func (prod *KafkaProducer) OnMessageError(reason string, userdata []byte) {
 	prod.Logger.Error("Message delivery failed:", reason)
 	if msg, err := core.DeserializeMessage(userdata); err == nil {
-		prod.storeRTT(&msg)
-		prod.TryFallback(&msg)
+		prod.storeRTT(msg)
+		prod.TryFallback(msg)
 	} else {
 		prod.Logger.Error(err)
 	}

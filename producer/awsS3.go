@@ -31,35 +31,35 @@ const defaultAwsEndpoint = "s3.amazonaws.com"
 // AwsS3 producer plugin
 //
 // This producer sends messages to Amazon S3.
-// Each "file" use a configurable batch and sends the content by a multipart upload to s3.
-// This principle avoid temporary storage on disk.
 //
-// Please keep in mind that Amazon S3 do not support appending to existing objects. Because of that a rotation is
-// mandatory in this producer.
+// Each "file" uses a configurable batch and sends the content by a
+// multipart upload to s3. This principle avoids temporary storage on disk.
+//
+// Please keep in mind that Amazon S3 does not support appending to
+// existing objects. Therefore rotation is mandatory in this producer.
 //
 // Parameters
 //
-// - Bucket: Your S3 bucket where you want to upload.
+// - Bucket: The S3 bucket to upload to
 //
-// - File: This value is used as a base file pattern for you final file names.
-// The " * " will parsed to the active stream name.
+// - File: This value is used as a template for final file names. The string
+// " * " will replaced with the active stream name.
 // By default this parameter is set to "gollum_*.log"
 //
 // Examples
 //
-// This example will send all received message from all stream to S3
-// and create a own file for each stream:
+// This example sends all received messages from all streams to S3, creating
+// a separate file for each stream:
 //
 //  S3Out:
 //    Type: producer.AwsS3
+//    Streams: "*"
 //    Credential:
 //      Type: shared
 //      File: /Users/<USERNAME>/.aws/credentials
 //      Profile: default
 //    Region: eu-west-1
 //    Bucket: gollum-s3-test
-//    Streams:
-//      - "*"
 //    Batch:
 //      TimeoutSec: 60
 //      MaxCount: 1000

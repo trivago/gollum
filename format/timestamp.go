@@ -20,13 +20,14 @@ import (
 
 // Timestamp formatter plugin
 //
-// Timestamp is a formatter that allows prefixing a message with a timestamp
-// (time of arrival at gollum) as well as postfixing it with a delimiter string.
+// Timestamp is a formatter that allows prefixing messages with a timestamp
+// (time of arrival at gollum). The timestamp format is freely configurable
+// and can e.g. contain a delimiter sequence at the end.
 //
 // Parameters
 //
-// - Timestamp: This value defines a Go time format string that is used to format the actual
-// timestamp that prefixes the message.
+// - Timestamp: This value defines a Go time format string that is used to f
+// ormat the timestamp.
 // By default this parameter is set to  "2006-01-02 15:04:05 MST | ".
 //
 // Examples
@@ -38,9 +39,8 @@ import (
 //    Streams: "*"
 //    Modulators:
 //      - format.Timestamp:
-//          Timestamp: "2006-01-02T15:04:05.000 MST"
-//          ApplyTo: time
-//
+//        Timestamp: "2006-01-02T15:04:05.000 MST"
+//        ApplyTo: time
 type Timestamp struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	timestampFormat      string `config:"Timestamp" default:"2006-01-02 15:04:05 MST | "`

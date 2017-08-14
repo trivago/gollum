@@ -3,8 +3,8 @@
 JSON
 ====
 
-This filter allows inspecting fields of JSON encoded datasets and accepting
-or rejecting messages based on their contents.
+This filter inspects fields in JSON encoded datasets and accepts
+or rejects messages based on their contents.
 
 
 
@@ -14,38 +14,40 @@ Parameters
 
 **Reject**
 
-  Defines fields that will cause a message to be rejected if the
-  given regular expression matches. Reject is checked before Accept.
-  Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
+  Defines a list of field names and regular expressions.
+  Messages are rejected if the specified field's contents matches the
+  given regular expression. Reject is checked before Accept. Field paths
+  can be defined in the format accepted by tgo.MarshalMap.Path.
   By default this parameter is set to an empty list.
   
   
 
 **Accept**
 
-  Defines fields that will cause a message to be rejected if the
-  given regular expression does not match. Accept is checked after Reject.
-  Field paths can be defined in a format accepted by tgo.MarshalMap.Path.
+  Defines a list of field names and regular expressions.
+  Messages are accepted if the specified field's contents matches the
+  given regular expression. Accept is checked after Reject. Field paths
+  can be defined in the format accepted by tgo.MarshalMap.Path.
   By default this parameter is set to an empty list.
   
   
 
 **ApplyTo**
 
-  Defines which part of the message is affected by the filter.
-  When setting this parameter to "" this filter is applied to the
-  message payload. Every other value denotes a metadata key.
+  Defines which part of the message the filter is applied to.
+  When set to "", this filter is applied to the message's payload. All
+  other values denotes a metadata key.
   By default this parameter is set to "".
   
   
 
-Parameters (from SimpleFilter)
-------------------------------
+Parameters (from core.SimpleFilter)
+-----------------------------------
 
 **FilteredStream**
 
-  This value defines a stream where filtered messages get sent to.
-  You can disable this behavior by setting "".
+  This value defines the stream filtered messages get sent to.
+  You can disable this behavior by setting the value to "".
   By default this parameter is set to "".
   
   
@@ -59,13 +61,14 @@ Examples
 	   Type: consumer.Console
 	   Streams: console
 	   Modulators:
-	     - filter.JSON
+	     - filter.JSON:
 	       Reject:
-	         "type" : "^log\."
+	         type: ^log\.
 	       Accept:
-	         "source" : "^www\d+\."
-	         "data/active" : "true"
-	
-	
+	         source: ^www\d+\.
+	         data/active: true
+
+
+
 
 
