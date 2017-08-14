@@ -12,10 +12,11 @@ payload or from other metadata fields.
 Parameters
 ----------
 
-**WriteTo**
+**CopyToKeys**
 
-  A named list of meta data keys. Each entry can contain further modulators
-  to change or filter the message content before setting the meta data value.
+  A list of meta data keys to copy the payload or metadata
+  content to.
+  By default this parameter is set to an empty list.
   
   
 
@@ -42,7 +43,9 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
-This example sets the meta fields `hostname`, `base64Value` and `payloadCopy` of each message:
+This example copies the payload to the fields prefix and key. The prefix
+field will extract everything up to the first space as hostname, the key
+field will contain a hash over the complete payload.
 
 .. code-block:: yaml
 
@@ -51,12 +54,14 @@ This example sets the meta fields `hostname`, `base64Value` and `payloadCopy` of
 	   Streams: "*"
 	   Modulators:
 	     - format.MetadataCopy:
-	       WriteTo:
-	         hostname:               # meta data key
-	           - format.Hostname     # further modulators
-	         base64Value:
-	           - format.Base64Encode
-	         payloadCopy: []         # 1:1 copy without modulators
+	       CopyToKeys: ["prefix", "key"]
+	     - format.SplitPick:
+	       ApplyTo: prefix
+	       Delimiter: " "
+	       Index: 0
+	     - formatter.Identifier
+	       Generator: hash
+	       ApplyTo: key
 
 
 
