@@ -52,7 +52,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 	for pluginID, configValues := range config.Values {
 		if typeName, _ := configValues.String("Type"); typeName == pluginAggregate {
 			// aggregate behavior
-			aggregateMap, err := configValues.MarshalMap("Aggregate")
+			aggregateMap, err := configValues.MarshalMap("Plugins")
 			if err != nil {
 				logrus.Error("Can't read 'Aggregate' configuration: ", err)
 				continue
@@ -69,7 +69,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 
 				// set up sub-plugin
 				delete(configValues, "Type")
-				delete(configValues, "Aggregate")
+				delete(configValues, "Plugins")
 
 				pluginConfig := NewPluginConfig(subPluginsID, "")
 				pluginConfig.Read(configValues)
