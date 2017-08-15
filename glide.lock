@@ -1,8 +1,10 @@
-hash: db76d2fa34a49aa74c4d9df3b3c1f4583fa472872e2f13675040fe07d422f67e
-updated: 2017-08-10T15:42:16.733737914+02:00
+hash: b87695c671ee567ef4793c97fa0b8b0132899793f4ea6572fbaebfe55931de36
+updated: 2017-08-14T20:21:42.353003524+02:00
 imports:
 - name: github.com/abbot/go-http-auth
   version: efc9484eee77263a11f158ef4f30fcc30298a942
+- name: github.com/arbovm/levenshtein
+  version: 48b4e1c0c4d0b8b1864f1bd2cd31bb20147e4636
 - name: github.com/artyom/fb303
   version: fa4a241cefb113c4981dbac51a8cfcb047efa079
 - name: github.com/artyom/scribe
@@ -66,7 +68,7 @@ imports:
 - name: github.com/fsnotify/fsnotify
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/go-ini/ini
-  version: 3d73f4b845efdf9989fffd4b4e562727744a34ba
+  version: c787282c39ac1fc618827141a1f762240def08a3
 - name: github.com/go-redis/redis
   version: 2cf5af9928978bbef8d1076607022403439e177c
   subpackages:
@@ -88,7 +90,7 @@ imports:
 - name: github.com/klauspost/crc32
   version: bab58d77464aa9cf4e84200c3276da0831fe0c03
 - name: github.com/mattn/go-colorable
-  version: c4c76971792b28a17ff5dd0b76a2732b3f1d3d4f
+  version: 6df6d4d004b64986bbb0d1b25945f42b44787e90
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/mgutz/ansi
@@ -145,7 +147,7 @@ imports:
   - blowfish
   - ssh/terminal
 - name: golang.org/x/sys
-  version: e42485b6e20ae7d2304ec72e535b103ed350cc02
+  version: c84c1ab9fd18cdd4c23dd021c10f5f46dea95e46
   subpackages:
   - unix
   - windows
@@ -164,5 +166,5 @@ imports:
 - name: gopkg.in/oschwald/geoip2-golang.v1
   version: 496a3cbcb65a3cb54497fe4ae2273319e85160a4
 - name: gopkg.in/yaml.v2
-  version: 25c4ec802a7d637f88d584ab26798e94ad14c13b
+  version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
 testImports: []
