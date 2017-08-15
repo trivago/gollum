@@ -95,15 +95,15 @@ func (conf PluginConfig) suggestKey(searchKey string) string {
 	bestMatch := "something else"
 	searchKeyLower := strings.ToLower(searchKey)
 
-	for key := range conf.validKeys {
-		keyLower := strings.ToLower(key)
-		dist := levenshtein.Distance(keyLower, searchKeyLower)
+	for candidateKey := range conf.validKeys {
+		candidateLower := strings.ToLower(candidateKey)
+		dist := levenshtein.Distance(candidateLower, searchKeyLower)
 		if dist == 0 {
-			return key
+			return candidateKey
 		}
 		if dist < closestDist {
 			closestDist = dist
-			bestMatch = key
+			bestMatch = candidateKey
 		}
 	}
 
@@ -118,11 +118,35 @@ func (conf PluginConfig) Validate() error {
 	errors.SetFormat(tgo.ErrorStackFormatCSV)
 	for key := range conf.Settings {
 		if _, exists := conf.validKeys[key]; !exists {
-			suggestion := conf.suggestKey(key)
-			errors.Pushf("Unknown configuration key in %s: %s. Did you mean %s?", conf.Typename, key, suggestion)
+			if suggestion := conf.suggestKey(key); suggestion != "" {
+				errors.Pushf("Unknown configuration key in %s: %s. Did you mean %s?", conf.Typename, key, suggestion)
+			} else {
+				errors.Pushf("Unknown configuration key in %s: %s.", conf.Typename, key)
+			}
 		}
 	}
 	return errors.OrNil()
+}
+
+func suggestType(typeName string) string {
+	typeNameLower := strings.ToLower(typeName)
+	closestDist := len(typeNameLower)
+	bestMatch := ""
+
+	allTypes := TypeRegistry.GetRegistered("")
+	for _, candidateName := range allTypes {
+		candidateLower := strings.ToLower(candidateName)
+		dist := levenshtein.Distance(candidateLower, typeNameLower)
+		if dist == 0 {
+			return candidateName
+		}
+		if dist < closestDist {
+			closestDist = dist
+			bestMatch = candidateName
+		}
+	}
+
+	return bestMatch
 }
 
 // Read analyzes a given key/value map to extract the configuration values valid
@@ -164,7 +188,11 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 	}
 
 	if !TypeRegistry.IsTypeRegistered(conf.Typename) {
-		errors.Pushf("Plugin %s is using an unknown type %s", conf.ID, conf.Typename)
+		if suggestion := suggestType(conf.Typename); suggestion != "" {
+			errors.Pushf("Plugin %s is using an unknown type %s. Did you mean %s?", conf.ID, conf.Typename, suggestion)
+		} else {
+			errors.Pushf("Plugin %s is using an unknown type %s.", conf.ID, conf.Typename)
+		}
 	}
 
 	if !conf.Enable {
