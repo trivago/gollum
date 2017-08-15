@@ -4,6 +4,7 @@
 .. toctree::
     :maxdepth: 9
 
+    /src/gen/formatter/aggregate.rst
     /src/gen/formatter/base64decode.rst
     /src/gen/formatter/base64encode.rst
     /src/gen/formatter/clear.rst
