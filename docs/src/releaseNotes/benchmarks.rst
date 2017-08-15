@@ -105,18 +105,18 @@ Basic formatting
 .. code:: yaml
 
      "Profiler":
-        Type: aggregate
+        Type: Aggregate
         Runs: 100000
         Batches: 100
         Characters: "abcdefghijklmnopqrstuvwxyz .,!;:-_"
         Message: "%256s"
         Streams: "profile"
         KeepRunning: false
-        ModulatorRoutines: 8
+        ModulatorRoutines: 0
         Modulators:
             - format.Envelope
             - format.Timestamp
-        Aggregate:
+        Plugins:
             P01:
                 Type: "consumer.Profiler"
             P02:
