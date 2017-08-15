@@ -92,7 +92,7 @@ func (conf *PluginConfig) registerKey(key string) string {
 
 func (conf PluginConfig) suggestKey(searchKey string) string {
 	closestDist := len(searchKey)
-	bestMatch := "something else"
+	bestMatch := ""
 	searchKeyLower := strings.ToLower(searchKey)
 
 	for candidateKey := range conf.validKeys {
