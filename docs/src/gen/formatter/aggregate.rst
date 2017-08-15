@@ -26,9 +26,8 @@ Parameters
 **Modulators**
 
   Defines a list of child modulators to be applied to a message when
-  it arrives at this formatter. If a modulator changes the stream of a message
-  the message is NOT routed to this stream anymore.
-  By default this parameter is set to an empty list.
+  it arrives at this formatter. Please try to use only content based formatter and filter!
+  If a modulator changes the stream of a message the message is NOT routed to this stream anymore.
   
   
 

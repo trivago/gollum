@@ -17,6 +17,7 @@ package format
 import (
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
+	"fmt"
 )
 
 // Aggregate formatter plugin
@@ -34,9 +35,8 @@ import (
 // By default this parameter is set to "".
 //
 // - Modulators: Defines a list of child modulators to be applied to a message when
-// it arrives at this formatter. If a modulator changes the stream of a message
-// the message is NOT routed to this stream anymore.
-// By default this parameter is set to an empty list.
+// it arrives at this formatter. Please try to use only content based formatter and filter!
+// If a modulator changes the stream of a message the message is NOT routed to this stream anymore.
 //
 // Examples
 //
@@ -110,7 +110,9 @@ func (format *Aggregate) ApplyFormatter(msg *core.Message) error {
 	for _, modulator := range format.modulators {
 		modulateResult := modulator.Modulate(msg)
 		if modulateResult != core.ModulateResultContinue {
-			break
+			errMsg := "Child modulator discarded or trigger fallback routing. " +
+				"Please try to use only contend based formatter and filter as child modulators."
+			return fmt.Errorf(errMsg)
 		}
 	}
 	return nil
@@ -122,6 +124,7 @@ func (format *Aggregate) getModulatorSettings(applyTo string, conf core.PluginCo
 	for _, childFormatterArray := range conf.GetArray("Modulators", []interface{}{}) {
 		childFormatterMap := tcontainer.TryConvertToMarshalMap(childFormatterArray, nil)
 
+		// switch childFormatterMap type to difference between direct modulator- and nested modulator settings.
 		switch childFormatterMap.(type) {
 		case tcontainer.MarshalMap:
 			childFormatter, _ := childFormatterMap.(tcontainer.MarshalMap)
