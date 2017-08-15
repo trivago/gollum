@@ -114,7 +114,7 @@ func (conf *Config) Validate() error {
 		pluginType := TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
 			if suggestion := suggestType(config.Typename); suggestion != "" {
-				errors.Pushf("Type '%s' used for '%s' not found. Did you mean %s?", config.Typename, config.ID, suggestion)
+				errors.Pushf("Type '%s' used for '%s' not found. Did you mean '%s'?", config.Typename, config.ID, suggestion)
 			} else {
 				errors.Pushf("Type '%s' used for '%s' not found", config.Typename, config.ID)
 			}

@@ -119,9 +119,9 @@ func (conf PluginConfig) Validate() error {
 	for key := range conf.Settings {
 		if _, exists := conf.validKeys[key]; !exists {
 			if suggestion := conf.suggestKey(key); suggestion != "" {
-				errors.Pushf("Unknown configuration key in %s: %s. Did you mean %s?", conf.Typename, key, suggestion)
+				errors.Pushf("Unknown configuration key '%s' in '%s'. Did you mean '%s'?", key, conf.Typename, suggestion)
 			} else {
-				errors.Pushf("Unknown configuration key in %s: %s.", conf.Typename, key)
+				errors.Pushf("Unknown configuration key '%s' in '%s", key, conf.Typename)
 			}
 		}
 	}
@@ -184,14 +184,14 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 
 	// Sanity checks and informal messages
 	if conf.Typename == "" {
-		errors.Pushf("Plugin %s does not define a type", conf.ID)
+		errors.Pushf("Plugin '%s' does not define a type", conf.ID)
 	}
 
 	if !TypeRegistry.IsTypeRegistered(conf.Typename) {
 		if suggestion := suggestType(conf.Typename); suggestion != "" {
-			errors.Pushf("Plugin %s is using an unknown type %s. Did you mean %s?", conf.ID, conf.Typename, suggestion)
+			errors.Pushf("Plugin '%s' is using an unknown type '%s'. Did you mean '%s'?", conf.ID, conf.Typename, suggestion)
 		} else {
-			errors.Pushf("Plugin %s is using an unknown type %s.", conf.ID, conf.Typename)
+			errors.Pushf("Plugin '%s' is using an unknown type '%s'.", conf.ID, conf.Typename)
 		}
 	}
 
