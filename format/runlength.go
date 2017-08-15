@@ -29,26 +29,26 @@ import (
 // - Separator: This value is used as separator.
 // By default this parameter is set to ":".
 //
-// - StoreRunlengthOnly: If this value is set to "true" the runlength only will stored.
-// This option is useful to store the runlength only in a meta data field by the `ApplyTo` parameter.
-// By default this parameter is set to "false".
+// - StoreRunlengthOnly: If this value is set to "true" only the runlength will
+// stored. This option is useful to e.g. create metadata fields only containing
+// the length of the payload. When set to "true" the Separator parameter will
+// be ignored.
+// By default this parameter is set to false.
 //
 // Examples
 //
-// In this example is the `format.Runlength` used as "subformatter" from the `format.MetadataCopy`.
-// The `format.MetadataCopy` formatter copies the payload to the defined meta data field.
-// At the end the `format.Runlength` formatter will transform the meta data value to the length.
+// This example will store the length of the payload in a separate metadata
+// field.
 //
 //  exampleConsumer:
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
 //      - format.MetadataCopy:
-//          WriteTo:
-//            - original_length:
-//              - format.Runlength:
-//                  Separator: ""
-// 	                StoreRunlengthOnly: true
+//        CopyToKeys: ["length"]
+//      - format.Runlength:
+//        ApplyTo: length
+//        StoreRunlengthOnly: true
 //
 type Runlength struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
