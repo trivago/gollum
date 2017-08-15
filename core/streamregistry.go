@@ -224,7 +224,7 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Router 
 	logrus.Debug("Creating fallback stream for ", streamName)
 
 	config := NewPluginConfig(GeneratedRouterPrefix+streamName, "router.Broadcast")
-	config.Override("stream", streamName)
+	config.Override("Stream", streamName)
 
 	plugin, err := NewPluginWithConfig(config)
 	if err != nil {

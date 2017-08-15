@@ -38,7 +38,7 @@ func TestSimpleConsumerConfigure(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	mockConf := NewPluginConfig("mockSimpleConsumerConfigure", "mockSimpleConsumer")
-	mockConf.Override("streams", []string{"testBoundStream"})
+	mockConf.Override("Streams", []string{"testBoundStream"})
 
 	// Router needs to be configured to avoid unknown class errors
 	registerMockRouter("testBoundStream")
@@ -53,7 +53,7 @@ func TestSimpleConsumerConfigureWithModulatorRoutines(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	mockConf := NewPluginConfig("mockSimpleConsumerConfigureWithModulatorRoutines", "mockSimpleConsumer")
-	mockConf.Override("streams", []string{"testBoundStream"})
+	mockConf.Override("Streams", []string{"testBoundStream"})
 	mockConf.Override("ModulatorRoutines", 3)
 
 	// Router needs to be configured to avoid unknown class errors
@@ -69,7 +69,7 @@ func TestSimpleConsumerGetShutdownTimeout(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	mockConf := NewPluginConfig("mockSimpleConsumerGetShutdownTimeout", "mockSimpleConsumer")
-	mockConf.Override("streams", []string{"testBoundStream"})
+	mockConf.Override("Streams", []string{"testBoundStream"})
 	mockConf.Override("ShutdownTimeoutMs", 100)
 
 	// Router needs to be configured to avoid unknown class errors
@@ -85,7 +85,7 @@ func TestSimpleConsumerStateMethods(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	mockConf := NewPluginConfig("mockSimpleConsumerStateMethods", "mockSimpleConsumer")
-	mockConf.Override("streams", []string{"testBoundStream"})
+	mockConf.Override("Streams", []string{"testBoundStream"})
 	mockConf.Override("ShutdownTimeoutMs", 100)
 
 	// Router needs to be configured to avoid unknown class errors

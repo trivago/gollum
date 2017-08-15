@@ -15,6 +15,7 @@
 package core
 
 import (
+	"github.com/arbovm/levenshtein"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
@@ -56,13 +57,12 @@ func NewNestedPluginConfig(defaultTypename string, values tcontainer.MarshalMap)
 // registerKey registers a key to the validKeys map as lowercase and returns
 // the lowercase key
 func (conf *PluginConfig) registerKey(key string) string {
-	lowerCaseKey := strings.ToLower(key)
-	if _, exists := conf.validKeys[lowerCaseKey]; exists {
-		return lowerCaseKey // ### return, already registered ###
+	if _, exists := conf.validKeys[key]; exists {
+		return key // ### return, already registered ###
 	}
 
 	// Remove array notation from path
-	path := lowerCaseKey
+	path := key
 	startIdx := strings.IndexRune(path, tcontainer.MarshalMapArrayBegin)
 	for startIdx > -1 {
 		if endIdx := strings.IndexRune(path[startIdx:], tcontainer.MarshalMapArrayEnd); endIdx > -1 {
@@ -74,7 +74,7 @@ func (conf *PluginConfig) registerKey(key string) string {
 	}
 
 	if _, exists := conf.validKeys[path]; exists {
-		return lowerCaseKey // ### return, already registered (without array notation) ###
+		return key // ### return, already registered (without array notation) ###
 	}
 
 	// Register all parts of the path
@@ -87,7 +87,27 @@ func (conf *PluginConfig) registerKey(key string) string {
 	}
 
 	conf.validKeys[path] = true
-	return lowerCaseKey
+	return key
+}
+
+func (conf PluginConfig) suggestKey(searchKey string) string {
+	closestDist := len(searchKey)
+	bestMatch := ""
+	searchKeyLower := strings.ToLower(searchKey)
+
+	for candidateKey := range conf.validKeys {
+		candidateLower := strings.ToLower(candidateKey)
+		dist := levenshtein.Distance(candidateLower, searchKeyLower)
+		if dist == 0 {
+			return candidateKey
+		}
+		if dist < closestDist {
+			closestDist = dist
+			bestMatch = candidateKey
+		}
+	}
+
+	return bestMatch
 }
 
 // Validate should be called after a configuration has been processed. It will
@@ -98,10 +118,35 @@ func (conf PluginConfig) Validate() error {
 	errors.SetFormat(tgo.ErrorStackFormatCSV)
 	for key := range conf.Settings {
 		if _, exists := conf.validKeys[key]; !exists {
-			errors.Pushf("Unknown configuration key in %s: %s", conf.Typename, key)
+			if suggestion := conf.suggestKey(key); suggestion != "" {
+				errors.Pushf("Unknown configuration key '%s' in '%s'. Did you mean '%s'?", key, conf.Typename, suggestion)
+			} else {
+				errors.Pushf("Unknown configuration key '%s' in '%s", key, conf.Typename)
+			}
 		}
 	}
 	return errors.OrNil()
+}
+
+func suggestType(typeName string) string {
+	typeNameLower := strings.ToLower(typeName)
+	closestDist := len(typeNameLower)
+	bestMatch := ""
+
+	allTypes := TypeRegistry.GetRegistered("")
+	for _, candidateName := range allTypes {
+		candidateLower := strings.ToLower(candidateName)
+		dist := levenshtein.Distance(candidateLower, typeNameLower)
+		if dist == 0 {
+			return candidateName
+		}
+		if dist < closestDist {
+			closestDist = dist
+			bestMatch = candidateName
+		}
+	}
+
+	return bestMatch
 }
 
 // Read analyzes a given key/value map to extract the configuration values valid
@@ -112,14 +157,13 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 	errors := tgo.NewErrorStack()
 	errors.SetFormat(tgo.ErrorStackFormatCSV)
 	for key, settingValue := range values {
-		lowerCaseKey := strings.ToLower(key)
 
-		switch lowerCaseKey {
-		case "type":
+		switch key {
+		case "Type":
 			conf.Typename, err = values.String(key)
 			errors.Push(err)
 
-		case "enable":
+		case "Enable":
 			conf.Enable, err = values.Bool(key)
 			errors.Push(err)
 
@@ -127,24 +171,28 @@ func (conf *PluginConfig) Read(values tcontainer.MarshalMap) error {
 			// If the value is a marshalmap candidate -> convert it
 			switch settingValue.(type) {
 			case map[interface{}]interface{}, map[string]interface{}, tcontainer.MarshalMap:
-				mmap, err := tcontainer.ConvertToMarshalMap(settingValue, strings.ToLower)
+				mmap, err := tcontainer.ConvertToMarshalMap(settingValue, nil)
 				if !errors.Push(err) {
-					conf.Settings[lowerCaseKey] = mmap
+					conf.Settings[key] = mmap
 				}
 
 			default:
-				conf.Settings[lowerCaseKey] = settingValue
+				conf.Settings[key] = settingValue
 			}
 		}
 	}
 
 	// Sanity checks and informal messages
 	if conf.Typename == "" {
-		errors.Pushf("Plugin %s does not define a type", conf.ID)
+		errors.Pushf("Plugin '%s' does not define a type", conf.ID)
 	}
 
 	if !TypeRegistry.IsTypeRegistered(conf.Typename) {
-		errors.Pushf("Plugin %s is using an unknown type %s", conf.ID, conf.Typename)
+		if suggestion := suggestType(conf.Typename); suggestion != "" {
+			errors.Pushf("Plugin '%s' is using an unknown type '%s'. Did you mean '%s'?", conf.ID, conf.Typename, suggestion)
+		} else {
+			errors.Pushf("Plugin '%s' is using an unknown type '%s'.", conf.ID, conf.Typename)
+		}
 	}
 
 	if !conf.Enable {

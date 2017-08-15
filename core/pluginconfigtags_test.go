@@ -39,8 +39,8 @@ type testPluginAutoConfig struct {
 	ModulatorArray ModulatorArray    `config:"modulatorArray"`
 	FilterArray    FilterArray       `config:"filterArray"`
 	FormatterArray FormatterArray    `config:"formatterArray"`
-	URLValue       *url.URL          `config:"urlValue"`
-	NoURLValue     *url.URL          `config:"NoUrlValue"`
+	URLValue       *url.URL          `config:"URLValue"`
+	NoURLValue     *url.URL          `config:"NoURLValue"`
 }
 
 func (t *testPluginAutoConfig) Configure(conf PluginConfigReader) {

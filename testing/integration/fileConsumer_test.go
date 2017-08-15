@@ -24,7 +24,7 @@ func TestFileConsumerPoll(t *testing.T) {
 	expect.NoError(err)
 
 	// final expectations filter in producer
-	expect.True(strings.Contains(out, "(startup)"))
+	expect.Contains(out, "(startup)")
 
 	expect.True(strings.Contains(resultFile.content, "foo"))
 	expect.True(strings.Contains(resultFile.content, "bar"))
@@ -39,7 +39,7 @@ func TestFileConsumerWatch(t *testing.T) {
 	expect.NoError(err)
 
 	// final expectations filter in producer
-	expect.True(strings.Contains(out, "(startup)"))
+	expect.Contains(out, "(startup)")
 
 	expect.True(strings.Contains(out, "modified file:"))
 	expect.True(strings.Contains(out, tmpTestFilePathBar))
@@ -57,7 +57,7 @@ func TestFileConsumerPollWithMove(t *testing.T) {
 	expect.NoError(err)
 
 	// final expectations filter in producer
-	expect.True(strings.Contains(out, "(startup)"))
+	expect.Contains(out, "(startup)")
 
 	expect.True(strings.Contains(resultFile.content, "foo"))
 	expect.True(strings.Contains(resultFile.content, "bar"))
@@ -76,7 +76,7 @@ func TestFileConsumerPollWithMove(t *testing.T) {
 	expect.NoError(err)
 
 	// final expectations filter in producer
-	expect.True(strings.Contains(out, "(startup)"))
+	expect.Contains(out.String(), "(startup)")
 
 	expect.True(strings.Contains(resultFile.content, "foo"))
 	expect.True(strings.Contains(resultFile.content, "bar"))

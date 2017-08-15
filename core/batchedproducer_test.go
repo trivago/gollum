@@ -59,7 +59,7 @@ func TestBatchedProducerConfigure(t *testing.T) {
 	mockProducer := mockBatchedProducer{}
 
 	mockConf := NewPluginConfig("mockBatched", "mockBatchedProducer")
-	mockConf.Override("streams", []string{"testBoundStream"})
+	mockConf.Override("Streams", []string{"testBoundStream"})
 	mockConf.Override("FallbackStream", "mockStream")
 
 	// Router needs to be configured to avoid unknown class errors
@@ -118,7 +118,7 @@ func TestBatchedProducerEnqueue(t *testing.T) {
 
 	// configure and init producer
 	mockConf := NewPluginConfig("BatchedProducerEnqueue", "mockBatchedProducer")
-	mockConf.Override("streams", []string{"testBoundStream"})
+	mockConf.Override("Streams", []string{"testBoundStream"})
 	mockConf.Override("Batch/MaxCount", 3)
 	mockConf.Override("Batch/FlushCount", 2)
 	mockConf.Override("Batch/TimeoutSec", 1)
@@ -179,7 +179,7 @@ func TestBatchedProducerClose(t *testing.T) {
 
 	// configure and init producer
 	mockConf := NewPluginConfig("mockBatchedProducerClose", "mockBatchedProducer")
-	mockConf.Override("streams", []string{"testBoundStream"})
+	mockConf.Override("Streams", []string{"testBoundStream"})
 
 	reader := NewPluginConfigReader(&mockConf)
 	err := reader.Configure(&mockP)

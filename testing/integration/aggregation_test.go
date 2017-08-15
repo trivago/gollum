@@ -25,7 +25,7 @@ func TestProducerAggregation(t *testing.T) {
 	out, err := ExecuteGollum(testProducerAggregationConfig, input, "-ll=2")
 
 	expect.NoError(err)
-	expect.True(strings.Contains(out.String(), "(startup)"))
+	expect.Contains(out.String(), "(startup)")
 
 	resultFileProducer1, err := getResultFile(tmpTestFilePathFoo)
 	expect.NoError(err)
@@ -75,7 +75,7 @@ func TestProducerAggregationPipeline(t *testing.T) {
 	cmd.Wait()
 
 	out := fmt.Sprint(cmd.Stdout)
-	expect.True(strings.Contains(out, "(startup)"))
+	expect.Contains(out, "(startup)")
 
 	// get results from file targets
 	ResultFile, err := getResultFile(tmpTestFilePathDefault)

@@ -87,14 +87,14 @@ func TestReadConfigError(t *testing.T) {
 
 func TestReadConfigWithAggregation(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	testConfig := []byte("someId: {Type: aggregate, Streams: foo, Aggregate: {anotherId: {Type: consumer.Console}, secondId: {Type: consumer.Console}}}")
+	testConfig := []byte("someId: {Type: Aggregate, Streams: foo, Plugins: {anotherId: {Type: consumer.Console}, secondId: {Type: consumer.Console}}}")
 
 	conf, err := ReadConfig(testConfig)
 	expect.NoError(err)
 
 	expect.Equal(2, len(conf.Plugins))
 
-	inheritStream, err := conf.Plugins[0].Settings.String("streams")
+	inheritStream, err := conf.Plugins[0].Settings.String("Streams")
 	expect.NoError(err)
 	expect.Equal("foo", inheritStream)
 }

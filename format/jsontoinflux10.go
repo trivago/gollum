@@ -73,8 +73,8 @@ type JSONToInflux10 struct {
 	metadataEscape       *strings.Replacer
 	measurementEscape    *strings.Replacer
 	fieldValueEscape     *strings.Replacer
-	timeField            string `config:"Timefield" default:"time"`
-	timeFormat           string `config:"Timeformat" default:"unix"`
+	timeField            string `config:"TimeField" default:"time"`
+	timeFormat           string `config:"TimeFormat" default:"unix"`
 	measurement          string `config:"Measurement" default:"measurement"`
 	tags                 map[string]bool
 	ignore               map[string]bool
