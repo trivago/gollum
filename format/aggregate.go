@@ -15,9 +15,9 @@
 package format
 
 import (
+	"fmt"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
-	"fmt"
 )
 
 // Aggregate formatter plugin
