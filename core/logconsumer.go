@@ -72,6 +72,11 @@ func (cons *LogConsumer) IsBlocked() bool {
 	return false
 }
 
+// GetID returns the pluginID of the message source
+func (cons *LogConsumer) GetID() string {
+	return "core.LogConsumer"
+}
+
 // GetShutdownTimeout always returns 1 millisecond
 func (cons *LogConsumer) GetShutdownTimeout() time.Duration {
 	return time.Millisecond

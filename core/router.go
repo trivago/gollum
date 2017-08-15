@@ -25,6 +25,9 @@ type Router interface {
 	// StreamID returns the stream id this plugin is bound to.
 	GetStreamID() MessageStreamID
 
+	// GetID returns the pluginID of the message source
+	GetID() string
+
 	// AddProducer adds one or more producers to this stream, i.e. the producers
 	// listening to messages on this stream.
 	AddProducer(producers ...Producer)
@@ -59,6 +62,7 @@ func Route(msg *Message, router Router) error {
 	case ModulateResultContinue:
 		streamMetric.CountMessageRouted()
 		CountMessageRouted()
+		MessageTrace(msg, router.GetID(), "Routed")
 
 		return router.Enqueue(msg)
 
@@ -85,4 +89,5 @@ func RouteOriginal(msg *Message, router Router) error {
 // message.
 func DiscardMessage(msg *Message) {
 	CountMessageDiscarded()
+	MessageTrace(msg, "", "Discarded")
 }

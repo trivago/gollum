@@ -73,6 +73,12 @@ func (registry streamRegistry) GetStreamName(streamID MessageStreamID) string {
 	case WildcardStreamID:
 		return WildcardStream
 
+	case InvalidStreamID:
+		return InvalidStream
+
+	case TraceInternalStreamID:
+		return TraceInternalStream
+
 	default:
 		registry.nameGuard.RLock()
 		name, exists := registry.name[streamID]
