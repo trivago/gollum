@@ -23,7 +23,7 @@ func TestDropProducerFilter(t *testing.T) {
 	out, err := ExecuteGollum(TestDropProducer, input, "-ll=2")
 
 	expect.NoError(err)
-	expect.True(strings.Contains(out.String(), "(startup)"))
+	expect.Contains(out.String(), "(startup)")
 
 	ResultFileDefault, err := getResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)

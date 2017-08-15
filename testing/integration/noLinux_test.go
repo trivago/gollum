@@ -21,7 +21,7 @@ func TestFileConsumerWatchWithMove(t *testing.T) {
 	expect.NoError(err)
 
 	// final expectations filter in producer
-	expect.True(strings.Contains(out, "(startup)"))
+	expect.Contains(out, "(startup)")
 
 	expect.True(strings.Contains(resultFile.content, "foo"))
 	expect.True(strings.Contains(resultFile.content, "bar"))

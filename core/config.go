@@ -23,10 +23,9 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"reflect"
-	"strings"
 )
 
-const pluginAggregate = "aggregate"
+const pluginAggregate = "Aggregate"
 
 var (
 	consumerInterface = reflect.TypeOf((*Consumer)(nil)).Elem()
@@ -62,7 +61,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 			// loop through aggregated plugins and set them up
 			for subPluginID, subConfigValues := range aggregateMap {
 				subPluginsID := fmt.Sprintf("%s-%s", pluginID, subPluginID)
-				subConfig, err := tcontainer.ConvertToMarshalMap(subConfigValues, strings.ToLower)
+				subConfig, err := tcontainer.ConvertToMarshalMap(subConfigValues, nil)
 				if err != nil {
 					logrus.Error("Error in plugin config ", subPluginsID, err)
 					continue
