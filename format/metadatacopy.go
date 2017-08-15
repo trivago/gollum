@@ -66,8 +66,12 @@ func (format *MetadataCopy) Configure(conf core.PluginConfigReader) {
 func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 	meta := msg.GetMetadata()
 	data := format.GetAppliedContent(msg)
+	pool := core.MessageDataPool
+
 	for _, key := range format.metaDataKeys {
-		meta.SetValue(key, data)
+		bufferCopy := pool.Get(len(data))
+		copy(bufferCopy, data)
+		meta.SetValue(key, bufferCopy)
 	}
 	return nil
 }
