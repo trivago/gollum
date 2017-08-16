@@ -224,7 +224,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	// Execute configured modulators
 	switch cons.modulators.Modulate(msg) {
 	case ModulateResultDiscard:
-		DiscardMessage(msg)
+		DiscardMessage(msg, cons.GetID(), "Consumer discarded")
 		return
 
 	case ModulateResultFallback:

@@ -56,7 +56,7 @@ func Route(msg *Message, router Router) error {
 	switch action {
 	case ModulateResultDiscard:
 		streamMetric.CountMessageDiscarded()
-		DiscardMessage(msg)
+		DiscardMessage(msg, router.GetID(), "Router discarded")
 		return nil
 
 	case ModulateResultContinue:
@@ -87,7 +87,7 @@ func RouteOriginal(msg *Message, router Router) error {
 
 // DiscardMessage increases the discard statistic and discards the given
 // message.
-func DiscardMessage(msg *Message) {
+func DiscardMessage(msg *Message, pluginID string, comment string) {
 	CountMessageDiscarded()
-	MessageTrace(msg, "", "Discarded")
+	MessageTrace(msg, pluginID, comment)
 }
