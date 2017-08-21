@@ -81,8 +81,8 @@ type File struct {
 	folderPermissions os.FileMode `config:"FolderPermissions" default:"0755"`
 
 	// properties
-	filesByStream    map[core.MessageStreamID]*components.BatchedWriterAssembly
-	files            map[string]*components.BatchedWriterAssembly
+	filesByStream    map[core.MessageStreamID]*components.BatchedWriterAssembly // mapped files by stream
+	files            map[string]*components.BatchedWriterAssembly               // unique files by target path
 	fileDir          string
 	fileName         string
 	fileExt          string
@@ -121,15 +121,15 @@ func (prod *File) Produce(workers *sync.WaitGroup) {
 	prod.TickerMessageControlLoop(prod.writeMessage, prod.BatchConfig.BatchTimeout, prod.writeBatchOnTimeOut)
 }
 
-func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool) (*components.BatchedWriterAssembly, error) {
+func (prod *File) getBatchedFile(streamID core.MessageStreamID) (*components.BatchedWriterAssembly, error) {
 	var err error
 
 	// get batchedFile from filesByStream[streamID] map
 	prod.batchedFileGuard.RLock()
-	batchedFile, fileExists := prod.filesByStream[streamID]
+	batchedFile, fileIsLinked := prod.filesByStream[streamID]
 	prod.batchedFileGuard.RUnlock()
-	if fileExists {
-		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
+	if fileIsLinked {
+		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, false); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
 	}
@@ -138,8 +138,9 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	defer prod.batchedFileGuard.Unlock()
 
 	// check again to avoid race conditions
-	if batchedFile, fileExists := prod.filesByStream[streamID]; fileExists {
-		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, forceRotate); !rotate {
+	batchedFile, fileIsLinked = prod.filesByStream[streamID]
+	if fileIsLinked {
+		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, false); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
 	}
@@ -147,7 +148,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	streamTargetFile := prod.newStreamTargetFile(streamID)
 
 	// get batchedFile from files[path] and assure the file is correctly mapped
-	batchedFile, fileExists = prod.files[streamTargetFile.GetOriginalPath()]
+	batchedFile, fileExists := prod.files[streamTargetFile.GetOriginalPath()]
 	if !fileExists {
 		batchedFile = components.NewBatchedWriterAssembly(
 			prod.BatchConfig,
@@ -158,11 +159,24 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 
 		prod.files[streamTargetFile.GetOriginalPath()] = batchedFile
 		prod.filesByStream[streamID] = batchedFile
+	} else if !fileIsLinked {
+		// in this case two streams target the same file
+		// need to link and check rotation again
+		prod.filesByStream[streamID] = batchedFile
+		if rotate, err := batchedFile.NeedsRotate(prod.Rotate, false); !rotate {
+			return batchedFile, err // ### return, already open or error ###
+		}
 	}
 
+	err = prod.rotateBatchedFile(batchedFile, streamTargetFile)
+
+	return batchedFile, err
+}
+
+func (prod *File) rotateBatchedFile(batchedFile *components.BatchedWriterAssembly, streamTargetFile file.TargetFile) error {
 	// Assure directory is existing
-	if _, err = streamTargetFile.GetDir(); err != nil {
-		return nil, err // ### return, missing directory ###
+	if _, err := streamTargetFile.GetDir(); err != nil {
+		return err // ### return, missing directory ###
 	}
 
 	finalPath := streamTargetFile.GetFinalPath(prod.Rotate)
@@ -178,7 +192,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	// Update BatchedWriterAssembly writer and creation time
 	fileWriter, err := prod.newFileStateWriterDisk(finalPath)
 	if err != nil {
-		return batchedFile, err // ### return error ###
+		return err // ### return error ###
 	}
 
 	batchedFile.SetWriter(fileWriter)
@@ -191,7 +205,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID, forceRotate bool
 	// Prune old logs if requested
 	go prod.Pruner.Prune(streamTargetFile.GetOriginalPath())
 
-	return batchedFile, err
+	return nil
 }
 
 func (prod *File) createCurrentSymlink(source, target string) {
@@ -245,10 +259,19 @@ func (prod *File) newStreamTargetFile(streamID core.MessageStreamID) file.Target
 }
 
 func (prod *File) rotateLog() {
-	for streamID := range prod.filesByStream {
-		if _, err := prod.getBatchedFile(streamID, true); err != nil {
-			prod.Logger.Error("Rotate error: ", err)
-		}
+	prod.batchedFileGuard.Lock()
+	defer prod.batchedFileGuard.Unlock()
+
+	// create unique batchedFile map from prod.filesByStream
+	flushMap := map[file.TargetFile]*components.BatchedWriterAssembly{}
+	for streamID, batchedFile := range prod.filesByStream {
+		streamTargetFile := prod.newStreamTargetFile(streamID)
+		flushMap[streamTargetFile] = batchedFile
+	}
+
+	// rotate every unique batchedFile
+	for streamTargetFile, batchedFile := range flushMap {
+		prod.rotateBatchedFile(batchedFile, streamTargetFile)
 	}
 }
 
@@ -259,7 +282,7 @@ func (prod *File) writeBatchOnTimeOut() {
 }
 
 func (prod *File) writeMessage(msg *core.Message) {
-	batchedFile, err := prod.getBatchedFile(msg.GetStreamID(), false)
+	batchedFile, err := prod.getBatchedFile(msg.GetStreamID())
 	if err != nil {
 		prod.Logger.Error("Write error: ", err)
 		prod.TryFallback(msg)
