@@ -28,11 +28,11 @@ import (
 //
 func TestPluginConfigValidate(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	// Note that thes values have to be lowercase
-	mockPluginCfg.Override("stringkey", "value")
+	mockPluginCfg.Override("stringKey", "value")
 	mockPluginCfg.Override("number", 1)
 
 	// access one field
@@ -62,7 +62,7 @@ func TestPluginConfigRead(t *testing.T) {
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	//reset mockPluginCfg
-	mockPluginCfg = NewPluginConfig("", "mockPlugin")
+	mockPluginCfg = NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader = NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	testMarshalMap := tcontainer.NewMarshalMap()
@@ -76,11 +76,11 @@ func TestPluginConfigRead(t *testing.T) {
 	expect.True(mockPluginCfg.Enable)
 
 	// check for the miscelleneous settings key added
-	host, err := mockPluginCfgReader.GetString("host", "")
+	host, err := mockPluginCfgReader.GetString("Host", "")
 	expect.NoError(err)
 	expect.Equal(host, "someHost")
 
-	db, err := mockPluginCfgReader.GetString("database", "")
+	db, err := mockPluginCfgReader.GetString("Database", "")
 	expect.NoError(err)
 	expect.Equal(db, "someDatabase")
 }
@@ -95,10 +95,10 @@ func TestPluginConfigHasValue(t *testing.T) {
 	mockPluginCfg := NewPluginConfig("", "mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
-	expect.False(mockPluginCfgReader.HasValue("akey"))
+	expect.False(mockPluginCfgReader.HasValue("aKey"))
 
 	mockPluginCfg.Override("aKey", 1)
-	expect.True(mockPluginCfgReader.HasValue("akey"))
+	expect.True(mockPluginCfgReader.HasValue("aKey"))
 }
 
 // Function sets or overrides value for non-predefined options
@@ -111,7 +111,7 @@ func TestPluginConfigHasValue(t *testing.T) {
 //  Assert new value took effect
 func TestPluginConfigOverride(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	mockPluginCfg.Override("akey", "aValue")
@@ -144,16 +144,16 @@ func TestPluginConfigOverride(t *testing.T) {
 //  Asserts the string returned for the key is correct
 func TestPluginConfigGetString(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	//check for non-existent key
-	value, err := mockPluginCfgReader.GetString("akey", "default")
+	value, err := mockPluginCfgReader.GetString("aKey", "default")
 	expect.NoError(err)
 	expect.Equal(value, "default")
 
 	mockPluginCfg.Override("aKey", "aValue")
-	value, err = mockPluginCfgReader.GetString("akey", "default")
+	value, err = mockPluginCfgReader.GetString("aKey", "default")
 	expect.NoError(err)
 	expect.Equal(value, "aValue")
 }
@@ -162,19 +162,19 @@ func TestPluginConfigGetString(t *testing.T) {
 // Plan: Similar to TestPluginConfigGetString
 func TestPluginConfigGetStringArray(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	mockStringArray := []string{"el1", "el2", "el3"}
 
 	// default value is returned
-	value, err := mockPluginCfgReader.GetStringArray("arrkey", []string{})
+	value, err := mockPluginCfgReader.GetStringArray("arrKey", []string{})
 	expect.NoError(err)
 	expect.Equal(len(value), 0)
 
 	mockPluginCfg.Override("arrKey", mockStringArray)
 	//since expect.Equal is doing reflect.deepValueEqual, arrays should be properly compared
-	value, err = mockPluginCfgReader.GetStringArray("arrkey", []string{})
+	value, err = mockPluginCfgReader.GetStringArray("arrKey", []string{})
 	expect.NoError(err)
 	expect.Equal(value, mockStringArray)
 
@@ -184,7 +184,7 @@ func TestPluginConfigGetStringArray(t *testing.T) {
 // Plan: Similar to TestPluginConfigGetString but the Map structure needs assertion
 func TestPluginConfigGetStringMap(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	mockStringMap := map[string]string{
@@ -212,7 +212,7 @@ func TestPluginConfigGetStringMap(t *testing.T) {
 //  Check the hash received hash with manual generation from streamregistery.getStreamID
 func TestPluginConfigGetStreamArray(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	mockStreamArray := []string{
@@ -246,7 +246,7 @@ func TestPluginConfigGetStreamArray(t *testing.T) {
 //  verify the hash values
 func TestPluginConfigGetStreamMap(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 	defaultValue := "v0"
 
@@ -300,7 +300,7 @@ func TestPluginConfigGetStreamMap(t *testing.T) {
 // Plan: similar to TestPluginConfigGetStreamMap with streamId and value swapped
 func TestPluginConfigGetStreamRoutes(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	mockStreamRoute := map[string][]string{
@@ -330,7 +330,7 @@ func TestPluginConfigGetStreamRoutes(t *testing.T) {
 //  get the value back and Assert
 func TestPluginConfigGetInt(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	value, err := mockPluginCfgReader.GetInt("intkey", 0)
@@ -347,7 +347,7 @@ func TestPluginConfigGetInt(t *testing.T) {
 // Plan: similar to TestPluginConfigGetInt
 func TestPluginConfigGetBool(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	value, err := mockPluginCfgReader.GetBool("boolkey", false)
@@ -364,7 +364,7 @@ func TestPluginConfigGetBool(t *testing.T) {
 // Plan: similar to TestPluginConfigGetInt
 func TestPluginConfigGetValue(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	mockPluginCfg := NewPluginConfig("", "mockPlugin")
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
 	mockPluginCfgReader := NewPluginConfigReaderWithError(&mockPluginCfg)
 
 	// get string value
@@ -424,7 +424,28 @@ func TestPluginConfigGetPlugin(t *testing.T) {
 	_, err = mockPluginCfgReader.GetPlugin("pluginkey1", "", tcontainer.NewMarshalMap())
 	expect.NoError(err)
 
-	mockPluginCfg.Override("pluginkey2", tcontainer.MarshalMap{"type": "core.mockPlugin"})
+	mockPluginCfg.Override("pluginkey2", tcontainer.MarshalMap{"Type": "core.mockPlugin"})
 	_, err = mockPluginCfgReader.GetPlugin("pluginkey2", "", tcontainer.NewMarshalMap())
 	expect.NoError(err)
+}
+
+func TestPluginConfigSuggest(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+	mockPluginCfg := NewPluginConfig("", "core.mockPlugin")
+	mockPluginCfg.Override("Read", "foo")
+	mockPluginCfg.Override("Write", "foo")
+
+	mockPluginCfgReader := NewPluginConfigReader(&mockPluginCfg)
+
+	readVal := mockPluginCfgReader.GetString("Read", "")
+	expect.Equal("foo", readVal)
+	writeVal := mockPluginCfgReader.GetString("Write", "")
+	expect.Equal("foo", writeVal)
+
+	suggest1 := mockPluginCfg.suggestKey("Reader")
+	expect.Equal("Read", suggest1)
+	suggest2 := mockPluginCfg.suggestKey("read")
+	expect.Equal("Read", suggest2)
+	suggest3 := mockPluginCfg.suggestKey("wirte")
+	expect.Equal("Write", suggest3)
 }

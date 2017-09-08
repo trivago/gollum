@@ -22,6 +22,9 @@ type MessageSource interface {
 
 	// IsBlocked returns true if the source cannot produce messages
 	IsBlocked() bool
+
+	// GetID returns the pluginID of the message source
+	GetID() string
 }
 
 // AsyncMessageSource extends the MessageSource interface to allow a backchannel

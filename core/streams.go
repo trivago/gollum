@@ -22,6 +22,8 @@ const (
 	InvalidStream = ""
 	// LogInternalStream is the name of the internal message channel (logs)
 	LogInternalStream = "_GOLLUM_"
+	// TraceInternalStream is the name of the internal trace channel (-tm flag)
+	TraceInternalStream = "_TRACE_"
 	// WildcardStream is the name of the "all routers" channel
 	WildcardStream = "*"
 )
@@ -33,4 +35,6 @@ var (
 	LogInternalStreamID = GetStreamID(LogInternalStream)
 	// WildcardStreamID is the ID of the "*" stream
 	WildcardStreamID = GetStreamID(WildcardStream)
+	// TraceInternalStreamID is the ID of the "_TRACE_" stream
+	TraceInternalStreamID = GetStreamID(TraceInternalStream)
 )

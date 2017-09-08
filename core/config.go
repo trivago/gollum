@@ -23,10 +23,9 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"reflect"
-	"strings"
 )
 
-const pluginAggregate = "aggregate"
+const pluginAggregate = "Aggregate"
 
 var (
 	consumerInterface = reflect.TypeOf((*Consumer)(nil)).Elem()
@@ -53,7 +52,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 	for pluginID, configValues := range config.Values {
 		if typeName, _ := configValues.String("Type"); typeName == pluginAggregate {
 			// aggregate behavior
-			aggregateMap, err := configValues.MarshalMap("Aggregate")
+			aggregateMap, err := configValues.MarshalMap("Plugins")
 			if err != nil {
 				logrus.Error("Can't read 'Aggregate' configuration: ", err)
 				continue
@@ -62,7 +61,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 			// loop through aggregated plugins and set them up
 			for subPluginID, subConfigValues := range aggregateMap {
 				subPluginsID := fmt.Sprintf("%s-%s", pluginID, subPluginID)
-				subConfig, err := tcontainer.ConvertToMarshalMap(subConfigValues, strings.ToLower)
+				subConfig, err := tcontainer.ConvertToMarshalMap(subConfigValues, nil)
 				if err != nil {
 					logrus.Error("Error in plugin config ", subPluginsID, err)
 					continue
@@ -70,7 +69,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 
 				// set up sub-plugin
 				delete(configValues, "Type")
-				delete(configValues, "Aggregate")
+				delete(configValues, "Plugins")
 
 				pluginConfig := NewPluginConfig(subPluginsID, "")
 				pluginConfig.Read(configValues)
@@ -114,7 +113,12 @@ func (conf *Config) Validate() error {
 
 		pluginType := TypeRegistry.GetTypeOf(config.Typename)
 		if pluginType == nil {
-			errors.Pushf("Type '%s' used for '%s' not found", config.Typename, config.ID)
+			if suggestion := suggestType(config.Typename); suggestion != "" {
+				errors.Pushf("Type '%s' used for '%s' not found. Did you mean '%s'?", config.Typename, config.ID, suggestion)
+			} else {
+				errors.Pushf("Type '%s' used for '%s' not found", config.Typename, config.ID)
+			}
+
 			continue // ### continue ###
 		}
 

@@ -208,7 +208,7 @@ func (co *Coordinator) configureRouters(conf *core.Config) bool {
 	allFine := true
 	routerConfigs := conf.GetRouters()
 	for _, config := range routerConfigs {
-		if _, hasStreams := config.Settings.Value("stream"); !hasStreams {
+		if _, hasStreams := config.Settings.Value("Stream"); !hasStreams {
 			logrus.Errorf("Router '%s' has no stream set", config.ID)
 			allFine = false
 			continue // ### continue ###
@@ -243,7 +243,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) bool {
 	producerConfigs := conf.GetProducers()
 
 	for _, config := range producerConfigs {
-		if _, hasStreams := config.Settings.Value("streams"); !hasStreams {
+		if _, hasStreams := config.Settings.Value("Streams"); !hasStreams {
 			logrus.Errorf("Producer '%s' has no streams set", config.ID)
 			allFine = false
 			continue // ### continue ###
@@ -293,7 +293,7 @@ func (co *Coordinator) configureConsumers(conf *core.Config) bool {
 
 	consumerConfigs := conf.GetConsumers()
 	for _, config := range consumerConfigs {
-		if _, hasStreams := config.Settings.Value("streams"); !hasStreams {
+		if _, hasStreams := config.Settings.Value("Streams"); !hasStreams {
 			logrus.Errorf("Consumer '%s' has no streams set", config.ID)
 			allFine = false
 			continue

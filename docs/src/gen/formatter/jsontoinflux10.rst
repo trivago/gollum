@@ -12,7 +12,7 @@ InfluxDB 0.9.1+ compatible line protocol data.
 Parameters
 ----------
 
-**TimeField**
+**TimeField** (default: time)
 
   Specifies the JSON field that holds the timestamp of the message.
   The timestamp is formatted as defined by TimeFormat. If the field is not
@@ -21,7 +21,7 @@ Parameters
   
   
 
-**TimeFormat**
+**TimeFormat** (default: unix)
 
   Specifies the format of the time field as in go's time.Parse
   or "unix" if the field contains a valid unix timestamp.
@@ -51,16 +51,6 @@ Parameters
   The InfluxDB 0.9 convention is that values that do not change by every
   request are to be considered metadata and given as tags.
   
-  
-
-**Timefield** (default: time)
-
-  (no documentation available)
-  
-
-**Timeformat** (default: unix)
-
-  (no documentation available)
   
 
 Parameters (from core.SimpleFormatter)

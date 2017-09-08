@@ -584,8 +584,8 @@ loop:
 			var count, written dword
 			switch n {
 			case 0:
-				cursor = coord{x: csbi.cursorPosition.x + 1, y: csbi.cursorPosition.y}
-				count = dword(csbi.size.x - csbi.cursorPosition.x - 1)
+				cursor = coord{x: csbi.cursorPosition.x, y: csbi.cursorPosition.y}
+				count = dword(csbi.size.x - csbi.cursorPosition.x)
 			case 1:
 				cursor = coord{x: csbi.window.left, y: csbi.window.top + csbi.cursorPosition.y}
 				count = dword(csbi.size.x - csbi.cursorPosition.x)

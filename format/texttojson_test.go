@@ -26,8 +26,8 @@ func newTestTextToJSONFormatter(directives []interface{}, start string) *TextToJ
 	format := TextToJSON{}
 	conf := core.NewPluginConfig("mockTextToJSONFormatter", "format.TextToJSON")
 
-	conf.Override("startstate", start)
-	conf.Override("directives", directives)
+	conf.Override("StartState", start)
+	conf.Override("Directives", directives)
 
 	reader := core.NewPluginConfigReader(&conf)
 	if err := reader.Configure(&format); err != nil {
@@ -118,8 +118,8 @@ func TestTextToJSONFormatterApplyTo(t *testing.T) {
 	}
 
 	conf := core.NewPluginConfig("mockTextToJSONFormatter", "format.TextToJSON")
-	conf.Override("startstate", "findKey")
-	conf.Override("directives", directives)
+	conf.Override("StartState", "findKey")
+	conf.Override("Directives", directives)
 	conf.Override("ApplyTo", "foo")
 
 	reader := core.NewPluginConfigReader(&conf)

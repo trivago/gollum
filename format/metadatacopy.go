@@ -16,10 +16,7 @@ package format
 
 import (
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tcontainer"
 )
-
-type metaDataMap map[string]core.ModulatorArray
 
 // MetadataCopy formatter plugin
 //
@@ -28,28 +25,33 @@ type metaDataMap map[string]core.ModulatorArray
 //
 // Parameters
 //
-// - WriteTo: A named list of meta data keys. Each entry can contain further modulators
-// to change or filter the message content before setting the meta data value.
+// - CopyToKeys: A list of meta data keys to copy the payload or metadata
+// content to.
+// By default this parameter is set to an empty list.
 //
 // Examples
 //
-// This example sets the meta fields `hostname`, `base64Value` and `payloadCopy` of each message:
+// This example copies the payload to the fields prefix and key. The prefix
+// field will extract everything up to the first space as hostname, the key
+// field will contain a hash over the complete payload.
 //
 //  exampleConsumer:
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
 //      - format.MetadataCopy:
-//        WriteTo:
-//          hostname:               # meta data key
-//            - format.Hostname     # further modulators
-//          base64Value:
-//            - format.Base64Encode
-//          payloadCopy: []         # 1:1 copy without modulators
+//        CopyToKeys: ["prefix", "key"]
+//      - format.SplitPick:
+//        ApplyTo: prefix
+//        Delimiter: " "
+//        Index: 0
+//      - formatter.Identifier
+//        Generator: hash
+//        ApplyTo: key
 //
 type MetadataCopy struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	metaData             metaDataMap
+	metaDataKeys         []string `config:"CopyToKeys"`
 }
 
 func init() {
@@ -58,48 +60,18 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *MetadataCopy) Configure(conf core.PluginConfigReader) {
-	format.metaData = format.newMetaDataMap(conf.GetMap("WriteTo", tcontainer.MarshalMap{}))
 }
 
 // ApplyFormatter update message payload
 func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
-	for metaDataKey, modulators := range format.metaData {
-		msg.GetMetadata().SetValue(metaDataKey, format.modulateMetadataValue(msg, modulators))
-	}
+	meta := msg.GetMetadata()
+	data := format.GetAppliedContent(msg)
+	pool := core.MessageDataPool
 
+	for _, key := range format.metaDataKeys {
+		bufferCopy := pool.Get(len(data))
+		copy(bufferCopy, data)
+		meta.SetValue(key, bufferCopy)
+	}
 	return nil
-}
-
-// modulateMetadataValue returns the final meta value
-func (format *MetadataCopy) modulateMetadataValue(msg *core.Message, modulators core.ModulatorArray) []byte {
-	modulationMsg := core.NewMessage(nil, format.GetAppliedContent(msg), nil, core.InvalidStreamID)
-
-	modulateResult := modulators.Modulate(modulationMsg)
-	if modulateResult == core.ModulateResultContinue {
-		return modulationMsg.GetPayload()
-	}
-
-	return []byte{}
-}
-
-func (format *MetadataCopy) newMetaDataMap(metaData tcontainer.MarshalMap) metaDataMap {
-	result := metaDataMap{}
-	writeToConfig := core.NewPluginConfig("", "format.MetadataCopy.WriteTo")
-	reader := core.NewPluginConfigReaderWithError(&writeToConfig)
-
-	for keyMetadata, metaDataValue := range metaData {
-		tempMap := tcontainer.NewMarshalMap()
-		tempMap[keyMetadata] = metaDataValue
-
-		writeToConfig.Read(tempMap)
-		modulator, err := reader.GetModulatorArray(keyMetadata, format.Logger, core.ModulatorArray{})
-		if err != nil {
-			format.Logger.Error("Can't get mmodulators. Error message: ", err)
-			break
-		}
-
-		result[keyMetadata] = modulator
-	}
-
-	return result
 }

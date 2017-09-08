@@ -89,6 +89,8 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout time.Duration) {
 	default:
 		prod.setState(PluginStateActive)
 	}
+
+	MessageTrace(msg, prod.GetID(), "Enqueued by buffered producer")
 }
 
 // DefaultDrain is the function registered to onPrepareStop by default.

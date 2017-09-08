@@ -224,7 +224,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	// Execute configured modulators
 	switch cons.modulators.Modulate(msg) {
 	case ModulateResultDiscard:
-		DiscardMessage(msg)
+		DiscardMessage(msg, cons.GetID(), "Consumer discarded")
 		return
 
 	case ModulateResultFallback:
@@ -235,6 +235,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 	}
 
 	CountMessagesEnqueued()
+	MessageTrace(msg, cons.GetID(), "Enqueued by consumer")
 
 	// Send message to all routers registered to this consumer
 	// Last message will not be cloned.

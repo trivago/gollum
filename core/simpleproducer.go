@@ -201,7 +201,7 @@ func (prod *SimpleProducer) Modulate(msg *Message) ModulateResult {
 func (prod *SimpleProducer) HasContinueAfterModulate(msg *Message) bool {
 	switch result := prod.Modulate(msg); result {
 	case ModulateResultDiscard:
-		DiscardMessage(msg)
+		DiscardMessage(msg, prod.GetID(), "Producer discarded")
 		return false
 
 	case ModulateResultFallback:

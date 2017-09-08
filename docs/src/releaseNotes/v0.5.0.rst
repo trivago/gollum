@@ -33,13 +33,12 @@ Plugin header
     "pluginId":
         Type: "plugin.Type"
 
-Plural form and case sensitivity
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Plural form
+~~~~~~~~~~~
 
 In previous versions fields did not follow a rule when to use plural or
 singular. In 0.5.0 plural means “one or more values” while singular
-means “only one value”. In addition to that all names are now case
-insensitive.
+means “only one value”.
 
 **From**
 
@@ -455,10 +454,10 @@ New features
 - Messages now store the original message, i.e. a backup of the payload state after consumer processing
 - Gollum now provides per-stream metrics
 - Plugins are now able to implement health checks that can be queried via http
+- There is a new pseudo plugin type "Aggregate" that can be used to share configuration between multiple plugins
 - New base types for producers: Direct, Buffered, Batched
 - Plugin configurations now support nested structures
 - The configuration process has been simplified a lot by adding automatic error handling and struct tags
-- All plugin configuration keys are now case insensitive
 - Added a new formatter format.GrokToJSON
 - Added a new formatter format.JSONToInflux10
 - Added a new formatter format.Double
@@ -474,6 +473,7 @@ Bugfixes
 
 
 - The plugin lifecycle has been reimplemented to avoid gollum being stuck waiting for plugins to change state
+- Any errors during the configuration phase will cause gollum to exit
 - Integration test suite added
 - Producer.HTTPRequest port handling fixed
 - The test-config command will now produce more meaningful results

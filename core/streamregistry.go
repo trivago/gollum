@@ -73,6 +73,12 @@ func (registry streamRegistry) GetStreamName(streamID MessageStreamID) string {
 	case WildcardStreamID:
 		return WildcardStream
 
+	case InvalidStreamID:
+		return InvalidStream
+
+	case TraceInternalStreamID:
+		return TraceInternalStream
+
 	default:
 		registry.nameGuard.RLock()
 		name, exists := registry.name[streamID]
@@ -224,7 +230,7 @@ func (registry *streamRegistry) createFallback(streamID MessageStreamID) Router 
 	logrus.Debug("Creating fallback stream for ", streamName)
 
 	config := NewPluginConfig(GeneratedRouterPrefix+streamName, "router.Broadcast")
-	config.Override("stream", streamName)
+	config.Override("Stream", streamName)
 
 	plugin, err := NewPluginWithConfig(config)
 	if err != nil {

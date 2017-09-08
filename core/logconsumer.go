@@ -72,6 +72,11 @@ func (cons *LogConsumer) IsBlocked() bool {
 	return false
 }
 
+// GetID returns the pluginID of the message source
+func (cons *LogConsumer) GetID() string {
+	return "core.LogConsumer"
+}
+
 // GetShutdownTimeout always returns 1 millisecond
 func (cons *LogConsumer) GetShutdownTimeout() time.Duration {
 	return time.Millisecond
@@ -118,7 +123,7 @@ func (cons *LogConsumer) Fire(logrusEntry *logrus.Entry) error {
 
 	// The formatter adds an unnecessary linefeed, strip it out
 	if formattedMessage[len(formattedMessage)-1] == '\n' {
-		formattedMessage = formattedMessage[:len(formattedMessage)-2]
+		formattedMessage = formattedMessage[:len(formattedMessage)-1]
 	}
 
 	// Set message metadata: level, time and logrus's ad-hoc fields. The fields

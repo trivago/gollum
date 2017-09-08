@@ -112,3 +112,7 @@ func (streamFile *TargetFile) GetDir() (string, error) {
 func (streamFile *TargetFile) GetSymlinkPath() string {
 	return fmt.Sprintf("%s/%s_current%s", streamFile.dir, streamFile.name, streamFile.ext)
 }
+
+func (streamFile *TargetFile) String() string {
+	return streamFile.GetOriginalPath()
+}
