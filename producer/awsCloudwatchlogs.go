@@ -176,13 +176,29 @@ func (prod *AwsCloudwatchLogs) upload(messages []*core.Message) {
 		LogStreamName: aws.String(prod.stream),
 		SequenceToken: prod.token,
 	}
-	// When rejectedLogEventsInfo is not empty, app can not
-	// do anything reasonable with rejected logs. Ignore it.
-	resp, err := prod.service.PutLogEvents(params)
-	if err == nil {
+	prod.handleResult(prod.service.PutLogEvents(params))
+}
+
+// When rejectedLogEventsInfo is not empty, app can not
+// do anything reasonable with rejected logs. Ignore it.
+func (prod *AwsCloudwatchLogs) handleResult(resp *cloudwatchlogs.PutLogEventsOutput, result error) {
+	switch err := result.(type) {
+	case awserr.Error:
+		switch err.Code() {
+		case "InvalidSequenceTokenException":
+			prod.Logger.Debugf("invalid sequence token, updating")
+			prod.setToken()
+		case "ResourceNotFoundException":
+			prod.Logger.Debugf("missing group/stream, creating")
+			prod.create()
+			prod.token = nil
+		default:
+			prod.Logger.Errorf("error while sending batch. code: %s message: %q", err.Code(), err.Message())
+		}
+	case nil:
 		prod.token = resp.NextSequenceToken
-	} else {
-		prod.Logger.Errorf("error while sending message batch: %q", err)
+	default:
+		prod.Logger.Errorf("error while sending batch: %q", err)
 	}
 }
 
