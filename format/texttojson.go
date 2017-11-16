@@ -132,7 +132,7 @@ const (
 //    Type: consumer.Console
 //    Streams: console
 //    Modulators:
-//      - format.JSON:
+//      - format.TextToJSON:
 //        Directives:
 //          - "findKey   :\":  key       :      :        "
 //          - "findKey   :}:             : pop  : end    "

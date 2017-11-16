@@ -77,9 +77,22 @@ func mainWithExitCode() int {
 	logrus.Debug("GOLLUM STARTING")
 	defer logrus.Debug("GOLLUM STOPPED")
 
-	config := readConfig()
+	configFile, testConfigAndExit := getConfigFile()
+	config := readConfig(configFile)
 	if config == nil {
 		return tos.ExitError // ### exit, config failed to parse ###
+	}
+
+	if testConfigAndExit {
+		logrus.SetLevel(logrus.WarnLevel)
+		fmt.Println("Testing config", configFile)
+
+		if !testConfig(config) {
+			return tos.ExitError // ### exit, config test failed ###
+		}
+
+		fmt.Println("Config OK.")
+		return tos.ExitSuccess // ### exit, config test successfully ###
 	}
 
 	configureRuntime()
@@ -117,6 +130,26 @@ func mainWithExitCode() int {
 	return tos.ExitSuccess
 }
 
+func getConfigFile() (configFile string, justTest bool) {
+	if *flagTestConfigFile != "" {
+		return *flagTestConfigFile, true
+	}
+	return *flagConfigFile, false
+}
+
+// testConfig test and validate config object
+func testConfig(config *core.Config) bool {
+	coordinator := NewCoordinator()
+	defer coordinator.Shutdown()
+
+	if err := coordinator.Configure(config); err != nil {
+		logrus.WithError(err).Error("Configure pass failed.")
+		return false
+	}
+
+	return true
+}
+
 // initLogrus initializes the logging framework
 func initLogrus() func() {
 	// Initialize logger.LogrusHookBuffer
@@ -149,23 +182,10 @@ func initLogrus() func() {
 }
 
 // readConfig reads and checks the config file for errors.
-func readConfig() *core.Config {
-	configFile := *flagConfigFile
-	testAndExit := false
-
-	if *flagTestConfigFile != "" {
-		configFile = *flagTestConfigFile
-		testAndExit = true
-	}
-
+func readConfig(configFile string) *core.Config {
 	if *flagHelp || configFile == "" {
 		logrus.Error("Please provide a config file")
 		return nil
-	}
-
-	if testAndExit {
-		logrus.SetLevel(logrus.WarnLevel)
-		fmt.Println("Testing config", configFile)
 	}
 
 	config, err := core.ReadConfigFromFile(configFile)
@@ -176,17 +196,6 @@ func readConfig() *core.Config {
 
 	if err := config.Validate(); err != nil {
 		logrus.WithError(err).Error("Config validation failed")
-		return nil
-	}
-
-	if testAndExit {
-		coordinator := NewCoordinator()
-		if err := coordinator.Configure(config); err != nil {
-			logrus.WithError(err).Error("Configure pass failed.")
-		} else {
-			fmt.Println("Config OK.")
-		}
-		coordinator.Shutdown()
 		return nil
 	}
 
