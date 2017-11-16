@@ -77,17 +77,13 @@ func mainWithExitCode() int {
 	logrus.Debug("GOLLUM STARTING")
 	defer logrus.Debug("GOLLUM STOPPED")
 
-	configFile := *flagConfigFile
-	if *flagTestConfigFile != "" {
-		configFile = *flagTestConfigFile
-	}
-
+	configFile, testConfigAndExit := getConfigFile()
 	config := readConfig(configFile)
 	if config == nil {
 		return tos.ExitError // ### exit, config failed to parse ###
 	}
 
-	if *flagTestConfigFile != "" {
+	if testConfigAndExit {
 		logrus.SetLevel(logrus.WarnLevel)
 		fmt.Println("Testing config", configFile)
 
@@ -132,6 +128,13 @@ func mainWithExitCode() int {
 	coordinator.StartPlugins()
 	coordinator.Run()
 	return tos.ExitSuccess
+}
+
+func getConfigFile() (configFile string, justTest bool) {
+	if *flagTestConfigFile != "" {
+		return *flagTestConfigFile, true
+	}
+	return *flagConfigFile, false
 }
 
 // testConfig test and validate config object
