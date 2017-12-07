@@ -19,7 +19,9 @@ import (
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"
+	"strconv"
 	"sync"
+	"time"
 )
 
 // Syslogd consumer plugin
@@ -32,11 +34,12 @@ import (
 // - Address: Defines the IP address or UNIX socket to listen to.
 // This can take one of the four forms below, to listen on a TCP, UDP
 // or UNIX domain socket. However, see the "Format" option for details on
-// transport support by different formats. Default: "udp://0.0.0.0:514"
+// transport support by different formats.
 // * [hostname|ip]:<tcp-port>
 // * tcp://<hostname|ip>:<tcp-port>
 // * udp://<hostname|ip>:<udp-port>
 // * unix://<filesystem-path>
+// By default this parameter is set to "udp://0.0.0.0:514"
 //
 // - Format: Defines which syslog standard the server will support.
 // Three standards, listed below, are currently available.  All
@@ -45,6 +48,15 @@ import (
 // * RFC3164 (https://tools.ietf.org/html/rfc3164) - unix, udp
 // * RFC5424 (https://tools.ietf.org/html/rfc5424) - unix, udp
 // * RFC6587 (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
+// By default this parameter is set to "RFC6587".
+//
+// - SetMetadata: When set to true, syslog based metadata will be attached to
+// the message. The metadata fields added depend on the protocol version used.
+// By default this parameter is set to "false".
+//
+// - TimestampFormat: When using SetMetadata this string denotes the go time
+// format used to convert syslog timestamps into strings.
+// By default this parameter is set to "2006-01-02T15:04:05.000 MST".
 //
 // Examples
 //
@@ -69,6 +81,8 @@ type Syslogd struct {
 	format              format.Format // RFC3164, RFC5424 or RFC6587?
 	protocol            string
 	address             string
+	withMetadata        bool   `config:"SetMetadata" default:"false"`
+	timestampFormat     string `config:"TimestampFormat" default:"2006-01-02T15:04:05.000 MST"`
 }
 
 func init() {
@@ -118,12 +132,55 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 	content := ""
 	isString := false
+	metaData := core.Metadata{}
 
 	switch cons.format {
 	case syslog.RFC3164:
 		content, isString = parts["content"].(string)
+
+		if cons.withMetadata {
+			hostname, _ := parts["hostname"].(string)
+			tag, _ := parts["tag"].(string)
+			priority, _ := parts["priority"].(int)
+			facility, _ := parts["facility"].(int)
+			severity, _ := parts["severity"].(int)
+			timestamp, _ := parts["timestamp"].(time.Time)
+
+			metaData.SetValue("tag", []byte(tag))
+			metaData.SetValue("timestamp", []byte(timestamp.Format(cons.timestampFormat)))
+
+			metaData.SetValue("hostname", []byte(hostname))
+			metaData.SetValue("priority", []byte(strconv.Itoa(priority)))
+			metaData.SetValue("facility", []byte(strconv.Itoa(facility)))
+			metaData.SetValue("severity", []byte(strconv.Itoa(severity)))
+		}
+
 	case syslog.RFC5424, syslog.RFC6587:
 		content, isString = parts["message"].(string)
+
+		if cons.withMetadata {
+			hostname, _ := parts["hostname"].(string)
+			app, _ := parts["app_name"].(string)
+			version, _ := parts["version"].(string)
+			procID, _ := parts["proc_id"].(string)
+			msgID, _ := parts["msg_id"].(string)
+			priority, _ := parts["priority"].(int)
+			facility, _ := parts["facility"].(int)
+			severity, _ := parts["severity"].(int)
+			timestamp, _ := parts["timestamp"].(time.Time)
+
+			metaData.SetValue("app_name", []byte(app))
+			metaData.SetValue("version", []byte(version))
+			metaData.SetValue("proc_id", []byte(procID))
+			metaData.SetValue("msg_id", []byte(msgID))
+			metaData.SetValue("timestamp", []byte(timestamp.Format(cons.timestampFormat)))
+
+			metaData.SetValue("hostname", []byte(hostname))
+			metaData.SetValue("priority", []byte(strconv.Itoa(priority)))
+			metaData.SetValue("facility", []byte(strconv.Itoa(facility)))
+			metaData.SetValue("severity", []byte(strconv.Itoa(severity)))
+		}
+
 	default:
 		cons.Logger.Error("Could not determine the format to retrieve message/content")
 	}
@@ -133,7 +190,11 @@ func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 		return
 	}
 
-	cons.Enqueue([]byte(content))
+	if cons.withMetadata {
+		cons.EnqueueWithMetadata([]byte(content), metaData)
+	} else {
+		cons.Enqueue([]byte(content))
+	}
 }
 
 // Consume opens a new syslog socket.
