@@ -19,6 +19,7 @@ import (
 	"github.com/trivago/tgo/tnet"
 	"gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -207,7 +208,16 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	switch cons.protocol {
 	case "unix":
 		if err := server.ListenUnixgram(cons.address); err != nil {
-			cons.Logger.Error("Failed to open unix://", cons.address)
+			if errRemove := os.Remove(cons.address); errRemove != nil {
+				cons.Logger.Warning("Found existing socket ", cons.address, ". Removing.")
+				err = server.ListenUnixgram(cons.address)
+			} else {
+				cons.Logger.Error("Failed to remove exisiting socket: ", errRemove)
+			}
+
+			if err != nil {
+				cons.Logger.Error("Failed to open unix://", cons.address, ":", err)
+			}
 		}
 	case "udp":
 		if err := server.ListenUDP(cons.address); err != nil {
