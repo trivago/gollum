@@ -209,14 +209,14 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 	case "unix":
 		if err := server.ListenUnixgram(cons.address); err != nil {
 			if errRemove := os.Remove(cons.address); errRemove != nil {
+				cons.Logger.WithError(errRemove).Error("Failed to remove exisiting socket")
+			} else {
 				cons.Logger.Warning("Found existing socket ", cons.address, ". Removing.")
 				err = server.ListenUnixgram(cons.address)
-			} else {
-				cons.Logger.Error("Failed to remove exisiting socket: ", errRemove)
 			}
 
 			if err != nil {
-				cons.Logger.Error("Failed to open unix://", cons.address, ":", err)
+				cons.Logger.WithError(err).Error("Failed to open unix://", cons.address)
 			}
 		}
 	case "udp":
