@@ -1,7 +1,7 @@
 .PHONY: all clean docker docker-dev install freebsd linux mac pi win examples current vendor test example
 .DEFAULT_GOAL := current
 
-VERSION=0.4.6.1
+VERSION=0.4.6.3
 BUILD_FLAGS=GO15VENDOREXPERIMENT=1 GORACE="halt_on_error=0"
 
 all: clean vendor test freebsd linux docker mac pi win examples current
