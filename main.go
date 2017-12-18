@@ -16,6 +16,13 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"runtime"
+	"runtime/pprof"
+	"runtime/trace"
+	"strconv"
+
 	_ "github.com/trivago/gollum/consumer"
 	_ "github.com/trivago/gollum/contrib"
 	"github.com/trivago/gollum/core"
@@ -25,19 +32,13 @@ import (
 	_ "github.com/trivago/gollum/producer"
 	"github.com/trivago/gollum/shared"
 	_ "github.com/trivago/gollum/stream"
-	"io/ioutil"
-	"os"
-	"runtime"
-	"runtime/pprof"
-	"runtime/trace"
-	"strconv"
 )
 
 const (
 	gollumMajorVer = 0
 	gollumMinorVer = 4
 	gollumPatchVer = 6
-	gollumDevVer   = 2
+	gollumDevVer   = 3
 )
 
 func dumpMemoryProfile() {
