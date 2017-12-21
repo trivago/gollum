@@ -403,8 +403,6 @@ func (reader *PluginConfigReader) configureArrayField(fieldVal reflect.Value, ke
 func (reader *PluginConfigReader) configureInterfaceField(fieldVal reflect.Value, key string, tags PluginStructTag,
 	logger logrus.FieldLogger) {
 	fieldType := treflect.RemovePtrFromType(fieldVal.Type())
-	fmt.Println("Reading", key, "as", fieldType.Name())
-
 	switch fieldType.Name() {
 	case "Router":
 		streamID := reader.GetStreamID(key, tags.GetStream())
