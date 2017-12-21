@@ -15,14 +15,15 @@
 package consumer
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tnet"
-	"gopkg.in/mcuadros/go-syslog.v2"
-	"gopkg.in/mcuadros/go-syslog.v2/format"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tnet"
+	syslog "gopkg.in/mcuadros/go-syslog.v2"
+	"gopkg.in/mcuadros/go-syslog.v2/format"
 )
 
 // Syslogd consumer plugin
@@ -53,6 +54,9 @@ import (
 //
 // - SetMetadata: When set to true, syslog based metadata will be attached to
 // the message. The metadata fields added depend on the protocol version used.
+// RFC3164 supports: tag, timestamp, hostname, priority, facility, severity.
+// RFC5424 and RFC6587 support: app_name, version, proc_id , msg_id, timestamp,
+// hostname, priority, facility, severity.
 // By default this parameter is set to "false".
 //
 // - TimestampFormat: When using SetMetadata this string denotes the go time
