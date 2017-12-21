@@ -20,7 +20,7 @@ import (
 
 const (
 	gollumMajorVer = 0
-	gollumMinorVer = 5
+	gollumMinorVer = 6
 	gollumPatchVer = 0
 	gollumDevVer   = 0
 )

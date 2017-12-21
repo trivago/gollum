@@ -1,7 +1,7 @@
 .PHONY: all clean docker docker-dev install freebsd linux mac pi win current debug vendor test unit coverprofile integration example pre-commit vet lint fmt fmt-check ineffassign
 .DEFAULT_GOAL := current
 
-VERSION=0.5.0
+VERSION=0.6.0
 BUILD_ENV=GORACE="halt_on_error=0"
 BUILD_FLAGS=-ldflags=-s
 BUILD_DEBUG_FLAGS=-ldflags='-s -linkmode=internal' -gcflags='-N -l'
