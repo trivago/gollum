@@ -16,12 +16,14 @@ package core
 
 import (
 	"fmt"
+	"net/url"
+	"reflect"
+	"unsafe"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/treflect"
-	"net/url"
-	"reflect"
 )
 
 // Configurable defines an interface for structs that can be configured using
@@ -404,7 +406,13 @@ func (reader *PluginConfigReader) configureInterfaceField(fieldVal reflect.Value
 	switch fieldType.Name() {
 	case "Router":
 		streamID := reader.GetStreamID(key, tags.GetStream())
-		treflect.SetValue(fieldVal, StreamRegistry.GetRouterOrFallback(streamID))
+		router := StreamRegistry.GetRouterOrFallback(streamID)
+
+		if router != nil {
+			// TODO: treflect.SetValue does not work here
+			ptrToMember := unsafe.Pointer(fieldVal.UnsafeAddr())
+			*(*Router)(ptrToMember) = router
+		}
 
 	default:
 		panic("Field type not supported")
