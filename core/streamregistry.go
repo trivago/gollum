@@ -15,9 +15,10 @@
 package core
 
 import (
-	"github.com/sirupsen/logrus"
 	"hash/fnv"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -47,6 +48,11 @@ var StreamRegistry = streamRegistry{
 // GetStreamID is deprecated
 func GetStreamID(stream string) MessageStreamID {
 	return StreamRegistry.GetStreamID(stream)
+}
+
+// GetName resolves the name of the streamID
+func (streamID MessageStreamID) GetName() string {
+	return StreamRegistry.GetStreamName(streamID)
 }
 
 // GetStreamID returns the integer representation of a given stream name.

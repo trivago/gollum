@@ -15,6 +15,7 @@
 package core
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -47,10 +48,14 @@ type Router interface {
 // Route tries to enqueue a message to the given stream. This function also
 // handles redirections enforced by formatters.
 func Route(msg *Message, router Router) error {
+	if router == nil {
+		DiscardMessage(msg, "nil", fmt.Sprintf("Router for stream %s is nil", msg.GetStreamID().GetName()))
+		return nil
+	}
 
 	action := router.Modulate(msg)
 
-	streamName := StreamRegistry.GetStreamName(msg.GetStreamID())
+	streamName := msg.GetStreamID().GetName()
 	streamMetric := GetStreamMetric(msg.GetStreamID())
 
 	switch action {
