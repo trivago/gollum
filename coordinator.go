@@ -15,15 +15,16 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/logger"
-	"github.com/trivago/tgo"
 	"os"
 	"os/signal"
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/logger"
+	"github.com/trivago/tgo"
 )
 
 const (
@@ -129,7 +130,7 @@ func (co *Coordinator) StartPlugins() {
 	// Set final log target and purge the intermediate buffer
 	if core.StreamRegistry.IsStreamRegistered(core.LogInternalStreamID) {
 		// The _GOLLUM_ stream has listeners, so use LogConsumer to write to it
-		if *flagLogColors != "always" {
+		if *flagLogColors == "always" {
 			logrus.SetFormatter(logger.NewConsoleFormatter())
 		}
 		logrusHookBuffer.SetTargetHook(co.logConsumer)
