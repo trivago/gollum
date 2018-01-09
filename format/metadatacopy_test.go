@@ -7,7 +7,91 @@ import (
 	"github.com/trivago/tgo/ttesting"
 )
 
-func TestMetadataCopy(t *testing.T) {
+func TestMetadataCopyReplace(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.MetadataCopy")
+	config.Override("Key", "foo")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*MetadataCopy)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("test"), core.Metadata{"foo": []byte("foo")}, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("foo", msg.String())
+}
+
+func TestMetadataCopyAddKey(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.MetadataCopy")
+	config.Override("ApplyTo", "foo")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*MetadataCopy)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("test", msg.String())
+	expect.Equal("test", msg.GetMetadata().GetValueString("foo"))
+}
+
+func TestMetadataCopyAppend(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.MetadataCopy")
+	config.Override("Key", "foo")
+	config.Override("Mode", "append")
+	config.Override("Separator", " ")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*MetadataCopy)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("test"), core.Metadata{"foo": []byte("foo")}, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("test foo", msg.String())
+}
+
+func TestMetadataCopyPrepend(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.MetadataCopy")
+	config.Override("Key", "foo")
+	config.Override("Mode", "prepend")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*MetadataCopy)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("test"), core.Metadata{"foo": []byte("foo")}, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("footest", msg.String())
+}
+
+func TestMetadataCopyDeprecated(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.MetadataCopy")
@@ -29,7 +113,7 @@ func TestMetadataCopy(t *testing.T) {
 	expect.Equal("test", msg.GetMetadata().GetValueString("bar"))
 }
 
-func TestMetadataCopyApplyToHandling(t *testing.T) {
+func TestMetadataCopyApplyToHandlingDeprecated(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.MetadataCopy")
