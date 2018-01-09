@@ -116,8 +116,6 @@ func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 	getSourceData := core.GetAppliedContentGetFunction(format.key)
 	srcData := getSourceData(msg)
 
-	println(format.key, ":", string(srcData))
-
 	switch format.mode {
 	case metadataCopyModeReplace:
 		format.SetAppliedContent(msg, srcData)
