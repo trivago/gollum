@@ -11,6 +11,7 @@ This is a patch / minor features release.
 ### Fixed with 0.5.1
 
  * fixed inversion of -lc always
+ * fixed a nil pointer panic with producer.elasticsearch when receiving messages with unassigned streams
 
 ## 0.5.0
 
