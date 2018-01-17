@@ -22,7 +22,7 @@ Parameters
   Defines the IP address or UNIX socket to listen to.
   This can take one of the four forms below, to listen on a TCP, UDP
   or UNIX domain socket. However, see the "Format" option for details on
-  transport support by different formats. Default: "udp://0.0.0.0:514"
+  transport support by different formats.
   
   * [hostname|ip]:<tcp-port>
   
@@ -31,6 +31,7 @@ Parameters
   * udp://<hostname|ip>:<udp-port>
   
   * unix://<filesystem-path>
+  By default this parameter is set to "udp://0.0.0.0:514"
   
   
 
@@ -46,6 +47,27 @@ Parameters
   * RFC5424 (https://tools.ietf.org/html/rfc5424) - unix, udp
   
   * RFC6587 (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
+  
+  By default this parameter is set to "RFC6587".
+  
+  
+
+**SetMetadata** (default: false)
+
+  When set to true, syslog based metadata will be attached to
+  the message. The metadata fields added depend on the protocol version used.
+  RFC3164 supports: tag, timestamp, hostname, priority, facility, severity.
+  RFC5424 and RFC6587 support: app_name, version, proc_id , msg_id, timestamp,
+  hostname, priority, facility, severity.
+  By default this parameter is set to "false".
+  
+  
+
+**TimestampFormat** (default: 2006-01-02T15:04:05.000 MST)
+
+  When using SetMetadata this string denotes the go time
+  format used to convert syslog timestamps into strings.
+  By default this parameter is set to "2006-01-02T15:04:05.000 MST".
   
   
 

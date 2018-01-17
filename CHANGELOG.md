@@ -1,5 +1,17 @@
 # Gollum changelog
 
+## 0.5.1
+
+This is a patch / minor features release.
+
+### New with 0.5.1
+
+ * format.MetadataCopy has been updated to support free copying between metadata and payload
+
+### Fixed with 0.5.1
+
+ * fixed inversion of -lc always
+
 ## 0.5.0
 
 Gollum 0.5.0 contains major breaking changes in all areas.
