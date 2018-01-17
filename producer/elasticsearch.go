@@ -16,16 +16,17 @@ package producer
 
 import (
 	"context"
+	"net/http"
+	"sync"
+	"syscall"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"gopkg.in/olivere/elastic.v5"
-	"net/http"
-	"sync"
-	"syscall"
-	"time"
 )
 
 // ElasticSearch producer plugin
@@ -342,7 +343,12 @@ func (prod *ElasticSearch) submitMessages() core.AssemblyFunc {
 		ctx := context.Background()
 
 		for _, msg := range messages {
-			indexMapItem := prod.indexMap[msg.GetStreamID()]
+			indexMapItem, isSet := prod.indexMap[msg.GetStreamID()]
+
+			if !isSet {
+				prod.Logger.Warningf("No index setting for stream %s", msg.GetStreamID().GetName())
+				continue
+			}
 
 			if indexMapItem.useDayIndex {
 				// create daily index ...
