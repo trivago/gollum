@@ -326,7 +326,7 @@ func (prod *ElasticSearch) submitMessages(messages []*core.Message) {
 		}
 
 		bulkIndexRequest := elastic.NewBulkIndexRequest()
-		bulkIndexRequest.Index(indexMapItem.name).
+		bulkIndexRequest.Index(indexMapItem.GetIndexName(msg.GetCreationTime())).
 			Type(indexMapItem.typeName).
 			Doc(msg.String())
 
