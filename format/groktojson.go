@@ -17,6 +17,7 @@ package format
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/grok"
 )
@@ -31,6 +32,16 @@ import (
 // The output format is JSON.
 //
 // Parameters
+//
+// - RemoveEmptyValues: When set to true, empty captures will not be returned.
+// By default this parameter is set to "true".
+//
+// - NamedCapturesOnly: When set to true, only named captures will be returned.
+// By default this parameter is set to "true".
+//
+// - SkipDefaultPatterns: When set to true, standard grok patterns will not be
+// included in the list of patterns.
+// By default this parameter is set to "true".
 //
 // - Patterns: A list of grok patterns that will be applied to messages.
 // The first matching pattern will be used to parse the message.
@@ -76,7 +87,11 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *GrokToJSON) Configure(conf core.PluginConfigReader) {
-	grokParser, err := grok.New(grok.Config{RemoveEmptyValues: true})
+	grokParser, err := grok.New(grok.Config{
+		RemoveEmptyValues:   conf.GetBool("RemoveEmptyValues", true),
+		NamedCapturesOnly:   conf.GetBool("NamedCapturesOnly", true),
+		SkipDefaultPatterns: conf.GetBool("SkipDefaultPatterns", false),
+	})
 	if err != nil {
 		conf.Errors.Push(err)
 	}

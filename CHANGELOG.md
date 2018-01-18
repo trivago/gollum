@@ -8,6 +8,7 @@ This is a patch / minor features release.
 
  * format.MetadataCopy has been updated to support free copying between metadata and payload
  * producer.ElasticSearch alles setting the format of timeBasedIndex
+ * format.GrokToJSON has new options: RemoveEmptyValues, NamedCapturesOnly and SkipDefaultPatterns
 
 ### Fixed with 0.5.1
 
