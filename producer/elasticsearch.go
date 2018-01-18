@@ -66,11 +66,15 @@ import (
 // - StreamProperties/<streamName>/Type: This value defines the document type
 // used for the stream.
 //
-// - StreamProperties/<streamName>/DayBasedIndex: This value can be set to "true"
-// to append the date of the message to the index as in "<index>_YYYY-MM-DD".
+// - StreamProperties/<streamName>/TimeBasedIndex: This value can be set to "true"
+// to append the date of the message to the index as in "<index>_<TimeBasedFormat>".
 // NOTE: This setting incurs a performance penalty because it is necessary to
 // check if an index exists for each message!
 // By default this parameter is set to "false".
+//
+// - StreamProperties/<streamName>/TimeBasedFormat: This value can be set to a valid
+// go time format string to be used with DayBasedIndex.
+// By default this parameter is set to "2006-01-02".
 //
 // - StreamProperties/<streamName>/Mapping: This value is a map which is used
 // for the document field mapping. As document type, the already defined type is
@@ -110,19 +114,24 @@ type ElasticSearch struct {
 }
 
 type indexMapItem struct {
-	name        string
-	typeName    string
-	settings    *elasticIndex
-	useDayIndex bool
+	name         string
+	typeName     string
+	settings     *elasticIndex
+	useTimeIndex bool
+	timeFormat   string
 }
 
 func newIndexMapItem() *indexMapItem {
 	return &indexMapItem{
-		"",
-		"",
-		nil,
-		false,
+		timeFormat: "2006-01-02",
 	}
+}
+
+func (item *indexMapItem) GetIndexName(t time.Time) string {
+	if item.useTimeIndex {
+		return item.name + t.Format(item.timeFormat)
+	}
+	return item.name
 }
 
 type elasticIndex struct {
@@ -139,9 +148,9 @@ type elasticType struct {
 }
 
 func newElasticIndex(property tcontainer.MarshalMap) *elasticIndex {
-	elType, _ := property.String("type")
-	mapping, _ := property.MarshalMap("mapping")
-	settings, _ := property.MarshalMap("settings")
+	elType, _ := property.String("Type")
+	mapping, _ := property.MarshalMap("Mapping")
+	settings, _ := property.MarshalMap("Settings")
 
 	elMappings := elasticMapping{
 		Properties: make(map[string]elasticType),
@@ -164,14 +173,6 @@ func newElasticIndex(property tcontainer.MarshalMap) *elasticIndex {
 	return &elIndex
 }
 
-type indexExists uint8
-
-const (
-	indexExistsFalse indexExists = iota
-	indexExistsTrue
-	indexExistsAuto
-)
-
 func init() {
 	core.TypeRegistry.Register(ElasticSearch{})
 }
@@ -186,15 +187,6 @@ func (prod *ElasticSearch) Configure(conf core.PluginConfigReader) {
 
 	prod.configureIndexSettings(conf.GetMap("StreamProperties", tcontainer.NewMarshalMap()), conf.Errors)
 	prod.configureRetrySettings(conf.GetInt("Retry/Count", 3), conf.GetInt("Retry/TimeToWaitSec", 3))
-}
-
-// Produce starts the producer
-func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
-	defer prod.WorkerDone()
-
-	prod.initIndex()
-	prod.AddMainWorker(workers)
-	prod.BatchMessageLoop(workers, prod.submitMessages)
 }
 
 func (prod *ElasticSearch) configureRetrySettings(retry, timeToWaitSec int64) {
@@ -224,86 +216,72 @@ func (prod *ElasticSearch) configureIndexSettings(properties tcontainer.MarshalM
 			continue
 		}
 
-		indexName, err := property.String("index")
+		indexMapItem.name, err = property.String("Index")
 		if err != nil {
 			prod.Logger.Errorf("no index configured for stream '%s'. Please check your config.", streamName)
 			errors.Push(err)
 			continue
 		}
 
-		dayBasedIndex, _ := property.Bool("daybasedindex")
-		if dayBasedIndex {
-			currentTime := time.Now()
-			indexName += currentTime.Format("_2006-01-02")
-			indexMapItem.useDayIndex = true
+		indexMapItem.useTimeIndex, _ = property.Bool("TimeBasedIndex")
+		timeFormat, _ := property.String("TimeBasedFormat")
+		if len(timeFormat) == 0 {
+			timeFormat = "2006-01-02"
 		}
+		indexMapItem.timeFormat = "_" + timeFormat
 
-		typeName, err := property.String("type")
+		indexMapItem.typeName, err = property.String("Type")
 		if err != nil {
 			prod.Logger.Errorf("no data type configured for stream '%s'. Please check your config.", streamName)
 		}
 
 		indexMapItem.settings = newElasticIndex(property)
-		indexMapItem.typeName = typeName
-		indexMapItem.name = indexName
-
 		prod.indexMap[streamID] = indexMapItem
 	}
 }
 
-func (prod *ElasticSearch) getClient() (*elastic.Client, error) {
-	if !prod.connection.isConnected() {
-		err := prod.connection.connect()
-		if err != nil {
-			prod.Logger.Error("Error during connection: ", err)
-			return nil, err
-		}
+func (prod *ElasticSearch) getClient() *elastic.Client {
+	if prod.connection.isConnected() {
+		return prod.connection.client
 	}
 
-	return prod.connection.client, nil
-}
-
-func (prod *ElasticSearch) initIndex() {
-	for _, indexMapItem := range prod.indexMap {
-		prod.createIndex(indexMapItem.name, indexMapItem.settings, indexExistsAuto)
+	if err := prod.connection.connect(); err != nil {
+		prod.Logger.WithError(err).Error("Error during connection")
+		return nil
 	}
+
+	return prod.connection.client
 }
 
-func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex, indexExistsCheck indexExists) error {
-	client, err := prod.getClient()
+func (prod *ElasticSearch) indexExists(client *elastic.Client, indexName string) bool {
+	exists, err := client.IndexExists(indexName).Do(context.Background())
 	if err != nil {
-		return err
+		prod.Logger.WithError(err).Error("Issue during checking index")
+		return false
+	}
+	return exists
+}
+
+func (prod *ElasticSearch) createIndexIfRequired(indexName string, settings *elasticIndex) bool {
+	client := prod.getClient()
+	if client == nil {
+		return false
 	}
 
-	ctx := context.Background()
-
-	// avoid unnecessary request for checking index (see submitMessage())
-	var exists bool
-	switch indexExistsCheck {
-	case indexExistsTrue:
-		exists = true
-		break
-	case indexExistsFalse:
-		exists = false
-		break
-	case indexExistsAuto:
-		exists, err = prod.isIndexExists(ctx, indexName, client)
-		if err != nil {
-			return err
+	if !prod.indexExists(client, indexName) {
+		if _, err := client.CreateIndex(indexName).Do(context.Background()); err != nil {
+			prod.Logger.WithError(err).Errorln("Failed to create index")
+			return false
 		}
+		prod.Logger.Debugf("Created index %s", indexName)
 	}
 
-	if !exists {
-		_, err = client.CreateIndex(indexName).Do(ctx)
-		if err != nil {
-			prod.Logger.Errorln("Issue during creating index: ", err)
-			return err
-		}
-
-		prod.Logger.Debugf("Created index '%s'\n", indexName)
+	if settings == nil {
+		prod.Logger.Debugf("No settings for index %s", indexName)
+		return true
 	}
 
-	for typeName, properties := range elIndex.Mappings {
+	for typeName, properties := range settings.Mappings {
 		mapping := client.PutMapping()
 		mapping.Index(indexName)
 		mapping.Type(typeName)
@@ -311,86 +289,89 @@ func (prod *ElasticSearch) createIndex(indexName string, elIndex *elasticIndex, 
 		json := map[string]interface{}{typeName: properties}
 		mapping.BodyJson(json)
 
-		_, err := mapping.Do(ctx)
+		_, err := mapping.Do(context.Background())
 		if err != nil {
-			prod.Logger.Errorln("Issue during creating index mapping: ", err)
+			prod.Logger.WithError(err).Errorf("Issue creating mapping for type %s.%s", indexName, typeName)
 		}
 	}
 
-	return err
+	return true
 }
 
-func (prod *ElasticSearch) isIndexExists(ctx context.Context, indexName string, client *elastic.Client) (bool, error) {
-	exists, err := client.IndexExists(indexName).Do(ctx)
-	prod.Logger.Debugf("Index %s exists: %v", indexName, exists)
+func (prod *ElasticSearch) submitMessages(messages []*core.Message) {
+	client := prod.getClient()
+	if client == nil {
+		prod.Logger.Error("Failed to get client. Cannot send messages")
+	}
+
+	// Handle time based index creation
+	timeBasedIndexes := make(map[string]*elasticIndex)
+	for _, msg := range messages {
+		if item, isSet := prod.indexMap[msg.GetStreamID()]; isSet && item.useTimeIndex {
+			timeBasedIndexes[item.GetIndexName(msg.GetCreationTime())] = item.settings
+		}
+	}
+
+	for indexName, settings := range timeBasedIndexes {
+		prod.createIndexIfRequired(indexName, settings)
+	}
+
+	// Send messages
+	bulkRequest := client.Bulk()
+	for _, msg := range messages {
+		indexMapItem, isSet := prod.indexMap[msg.GetStreamID()]
+		if !isSet {
+			prod.Logger.Warningf("No index setting for stream %s", msg.GetStreamID().GetName())
+			continue
+		}
+
+		bulkIndexRequest := elastic.NewBulkIndexRequest()
+		bulkIndexRequest.Index(indexMapItem.name).
+			Type(indexMapItem.typeName).
+			Doc(msg.String())
+
+		bulkRequest.Add(bulkIndexRequest)
+	}
+
+	// NumberOfActions contains the number of requests in a bulk
+	prod.Logger.Debugf("bulkRequest.NumberOfActions: %d", bulkRequest.NumberOfActions())
+
+	// Do sends the bulk requests to Elasticsearch
+	bulkResponse, err := bulkRequest.Do(context.Background())
 	if err != nil {
-		prod.Logger.Errorln("Issue during checking index: ", err)
-		return false, err
+		prod.Logger.Error(err)
 	}
 
-	return exists, nil
+	// Bulk request actions get cleared
+	numberOfActionsAfter := bulkRequest.NumberOfActions()
+	if numberOfActionsAfter != 0 {
+		prod.Logger.Errorf("Could not send '%d' messages to Elasticsearch", numberOfActionsAfter)
+	}
+
+	if bulkResponse != nil {
+		// Indexed returns information abount indexed documents
+		indexed := bulkResponse.Indexed()
+		prod.Logger.Debugf("%d messages indexed successfully in Elasticsearch", len(indexed))
+
+		// Created returns information about created documents
+		created := bulkResponse.Created()
+		prod.Logger.Debugf("%d messages created successfully in Elasticsearch", len(created))
+	}
 }
 
-func (prod *ElasticSearch) submitMessages() core.AssemblyFunc {
-	return func(messages []*core.Message) {
-		client, err := prod.getClient()
-		if err != nil {
-			prod.Logger.Error("Sending messages failed: ", err)
-			return
-		}
+// Produce starts the producer
+func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
+	defer prod.WorkerDone()
 
-		bulkRequest := client.Bulk()
-		ctx := context.Background()
-
-		for _, msg := range messages {
-			indexMapItem, isSet := prod.indexMap[msg.GetStreamID()]
-
-			if !isSet {
-				prod.Logger.Warningf("No index setting for stream %s", msg.GetStreamID().GetName())
-				continue
-			}
-
-			if indexMapItem.useDayIndex {
-				// create daily index ...
-				indexExists, _ := prod.isIndexExists(ctx, indexMapItem.name, client)
-				if !indexExists {
-					prod.createIndex(indexMapItem.name, indexMapItem.settings, indexExistsFalse)
-				}
-			}
-
-			bulkIndexRequest := elastic.NewBulkIndexRequest()
-			bulkIndexRequest.Index(indexMapItem.name).
-				Type(indexMapItem.typeName).
-				Doc(msg.String())
-
-			bulkRequest.Add(bulkIndexRequest)
-		}
-
-		// NumberOfActions contains the number of requests in a bulk
-		prod.Logger.Debugf("bulkRequest.NumberOfActions: %d", bulkRequest.NumberOfActions())
-
-		// Do sends the bulk requests to Elasticsearch
-		bulkResponse, err := bulkRequest.Do(ctx)
-		if err != nil {
-			prod.Logger.Error(err)
-		}
-
-		// Bulk request actions get cleared
-		numberOfActionsAfter := bulkRequest.NumberOfActions()
-		if numberOfActionsAfter != 0 {
-			prod.Logger.Errorf("Could not send '%d' messages to Elasticsearch", numberOfActionsAfter)
-		}
-
-		if bulkResponse != nil {
-			// Indexed returns information abount indexed documents
-			indexed := bulkResponse.Indexed()
-			prod.Logger.Debugf("%d messages indexed successfully in Elasticsearch", len(indexed))
-
-			// Created returns information about created documents
-			created := bulkResponse.Created()
-			prod.Logger.Debugf("%d messages created successfully in Elasticsearch", len(created))
+	// create all indexes that are not time based
+	for _, item := range prod.indexMap {
+		if !item.useTimeIndex {
+			prod.createIndexIfRequired(item.name, item.settings)
 		}
 	}
+
+	prod.AddMainWorker(workers)
+	prod.BatchMessageLoop(workers, func() core.AssemblyFunc { return prod.submitMessages })
 }
 
 // -- elasticConnection --
