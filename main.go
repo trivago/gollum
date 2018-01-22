@@ -16,6 +16,16 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"runtime"
+	"runtime/pprof"
+	"runtime/trace"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	_ "github.com/trivago/gollum/consumer"
 	"github.com/trivago/gollum/core"
@@ -28,15 +38,7 @@ import (
 	"github.com/trivago/tgo/thealthcheck"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tos"
-	"io/ioutil"
-	"os"
-	"runtime"
-	"runtime/pprof"
-	"runtime/trace"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // logrusHookBuffer is our single instance of LogrusHookBuffer
@@ -169,7 +171,7 @@ func initLogrus() func() {
 	}
 
 	if *flagLogColors == "always" ||
-		(*flagLogColors == "auto" && logrus.IsTerminal(logger.FallbackLogDevice)) {
+		(*flagLogColors == "auto" && terminal.IsTerminal(int(logger.FallbackLogDevice.Fd()))) {
 		// Logrus doesn't know the final log device, so we hint the color option here
 		logrus.SetFormatter(logger.NewConsoleFormatter())
 	}

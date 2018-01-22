@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 type digest_client struct {
@@ -22,6 +24,10 @@ type DigestAuth struct {
 	Opaque           string
 	Secrets          SecretProvider
 	PlainTextSecrets bool
+	IgnoreNonceCount bool
+	// Headers used by authenticator. Set to ProxyHeaders to use with
+	// proxy server. When nil, NormalHeaders are used.
+	Headers *Headers
 
 	/*
 	   Approximate size of Client's Cache. When actual number of
@@ -35,6 +41,9 @@ type DigestAuth struct {
 	clients map[string]*digest_client
 	mutex   sync.Mutex
 }
+
+// check that DigestAuth implements AuthenticatorInterface
+var _ = (AuthenticatorInterface)((*DigestAuth)(nil))
 
 type digest_cache_entry struct {
 	nonce     string
@@ -80,11 +89,12 @@ func (a *DigestAuth) RequireAuth(w http.ResponseWriter, r *http.Request) {
 	}
 	nonce := RandomKey()
 	a.clients[nonce] = &digest_client{nc: 0, last_seen: time.Now().UnixNano()}
-	w.Header().Set("WWW-Authenticate",
+	w.Header().Set(contentType, a.Headers.V().UnauthContentType)
+	w.Header().Set(a.Headers.V().Authenticate,
 		fmt.Sprintf(`Digest realm="%s", nonce="%s", opaque="%s", algorithm="MD5", qop="auth"`,
 			a.Realm, nonce, a.Opaque))
-	w.WriteHeader(401)
-	w.Write([]byte("401 Unauthorized\n"))
+	w.WriteHeader(a.Headers.V().UnauthCode)
+	w.Write([]byte(a.Headers.V().UnauthResponse))
 }
 
 /*
@@ -92,21 +102,13 @@ func (a *DigestAuth) RequireAuth(w http.ResponseWriter, r *http.Request) {
  auth parameters or nil if the header is not a valid parsable Digest
  auth header.
 */
-func DigestAuthParams(r *http.Request) map[string]string {
-	s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+func DigestAuthParams(authorization string) map[string]string {
+	s := strings.SplitN(authorization, " ", 2)
 	if len(s) != 2 || s[0] != "Digest" {
 		return nil
 	}
 
-	result := map[string]string{}
-	for _, kv := range strings.Split(s[1], ",") {
-		parts := strings.SplitN(kv, "=", 2)
-		if len(parts) != 2 {
-			continue
-		}
-		result[strings.Trim(parts[0], "\" ")] = strings.Trim(parts[1], "\" ")
-	}
-	return result
+	return ParsePairs(s[1])
 }
 
 /*
@@ -120,21 +122,45 @@ func (da *DigestAuth) CheckAuth(r *http.Request) (username string, authinfo *str
 	defer da.mutex.Unlock()
 	username = ""
 	authinfo = nil
-	auth := DigestAuthParams(r)
-	if auth == nil || da.Opaque != auth["opaque"] || auth["algorithm"] != "MD5" || auth["qop"] != "auth" {
-		return
+	auth := DigestAuthParams(r.Header.Get(da.Headers.V().Authorization))
+	if auth == nil {
+		return "", nil
+	}
+	// RFC2617 Section 3.2.1 specifies that unset value of algorithm in
+	// WWW-Authenticate Response header should be treated as
+	// "MD5". According to section 3.2.2 the "algorithm" value in
+	// subsequent Request Authorization header must be set to whatever
+	// was supplied in the WWW-Authenticate Response header. This
+	// implementation always returns an algorithm in WWW-Authenticate
+	// header, however there seems to be broken clients in the wild
+	// which do not set the algorithm. Assume the unset algorithm in
+	// Authorization header to be equal to MD5.
+	if _, ok := auth["algorithm"]; !ok {
+		auth["algorithm"] = "MD5"
+	}
+	if da.Opaque != auth["opaque"] || auth["algorithm"] != "MD5" || auth["qop"] != "auth" {
+		return "", nil
 	}
 
 	// Check if the requested URI matches auth header
-	switch u, err := url.Parse(auth["uri"]); {
-	case err != nil:
-		return
-	case r.URL == nil:
-		return
-	case len(u.Path) > len(r.URL.Path):
-		return
-	case !strings.HasPrefix(r.URL.Path, u.Path):
-		return
+	if r.RequestURI != auth["uri"] {
+		// We allow auth["uri"] to be a full path prefix of request-uri
+		// for some reason lost in history, which is probably wrong, but
+		// used to be like that for quite some time
+		// (https://tools.ietf.org/html/rfc2617#section-3.2.2 explicitly
+		// says that auth["uri"] is the request-uri).
+		//
+		// TODO: make an option to allow only strict checking.
+		switch u, err := url.Parse(auth["uri"]); {
+		case err != nil:
+			return "", nil
+		case r.URL == nil:
+			return "", nil
+		case len(u.Path) > len(r.URL.Path):
+			return "", nil
+		case !strings.HasPrefix(r.URL.Path, u.Path):
+			return "", nil
+		}
 	}
 
 	HA1 := da.Secrets(auth["username"], da.Realm)
@@ -145,7 +171,7 @@ func (da *DigestAuth) CheckAuth(r *http.Request) (username string, authinfo *str
 	KD := H(strings.Join([]string{HA1, auth["nonce"], auth["nc"], auth["cnonce"], auth["qop"], HA2}, ":"))
 
 	if subtle.ConstantTimeCompare([]byte(KD), []byte(auth["response"])) != 1 {
-		return
+		return "", nil
 	}
 
 	// At this point crypto checks are completed and validated.
@@ -153,14 +179,14 @@ func (da *DigestAuth) CheckAuth(r *http.Request) (username string, authinfo *str
 
 	nc, err := strconv.ParseUint(auth["nc"], 16, 64)
 	if err != nil {
-		return
+		return "", nil
 	}
 
 	if client, ok := da.clients[auth["nonce"]]; !ok {
-		return
+		return "", nil
 	} else {
-		if client.nc != 0 && client.nc >= nc {
-			return
+		if client.nc != 0 && client.nc >= nc && !da.IgnoreNonceCount {
+			return "", nil
 		}
 		client.nc = nc
 		client.last_seen = time.Now().UnixNano()
@@ -195,7 +221,7 @@ func (a *DigestAuth) Wrap(wrapped AuthenticatedHandlerFunc) http.HandlerFunc {
 		} else {
 			ar := &AuthenticatedRequest{Request: *r, Username: username}
 			if authinfo != nil {
-				w.Header().Set("Authentication-Info", *authinfo)
+				w.Header().Set(a.Headers.V().AuthInfo, *authinfo)
 			}
 			wrapped(w, ar)
 		}
@@ -209,9 +235,30 @@ func (a *DigestAuth) Wrap(wrapped AuthenticatedHandlerFunc) http.HandlerFunc {
 */
 func (a *DigestAuth) JustCheck(wrapped http.HandlerFunc) http.HandlerFunc {
 	return a.Wrap(func(w http.ResponseWriter, ar *AuthenticatedRequest) {
-		ar.Header.Set("X-Authenticated-Username", ar.Username)
+		ar.Header.Set(AuthUsernameHeader, ar.Username)
 		wrapped(w, &ar.Request)
 	})
+}
+
+// NewContext returns a context carrying authentication information for the request.
+func (a *DigestAuth) NewContext(ctx context.Context, r *http.Request) context.Context {
+	username, authinfo := a.CheckAuth(r)
+	info := &Info{Username: username, ResponseHeaders: make(http.Header)}
+	if username != "" {
+		info.Authenticated = true
+		info.ResponseHeaders.Set(a.Headers.V().AuthInfo, *authinfo)
+	} else {
+		// return back digest WWW-Authenticate header
+		if len(a.clients) > a.ClientCacheSize+a.ClientCacheTolerance {
+			a.Purge(a.ClientCacheTolerance * 2)
+		}
+		nonce := RandomKey()
+		a.clients[nonce] = &digest_client{nc: 0, last_seen: time.Now().UnixNano()}
+		info.ResponseHeaders.Set(a.Headers.V().Authenticate,
+			fmt.Sprintf(`Digest realm="%s", nonce="%s", opaque="%s", algorithm="MD5", qop="auth"`,
+				a.Realm, nonce, a.Opaque))
+	}
+	return context.WithValue(ctx, infoKey, info)
 }
 
 func NewDigestAuthenticator(realm string, secrets SecretProvider) *DigestAuth {

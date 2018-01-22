@@ -21,7 +21,7 @@ import (
 //
 // The best way to use this interface is so the SDK's service client's calls
 // can be stubbed out for unit testing your code with the SDK without needing
-// to inject custom request handlers into the the SDK's request pipeline.
+// to inject custom request handlers into the SDK's request pipeline.
 //
 //    // myFunc uses an SDK service client to make a request to
 //    // Amazon WorkDocs.
@@ -132,6 +132,10 @@ type WorkDocsAPI interface {
 	DeleteUserWithContext(aws.Context, *workdocs.DeleteUserInput, ...request.Option) (*workdocs.DeleteUserOutput, error)
 	DeleteUserRequest(*workdocs.DeleteUserInput) (*request.Request, *workdocs.DeleteUserOutput)
 
+	DescribeActivities(*workdocs.DescribeActivitiesInput) (*workdocs.DescribeActivitiesOutput, error)
+	DescribeActivitiesWithContext(aws.Context, *workdocs.DescribeActivitiesInput, ...request.Option) (*workdocs.DescribeActivitiesOutput, error)
+	DescribeActivitiesRequest(*workdocs.DescribeActivitiesInput) (*request.Request, *workdocs.DescribeActivitiesOutput)
+
 	DescribeComments(*workdocs.DescribeCommentsInput) (*workdocs.DescribeCommentsOutput, error)
 	DescribeCommentsWithContext(aws.Context, *workdocs.DescribeCommentsInput, ...request.Option) (*workdocs.DescribeCommentsOutput, error)
 	DescribeCommentsRequest(*workdocs.DescribeCommentsInput) (*request.Request, *workdocs.DescribeCommentsOutput)
@@ -150,6 +154,10 @@ type WorkDocsAPI interface {
 	DescribeFolderContentsPages(*workdocs.DescribeFolderContentsInput, func(*workdocs.DescribeFolderContentsOutput, bool) bool) error
 	DescribeFolderContentsPagesWithContext(aws.Context, *workdocs.DescribeFolderContentsInput, func(*workdocs.DescribeFolderContentsOutput, bool) bool, ...request.Option) error
 
+	DescribeGroups(*workdocs.DescribeGroupsInput) (*workdocs.DescribeGroupsOutput, error)
+	DescribeGroupsWithContext(aws.Context, *workdocs.DescribeGroupsInput, ...request.Option) (*workdocs.DescribeGroupsOutput, error)
+	DescribeGroupsRequest(*workdocs.DescribeGroupsInput) (*request.Request, *workdocs.DescribeGroupsOutput)
+
 	DescribeNotificationSubscriptions(*workdocs.DescribeNotificationSubscriptionsInput) (*workdocs.DescribeNotificationSubscriptionsOutput, error)
 	DescribeNotificationSubscriptionsWithContext(aws.Context, *workdocs.DescribeNotificationSubscriptionsInput, ...request.Option) (*workdocs.DescribeNotificationSubscriptionsOutput, error)
 	DescribeNotificationSubscriptionsRequest(*workdocs.DescribeNotificationSubscriptionsInput) (*request.Request, *workdocs.DescribeNotificationSubscriptionsOutput)
@@ -158,12 +166,20 @@ type WorkDocsAPI interface {
 	DescribeResourcePermissionsWithContext(aws.Context, *workdocs.DescribeResourcePermissionsInput, ...request.Option) (*workdocs.DescribeResourcePermissionsOutput, error)
 	DescribeResourcePermissionsRequest(*workdocs.DescribeResourcePermissionsInput) (*request.Request, *workdocs.DescribeResourcePermissionsOutput)
 
+	DescribeRootFolders(*workdocs.DescribeRootFoldersInput) (*workdocs.DescribeRootFoldersOutput, error)
+	DescribeRootFoldersWithContext(aws.Context, *workdocs.DescribeRootFoldersInput, ...request.Option) (*workdocs.DescribeRootFoldersOutput, error)
+	DescribeRootFoldersRequest(*workdocs.DescribeRootFoldersInput) (*request.Request, *workdocs.DescribeRootFoldersOutput)
+
 	DescribeUsers(*workdocs.DescribeUsersInput) (*workdocs.DescribeUsersOutput, error)
 	DescribeUsersWithContext(aws.Context, *workdocs.DescribeUsersInput, ...request.Option) (*workdocs.DescribeUsersOutput, error)
 	DescribeUsersRequest(*workdocs.DescribeUsersInput) (*request.Request, *workdocs.DescribeUsersOutput)
 
 	DescribeUsersPages(*workdocs.DescribeUsersInput, func(*workdocs.DescribeUsersOutput, bool) bool) error
 	DescribeUsersPagesWithContext(aws.Context, *workdocs.DescribeUsersInput, func(*workdocs.DescribeUsersOutput, bool) bool, ...request.Option) error
+
+	GetCurrentUser(*workdocs.GetCurrentUserInput) (*workdocs.GetCurrentUserOutput, error)
+	GetCurrentUserWithContext(aws.Context, *workdocs.GetCurrentUserInput, ...request.Option) (*workdocs.GetCurrentUserOutput, error)
+	GetCurrentUserRequest(*workdocs.GetCurrentUserInput) (*request.Request, *workdocs.GetCurrentUserOutput)
 
 	GetDocument(*workdocs.GetDocumentInput) (*workdocs.GetDocumentOutput, error)
 	GetDocumentWithContext(aws.Context, *workdocs.GetDocumentInput, ...request.Option) (*workdocs.GetDocumentOutput, error)
