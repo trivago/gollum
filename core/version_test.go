@@ -15,22 +15,10 @@
 package core
 
 import (
-	"github.com/trivago/tgo/ttesting"
-	"strconv"
-	"strings"
 	"testing"
+
+	"github.com/trivago/tgo/ttesting"
 )
-
-func TestGetVersionString(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-	versionStr := GetVersionString()
-
-	expect.True(strings.Contains(versionStr, "v"))
-	expect.True(strings.Contains(versionStr, "."))
-	expect.True(strings.Contains(versionStr, strconv.Itoa(gollumMajorVer)))
-	expect.True(strings.Contains(versionStr, strconv.Itoa(gollumMinorVer)))
-	expect.True(strings.Contains(versionStr, strconv.Itoa(gollumPatchVer)))
-}
 
 func TestGetVersionNumber(t *testing.T) {
 	expect := ttesting.NewExpect(t)

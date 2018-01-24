@@ -5,16 +5,17 @@ GOLLUM_DIRTY := $(if $(shell git status --porcelain),-dirty)
 GOLLUM_VERSION := $(join $(GOLLUM_TAG),$(GOLLUM_DIRTY))
 
 GO_ENV := GORACE="halt_on_error=0"
-GO_FLAGS := -tags netgo -ldflags="-s -X 'github.com/trivago/gollum/core.versionString=$(GOLLUM_VERSION)'"
+GO_FLAGS := -ldflags="-s -X 'github.com/trivago/gollum/core.versionString=$(GOLLUM_VERSION)'"
 GO_FLAGS_DEBUG := $(GO_FLAGS) -ldflags='-linkmode=internal' -gcflags='-N -l'
 
-UNIT_TEST_TAGS="unit"
-INTEGRATION_TEST_TAGS="integration"
+GO_TAGS=netgo
+UNIT_TEST_TAG=unit
+INTEGRATION_TEST_TAG=integration
 
 GOFMT_OPTIONS=-s
 
-UNIT_TEST_ONLY_PKGS=$(shell go list -tags ${UNIT_TEST_TAGS} ./... | grep -v "/vendor/" | grep -v "/contrib/" | grep -v "/testing/integration" )
-INTEGRATION_TEST_ONLY_PKGS=$(shell go list -tags ${INTEGRATION_TEST_TAGS} ./testing/integration/...)
+UNIT_TEST_ONLY_PKGS=$(shell go list -tags="${UNIT_TEST_TAG}" ./... | grep -v "/vendor/" | grep -v "/contrib/" | grep -v "/testing/integration" )
+INTEGRATION_TEST_ONLY_PKGS=$(shell go list -tags="${INTEGRATION_TEST_TAG}" ./testing/integration/...)
 
 CHECK_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/vendor/')
 CHECK_FILES=$(shell find . -type f -name '*.go' | grep -vE '^\./vendor/')
@@ -31,39 +32,39 @@ all:: clean test freebsd linux docker mac pi win
 
 freebsd::
 	@echo "Building for FreeBSD/x64"
-	@GOOS=freebsd GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -o gollum
+	@GOOS=freebsd GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum
 	@rm -f dist/gollum-$(GOLLUM_VERSION)-FreeBSD_x64.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-FreeBSD_x64.zip gollum
 
 linux::
 	@echo "Building for Linux/x64"
-	@GOOS=linux GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -o gollum
+	@GOOS=linux GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum
 	@rm -f dist/gollum-$(GOLLUM_VERSION)-Linux_x64.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-Linux_x64.zip gollum
 
 mac::
 	@echo "Building for MacOS X (MacOS/x64)"
-	@GOOS=darwin GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -o gollum
+	@GOOS=darwin GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum
 	@rm -f dist/gollum-$(GOLLUM_VERSION)-MacOS_x64.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-MacOS_x64.zip gollum
 
 pi::
 	@echo "Building for Raspberry Pi (Linux/ARMv6)"
-	@GOOS=linux GOARCH=arm GOARM=6 $(GO_ENV) go build $(GO_FLAGS) -o gollum
+	@GOOS=linux GOARCH=arm GOARM=6 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum
 	@rm -f dist/gollum-$(GOLLUM_VERSION)-Linux_Arm6.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-Linux_Arm6.zip gollum
 
 win::
 	@echo "Building for Windows/x64"
-	@GOOS=windows GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -o gollum.exe
+	@GOOS=windows GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum.exe
 	@rm -f dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip gollum
 
 current::
-	@$(GO_ENV) go build $(GO_FLAGS)
+	@$(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}"
 
 debug::
-	@$(GO_ENV) go build $(GO_FLAGS_DEBUG)
+	@$(GO_ENV) go build $(GO_FLAGS_DEBUG) -tags="${GO_TAGS}"
 
 install:: current
 	@go install
@@ -126,14 +127,14 @@ test:: vet lint fmt-check unit integration
 
 unit::
 	@echo "go tests SDK"
-	$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags ${UNIT_TEST_TAGS} $(UNIT_TEST_ONLY_PKGS)
+	$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags="${GO_TAGS} $(UNIT_TEST_TAG)" $(UNIT_TEST_ONLY_PKGS)
 
 coverprofile::
 	@echo "go tests -covermode=count -coverprofile=profile.cov"
-	@$(GO_ENV) go test $(GO_FLAGS) -covermode=count -coverprofile=core.cov ./core
-	@$(GO_ENV) go test $(GO_FLAGS) -covermode=count -coverprofile=format.cov ./format
-	@$(GO_ENV) go test $(GO_FLAGS) -covermode=count -coverprofile=filter.cov ./filter
-	@$(GO_ENV) go test $(GO_FLAGS) -covermode=count -coverprofile=router.cov ./router
+	@$(GO_ENV) go test $(GO_FLAGS) -tags="${GO_TAGS}" -covermode=count -coverprofile=core.cov ./core
+	@$(GO_ENV) go test $(GO_FLAGS) -tags="${GO_TAGS}" -covermode=count -coverprofile=format.cov ./format
+	@$(GO_ENV) go test $(GO_FLAGS) -tags="${GO_TAGS}" -covermode=count -coverprofile=filter.cov ./filter
+	@$(GO_ENV) go test $(GO_FLAGS) -tags="${GO_TAGS}" -covermode=count -coverprofile=router.cov ./router
 
 	@echo "INFO: start generating profile.cov"
 	@rm -f profile.tmp profile.cov
@@ -147,7 +148,7 @@ coverprofile::
 
 integration:: current
 	@echo "go tests integration"
-	$(GO_ENV) go test $(GO_FLAGS) -v -race -tags="integration" $(INTEGRATION_TEST_ONLY_PKGS)
+	$(GO_ENV) go test $(GO_FLAGS) -v -race -tags="${GO_TAGS} $(INTEGRATION_TEST_TAG)" $(INTEGRATION_TEST_ONLY_PKGS)
 
 pre-commit:: vet lint fmt ineffassign
 
