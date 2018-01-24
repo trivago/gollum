@@ -1,5 +1,14 @@
 # Gollum changelog
 
+## 0.5.2
+
+This is a patch / minor features release.
+
+### New with 0.5.1
+
+ * the version number is now generated via make and git. This will properly identify versions between releases.
+
+
 ## 0.5.1
 
 This is a patch / minor features release.
