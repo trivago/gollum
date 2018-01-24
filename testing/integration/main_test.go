@@ -3,10 +3,12 @@
 package integration
 
 import (
-	"github.com/trivago/tgo/ttesting"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/ttesting"
 )
 
 var TmpTestFiles = []string{tmpTestFilePathDefault, tmpTestFilePathFoo, tmpTestFilePathBar}
@@ -39,7 +41,7 @@ func TestRunableVersion(t *testing.T) {
 	out, err := ExecuteGollum("", nil, "-v")
 
 	expect.NoError(err)
-	expect.Equal(0, strings.Index(out.String(), "v"))
+	expect.Equal(core.GetVersionString()+"\n", out.String())
 }
 
 func TestRunableList(t *testing.T) {
