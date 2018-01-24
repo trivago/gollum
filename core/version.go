@@ -15,35 +15,36 @@
 package core
 
 import (
-	"fmt"
+	"strconv"
+	"strings"
 )
 
-const (
-	gollumMajorVer = 0
-	gollumMinorVer = 6
-	gollumPatchVer = 0
-	gollumDevVer   = 0
-)
+var versionString string
 
 // GetVersionString return a symantic version string
 func GetVersionString() string {
-	var versionStr string
-
-	if gollumDevVer > 0 {
-		versionStr = fmt.Sprintf("v%d.%d.%d.%d-dev", gollumMajorVer, gollumMinorVer, gollumPatchVer, gollumDevVer)
-	} else {
-		versionStr = fmt.Sprintf("v%d.%d.%d", gollumMajorVer, gollumMinorVer, gollumPatchVer)
+	if len(versionString) == 0 {
+		return "0.0.0-non_make_build"
 	}
-
-	return versionStr
+	return versionString
 }
 
 // GetVersionNumber return a symantic based version number
 func GetVersionNumber() int64 {
-	//todo: why are different multiplicators here in use?
-	if gollumDevVer > 0 {
-		return gollumMajorVer*1000000 + gollumMinorVer*10000 + gollumPatchVer*100 + gollumDevVer
-	}
+	parts := strings.Split(GetVersionString(), ".")
+	multiplier := int64(100 * 100) // major, minor, patch
+	version := int64(0)
+	for i, subVerString := range parts {
+		if i == 3 {
+			break // done
+		}
+		subVer, err := strconv.Atoi(subVerString)
+		if err != nil {
+			break // cannot parse
+		}
+		version += int64(subVer) * multiplier
+		multiplier /= 100
 
-	return gollumMajorVer*10000 + gollumMinorVer*100 + gollumPatchVer
+	}
+	return version
 }
