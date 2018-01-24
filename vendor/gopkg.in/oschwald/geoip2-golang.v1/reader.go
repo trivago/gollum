@@ -1,7 +1,7 @@
 // Package geoip2 provides an easy-to-use API for the MaxMind GeoIP2 and
 // GeoLite2 databases; this package does not support GeoIP Legacy databases.
 //
-// The strucs provided by this package match the internal structure of
+// The structs provided by this package match the internal structure of
 // the data in the MaxMind databases.
 //
 // See github.com/oschwald/maxminddb-golang for more advanced used cases.
@@ -103,6 +103,12 @@ type AnonymousIP struct {
 	IsTorExitNode     bool `maxminddb:"is_tor_exit_node"`
 }
 
+// The ASN struct corresponds to the data in the GeoLite2 ASN database.
+type ASN struct {
+	AutonomousSystemNumber       uint   `maxminddb:"autonomous_system_number"`
+	AutonomousSystemOrganization string `maxminddb:"autonomous_system_organization"`
+}
+
 // The ConnectionType struct corresponds to the data in the GeoIP2
 // Connection-Type database.
 type ConnectionType struct {
@@ -126,6 +132,7 @@ type databaseType int
 
 const (
 	isAnonymousIP = 1 << iota
+	isASN
 	isCity
 	isConnectionType
 	isCountry
@@ -179,7 +186,7 @@ func Open(file string) (*Reader, error) {
 
 // FromBytes takes a byte slice corresponding to a GeoIP2/GeoLite2 database
 // file and returns a Reader struct or an error. Note that the byte slice is
-// use directly; any modication of it after opening the database will result
+// use directly; any modification of it after opening the database will result
 // in errors while reading from the database.
 func FromBytes(bytes []byte) (*Reader, error) {
 	reader, err := maxminddb.FromBytes(bytes)
@@ -194,8 +201,18 @@ func getDBType(reader *maxminddb.Reader) (databaseType, error) {
 	switch reader.Metadata.DatabaseType {
 	case "GeoIP2-Anonymous-IP":
 		return isAnonymousIP, nil
+	case "GeoLite2-ASN":
+		return isASN, nil
 	// We allow City lookups on Country for back compat
-	case "GeoLite2-City", "GeoIP2-City", "GeoIP2-Precision-City", "GeoLite2-Country",
+	case "GeoLite2-City",
+		"GeoIP2-City",
+		"GeoIP2-City-Africa",
+		"GeoIP2-City-Asia-Pacific",
+		"GeoIP2-City-Europe",
+		"GeoIP2-City-North-America",
+		"GeoIP2-City-South-America",
+		"GeoIP2-Precision-City",
+		"GeoLite2-Country",
 		"GeoIP2-Country":
 		return isCity | isCountry, nil
 	case "GeoIP2-Connection-Type":
@@ -245,6 +262,17 @@ func (r *Reader) AnonymousIP(ipAddress net.IP) (*AnonymousIP, error) {
 	var anonIP AnonymousIP
 	err := r.mmdbReader.Lookup(ipAddress, &anonIP)
 	return &anonIP, err
+}
+
+// ASN takes an IP address as a net.IP struct and returns a ASN struct and/or
+// an error
+func (r *Reader) ASN(ipAddress net.IP) (*ASN, error) {
+	if isASN&r.databaseType == 0 {
+		return nil, InvalidMethodError{"ASN", r.Metadata().DatabaseType}
+	}
+	var val ASN
+	err := r.mmdbReader.Lookup(ipAddress, &val)
+	return &val, err
 }
 
 // ConnectionType takes an IP address as a net.IP struct and returns a

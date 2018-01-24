@@ -15,6 +15,8 @@
 package format
 
 import (
+	"strings"
+
 	"github.com/trivago/gollum/core"
 )
 
@@ -25,34 +27,54 @@ import (
 //
 // Parameters
 //
-// - CopyToKeys: A list of meta data keys to copy the payload or metadata
-// content to.
+// - Key: Defines the key to copy, i.e. the "source". ApplyTo will define
+// the target of the copy, i.e. the "destination". An empty string will
+// use the message payload as source.
+// By default this parameter is set to an empty string (i.e. payload).
+//
+// - Mode: Defines the copy mode to use. This can be one of "append",
+// "prepend" or "replace".
+// By default this parameter is set to "replace".
+//
+// - Separator: When using mode prepend or append, defines the characters
+// inserted between source and destination.
+// By default this parameter is set to an empty string.
+//
+// - CopyToKeys: DEPRECATED. A list of meta data keys to copy the payload
+// or metadata content to. If this field contains at least one value, mode
+// is set to replace and the key field is ignored.
 // By default this parameter is set to an empty list.
 //
 // Examples
 //
-// This example copies the payload to the fields prefix and key. The prefix
-// field will extract everything up to the first space as hostname, the key
-// field will contain a hash over the complete payload.
+// This example copies the payload to the field key and applies a hash on
+// it contain a hash over the complete payload.
 //
 //  exampleConsumer:
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
 //      - format.MetadataCopy:
-//        CopyToKeys: ["prefix", "key"]
-//      - format.SplitPick:
-//        ApplyTo: prefix
-//        Delimiter: " "
-//        Index: 0
+//        ApplyTo: key
 //      - formatter.Identifier
 //        Generator: hash
 //        ApplyTo: key
 //
 type MetadataCopy struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	metaDataKeys         []string `config:"CopyToKeys"`
+	key                  string   `config:"Key"`
+	separator            []byte   `config:"Separator"`
+	metaDataKeys         []string `config:"CopyToKeys"` // deprecated
+	mode                 metadataCopyMode
 }
+
+type metadataCopyMode int
+
+const (
+	metadataCopyModeAppend  = metadataCopyMode(iota)
+	metadataCopyModeReplace = metadataCopyMode(iota)
+	metadataCopyModePrepend = metadataCopyMode(iota)
+)
 
 func init() {
 	core.TypeRegistry.Register(MetadataCopy{})
@@ -60,18 +82,58 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *MetadataCopy) Configure(conf core.PluginConfigReader) {
+	mode := conf.GetString("Mode", "replace")
+	switch strings.ToLower(mode) {
+	case "replace":
+		format.mode = metadataCopyModeReplace
+	case "append":
+		format.mode = metadataCopyModeAppend
+	case "prepend":
+		format.mode = metadataCopyModePrepend
+	default:
+		conf.Errors.Pushf("mode must be one of replace, append or prepend")
+	}
 }
 
 // ApplyFormatter update message payload
 func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
-	meta := msg.GetMetadata()
-	data := format.GetAppliedContent(msg)
-	pool := core.MessageDataPool
 
-	for _, key := range format.metaDataKeys {
-		bufferCopy := pool.Get(len(data))
-		copy(bufferCopy, data)
-		meta.SetValue(key, bufferCopy)
+	if len(format.metaDataKeys) > 0 {
+		// DEPRECATED
+		// This codepath will be removed in 0.6
+		meta := msg.GetMetadata()
+		data := format.GetAppliedContent(msg)
+		pool := core.MessageDataPool
+
+		for _, key := range format.metaDataKeys {
+			bufferCopy := pool.Get(len(data))
+			copy(bufferCopy, data)
+			meta.SetValue(key, bufferCopy)
+		}
+		return nil
 	}
+
+	getSourceData := core.GetAppliedContentGetFunction(format.key)
+	srcData := getSourceData(msg)
+
+	switch format.mode {
+	case metadataCopyModeReplace:
+		format.SetAppliedContent(msg, srcData)
+
+	case metadataCopyModePrepend:
+		dstData := format.GetAppliedContent(msg)
+		if len(format.separator) != 0 {
+			srcData = append(srcData, format.separator...)
+		}
+		format.SetAppliedContent(msg, append(srcData, dstData...))
+
+	case metadataCopyModeAppend:
+		dstData := format.GetAppliedContent(msg)
+		if len(format.separator) != 0 {
+			dstData = append(dstData, format.separator...)
+		}
+		format.SetAppliedContent(msg, append(dstData, srcData...))
+	}
+
 	return nil
 }

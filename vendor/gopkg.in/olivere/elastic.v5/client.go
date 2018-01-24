@@ -26,7 +26,7 @@ import (
 
 const (
 	// Version is the current version of Elastic.
-	Version = "5.0.45"
+	Version = "5.0.62"
 
 	// DefaultURL is the default endpoint of Elasticsearch on the local machine.
 	// It is used e.g. when initializing a new Client without a specific URL.
@@ -1059,7 +1059,6 @@ func (c *Client) healthcheck(timeout time.Duration, force bool) {
 		case <-ctx.Done(): // timeout
 			c.errorf("elastic: %s is dead", conn.URL())
 			conn.MarkAsDead()
-			break
 		case err := <-errc:
 			if err != nil {
 				c.errorf("elastic: %s is dead", conn.URL())
@@ -1072,7 +1071,6 @@ func (c *Client) healthcheck(timeout time.Duration, force bool) {
 				conn.MarkAsDead()
 				c.errorf("elastic: %s is dead [status=%d]", conn.URL(), status)
 			}
-			break
 		}
 	}
 }
@@ -1088,6 +1086,7 @@ func (c *Client) startupHealthcheck(timeout time.Duration) error {
 	c.mu.Unlock()
 
 	// If we don't get a connection after "timeout", we bail.
+	var lastErr error
 	start := time.Now()
 	for {
 		// Make a copy of the HTTP client provided via options to respect
@@ -1106,12 +1105,17 @@ func (c *Client) startupHealthcheck(timeout time.Duration) error {
 			res, err := cl.Do(req)
 			if err == nil && res != nil && res.StatusCode >= 200 && res.StatusCode < 300 {
 				return nil
+			} else if err != nil {
+				lastErr = err
 			}
 		}
 		time.Sleep(1 * time.Second)
 		if time.Now().Sub(start) > timeout {
 			break
 		}
+	}
+	if lastErr != nil {
+		return errors.Wrapf(ErrNoClient, "health check timeout: %v", lastErr)
 	}
 	return errors.Wrap(ErrNoClient, "health check timeout")
 }
@@ -1169,13 +1173,52 @@ func (c *Client) mustActiveConn() error {
 	return errors.Wrap(ErrNoClient, "no active connection found")
 }
 
+// -- PerformRequest --
+
+// PerformRequestOptions must be passed into PerformRequest.
+type PerformRequestOptions struct {
+	Method       string
+	Path         string
+	Params       url.Values
+	Body         interface{}
+	ContentType  string
+	IgnoreErrors []int
+	Retrier      Retrier
+}
+
 // PerformRequest does a HTTP request to Elasticsearch.
+// See PerformRequestWithContentType for details.
+func (c *Client) PerformRequest(ctx context.Context, method, path string, params url.Values, body interface{}, ignoreErrors ...int) (*Response, error) {
+	return c.PerformRequestWithOptions(ctx, PerformRequestOptions{
+		Method:       method,
+		Path:         path,
+		Params:       params,
+		Body:         body,
+		ContentType:  "application/json",
+		IgnoreErrors: ignoreErrors,
+	})
+}
+
+// PerformRequestWithContentType executes a HTTP request with a specific content type.
 // It returns a response (which might be nil) and an error on failure.
 //
 // Optionally, a list of HTTP error codes to ignore can be passed.
 // This is necessary for services that expect e.g. HTTP status 404 as a
 // valid outcome (Exists, IndicesExists, IndicesTypeExists).
-func (c *Client) PerformRequest(ctx context.Context, method, path string, params url.Values, body interface{}, ignoreErrors ...int) (*Response, error) {
+func (c *Client) PerformRequestWithContentType(ctx context.Context, method, path string, params url.Values, body interface{}, contentType string, ignoreErrors ...int) (*Response, error) {
+	return c.PerformRequestWithOptions(ctx, PerformRequestOptions{
+		Method:       method,
+		Path:         path,
+		Params:       params,
+		Body:         body,
+		ContentType:  contentType,
+		IgnoreErrors: ignoreErrors,
+	})
+}
+
+// PerformRequestWithOptions executes a HTTP request with the specified options.
+// It returns a response (which might be nil) and an error on failure.
+func (c *Client) PerformRequestWithOptions(ctx context.Context, opt PerformRequestOptions) (*Response, error) {
 	start := time.Now().UTC()
 
 	c.mu.RLock()
@@ -1185,6 +1228,10 @@ func (c *Client) PerformRequest(ctx context.Context, method, path string, params
 	basicAuthPassword := c.basicAuthPassword
 	sendGetBodyAs := c.sendGetBodyAs
 	gzipEnabled := c.gzipEnabled
+	retrier := c.retrier
+	if opt.Retrier != nil {
+		retrier = opt.Retrier
+	}
 	c.mu.RUnlock()
 
 	var err error
@@ -1195,14 +1242,14 @@ func (c *Client) PerformRequest(ctx context.Context, method, path string, params
 	var n int
 
 	// Change method if sendGetBodyAs is specified.
-	if method == "GET" && body != nil && sendGetBodyAs != "GET" {
-		method = sendGetBodyAs
+	if opt.Method == "GET" && opt.Body != nil && sendGetBodyAs != "GET" {
+		opt.Method = sendGetBodyAs
 	}
 
 	for {
-		pathWithParams := path
-		if len(params) > 0 {
-			pathWithParams += "?" + params.Encode()
+		pathWithParams := opt.Path
+		if len(opt.Params) > 0 {
+			pathWithParams += "?" + opt.Params.Encode()
 		}
 
 		// Get a connection
@@ -1213,7 +1260,7 @@ func (c *Client) PerformRequest(ctx context.Context, method, path string, params
 				// Force a healtcheck as all connections seem to be dead.
 				c.healthcheck(timeout, false)
 			}
-			wait, ok, rerr := c.retrier.Retry(ctx, n, nil, nil, err)
+			wait, ok, rerr := retrier.Retry(ctx, n, nil, nil, err)
 			if rerr != nil {
 				return nil, rerr
 			}
@@ -1229,21 +1276,24 @@ func (c *Client) PerformRequest(ctx context.Context, method, path string, params
 			return nil, err
 		}
 
-		req, err = NewRequest(method, conn.URL()+pathWithParams)
+		req, err = NewRequest(opt.Method, conn.URL()+pathWithParams)
 		if err != nil {
-			c.errorf("elastic: cannot create request for %s %s: %v", strings.ToUpper(method), conn.URL()+pathWithParams, err)
+			c.errorf("elastic: cannot create request for %s %s: %v", strings.ToUpper(opt.Method), conn.URL()+pathWithParams, err)
 			return nil, err
 		}
 
 		if basicAuth {
 			req.SetBasicAuth(basicAuthUsername, basicAuthPassword)
 		}
+		if opt.ContentType != "" {
+			req.Header.Set("Content-Type", opt.ContentType)
+		}
 
 		// Set body
-		if body != nil {
-			err = req.SetBody(body, gzipEnabled)
+		if opt.Body != nil {
+			err = req.SetBody(opt.Body, gzipEnabled)
 			if err != nil {
-				c.errorf("elastic: couldn't set body %+v for request: %v", body, err)
+				c.errorf("elastic: couldn't set body %+v for request: %v", opt.Body, err)
 				return nil, err
 			}
 		}
@@ -1266,7 +1316,7 @@ func (c *Client) PerformRequest(ctx context.Context, method, path string, params
 		}
 		if err != nil {
 			n++
-			wait, ok, rerr := c.retrier.Retry(ctx, n, (*http.Request)(req), res, err)
+			wait, ok, rerr := retrier.Retry(ctx, n, (*http.Request)(req), res, err)
 			if rerr != nil {
 				c.errorf("elastic: %s is dead", conn.URL())
 				conn.MarkAsDead()
@@ -1289,7 +1339,7 @@ func (c *Client) PerformRequest(ctx context.Context, method, path string, params
 		c.dumpResponse(res)
 
 		// Check for errors
-		if err := checkResponse((*http.Request)(req), res, ignoreErrors...); err != nil {
+		if err := checkResponse((*http.Request)(req), res, opt.IgnoreErrors...); err != nil {
 			// No retry if request succeeded
 			// We still try to return a response.
 			resp, _ = c.newResponse(res)
@@ -1309,7 +1359,7 @@ func (c *Client) PerformRequest(ctx context.Context, method, path string, params
 
 	duration := time.Now().UTC().Sub(start)
 	c.infof("%s %s [status:%d, request:%.3fs]",
-		strings.ToUpper(method),
+		strings.ToUpper(opt.Method),
 		req.URL,
 		resp.StatusCode,
 		float64(int64(duration/time.Millisecond))/1000)
@@ -1423,6 +1473,11 @@ func (c *Client) Explain(index, typ, id string) *ExplainService {
 // TODO Search Exists API
 // TODO Validate API
 
+// FieldCaps returns statistical information about fields in indices.
+func (c *Client) FieldCaps(indices ...string) *FieldCapsService {
+	return NewFieldCapsService(c).Index(indices...)
+}
+
 // FieldStats returns statistical information about fields in indices.
 func (c *Client) FieldStats(indices ...string) *FieldStatsService {
 	return NewFieldStatsService(c).Index(indices...)
@@ -1507,6 +1562,11 @@ func (c *Client) IndexGetSettings(indices ...string) *IndicesGetSettingsService 
 // IndexPutSettings sets settings for all, one or more indices.
 func (c *Client) IndexPutSettings(indices ...string) *IndicesPutSettingsService {
 	return NewIndicesPutSettingsService(c).Index(indices...)
+}
+
+// IndexSegments retrieves low level segment information for all, one or more indices.
+func (c *Client) IndexSegments(indices ...string) *IndicesSegmentsService {
+	return NewIndicesSegmentsService(c).Index(indices...)
 }
 
 // IndexAnalyze performs the analysis process on a text and returns the

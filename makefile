@@ -99,27 +99,10 @@ list-gitignored:
 # Vendor management
 
 vendor:
-	@glide cc
-	glide update --strip-vendor
+	@dep init
 
-# Runs "glide install" in a managed way - clears glide's cache and removes git-ignored stuff from ./vendor.
-# This leaves ./vendor in the same state it would be when checked out with git.
-vendor-install: _vendor-install vendor-rm-ignored
-
-_vendor-install:
-	glide cache-clear
-	rm -rf vendor
-	glide install --strip-vendor
-
-# Runs "glide update" in a managed way - clears glide's cache and removes ignored stuff from ./vendor
-# This leaves ./vendor in the same state it would be when checked out with git.
-vendor-update: _vendor-update vendor-rm-ignored
-
-_vendor-update:
-	glide cache-clear
-	rm -rf vendor
-	rm glide.lock
-	glide update --strip-vendor
+vendor-update: vendor
+	@dep ensure
 
 # Lists files & directories under ./vendor that are ignored by git.
 vendor-list-ignored:

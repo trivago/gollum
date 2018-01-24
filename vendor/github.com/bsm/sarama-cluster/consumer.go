@@ -11,58 +11,32 @@ import (
 
 // Consumer is a cluster group consumer
 type Consumer struct {
-	client *Client
+	client    *Client
+	ownClient bool
 
-	csmr sarama.Consumer
-	subs *partitionMap
+	consumer sarama.Consumer
+	subs     *partitionMap
 
-	consumerID   string
-	generationID int32
-	groupID      string
+	consumerID string
+	groupID    string
+
 	memberID     string
+	generationID int32
+	membershipMu sync.RWMutex
 
 	coreTopics  []string
 	extraTopics []string
 
 	dying, dead chan none
+	closeOnce   sync.Once
 
 	consuming     int32
-	errors        chan error
 	messages      chan *sarama.ConsumerMessage
+	errors        chan error
+	partitions    chan PartitionConsumer
 	notifications chan *Notification
 
 	commitMu sync.Mutex
-}
-
-// NewConsumerFromClient initializes a new consumer from an existing client
-func NewConsumerFromClient(client *Client, groupID string, topics []string) (*Consumer, error) {
-	csmr, err := sarama.NewConsumerFromClient(client.Client)
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Strings(topics)
-	c := &Consumer{
-		client:  client,
-		csmr:    csmr,
-		subs:    newPartitionMap(),
-		groupID: groupID,
-
-		coreTopics: topics,
-
-		dying: make(chan none),
-		dead:  make(chan none),
-
-		errors:        make(chan error, client.config.ChannelBufferSize),
-		messages:      make(chan *sarama.ConsumerMessage),
-		notifications: make(chan *Notification, 1),
-	}
-	if err := c.client.RefreshCoordinator(groupID); err != nil {
-		return nil, err
-	}
-
-	go c.mainLoop()
-	return c, nil
 }
 
 // NewConsumer initializes a new consumer
@@ -74,16 +48,72 @@ func NewConsumer(addrs []string, groupID string, topics []string, config *Config
 
 	consumer, err := NewConsumerFromClient(client, groupID, topics)
 	if err != nil {
-		_ = client.Close()
 		return nil, err
 	}
-	consumer.client.own = true
+	consumer.ownClient = true
 	return consumer, nil
+}
+
+// NewConsumerFromClient initializes a new consumer from an existing client.
+//
+// Please note that clients cannot be shared between consumers (due to Kafka internals),
+// they can only be re-used which requires the user to call Close() on the first consumer
+// before using this method again to initialize another one. Attempts to use a client with
+// more than one consumer at a time will return errors.
+func NewConsumerFromClient(client *Client, groupID string, topics []string) (*Consumer, error) {
+	if !client.claim() {
+		return nil, errClientInUse
+	}
+
+	consumer, err := sarama.NewConsumerFromClient(client.Client)
+	if err != nil {
+		client.release()
+		return nil, err
+	}
+
+	sort.Strings(topics)
+	c := &Consumer{
+		client:   client,
+		consumer: consumer,
+		subs:     newPartitionMap(),
+		groupID:  groupID,
+
+		coreTopics: topics,
+
+		dying: make(chan none),
+		dead:  make(chan none),
+
+		messages:      make(chan *sarama.ConsumerMessage),
+		errors:        make(chan error, client.config.ChannelBufferSize),
+		partitions:    make(chan PartitionConsumer, 1),
+		notifications: make(chan *Notification),
+	}
+	if err := c.client.RefreshCoordinator(groupID); err != nil {
+		client.release()
+		return nil, err
+	}
+
+	go c.mainLoop()
+	return c, nil
 }
 
 // Messages returns the read channel for the messages that are returned by
 // the broker.
+//
+// This channel will only return if Config.Group.Mode option is set to
+// ConsumerModeMultiplex (default).
 func (c *Consumer) Messages() <-chan *sarama.ConsumerMessage { return c.messages }
+
+// Partitions returns the read channels for individual partitions of this broker.
+//
+// This will channel will only return if Config.Group.Mode option is set to
+// ConsumerModePartitions.
+//
+// The Partitions() channel must be listened to for the life of this consumer;
+// when a rebalance happens old partitions will be closed (naturally come to
+// completion) and new ones will be emitted. The returned channel will only close
+// when the consumer is completely shut down.
+func (c *Consumer) Partitions() <-chan PartitionConsumer { return c.partitions }
 
 // Errors returns a read channel of errors that occur during offset management, if
 // enabled. By default, errors are logged and not returned over this channel. If
@@ -98,7 +128,7 @@ func (c *Consumer) Notifications() <-chan *Notification { return c.notifications
 
 // HighWaterMarks returns the current high water marks for each topic and partition
 // Consistency between partitions is not guaranteed since high water marks are updated separately.
-func (c *Consumer) HighWaterMarks() map[string]map[int32]int64 { return c.csmr.HighWaterMarks() }
+func (c *Consumer) HighWaterMarks() map[string]map[int32]int64 { return c.consumer.HighWaterMarks() }
 
 // MarkOffset marks the provided message as processed, alongside a metadata string
 // that represents the state of the partition consumer at that point in time. The
@@ -136,16 +166,22 @@ func (c *Consumer) Subscriptions() map[string][]int32 {
 	return c.subs.Info()
 }
 
-// CommitOffsets manually commits marked offsets.
+// CommitOffsets allows to manually commit previously marked offsets. By default there is no
+// need to call this function as the consumer will commit offsets automatically
+// using the Config.Consumer.Offsets.CommitInterval setting.
+//
+// Please be aware that calling this function during an internal rebalance cycle may return
+// broker errors (e.g. sarama.ErrUnknownMemberId or sarama.ErrIllegalGeneration).
 func (c *Consumer) CommitOffsets() error {
 	c.commitMu.Lock()
 	defer c.commitMu.Unlock()
 
+	memberID, generationID := c.membership()
 	req := &sarama.OffsetCommitRequest{
 		Version:                 2,
 		ConsumerGroup:           c.groupID,
-		ConsumerGroupGeneration: c.generationID,
-		ConsumerID:              c.memberID,
+		ConsumerGroupGeneration: generationID,
+		ConsumerID:              memberID,
 		RetentionTime:           -1,
 	}
 
@@ -191,34 +227,43 @@ func (c *Consumer) CommitOffsets() error {
 
 // Close safely closes the consumer and releases all resources
 func (c *Consumer) Close() (err error) {
-	select {
-	case <-c.dying:
-		return
-	default:
+	c.closeOnce.Do(func() {
 		close(c.dying)
-	}
-	<-c.dead
+		<-c.dead
 
-	if e := c.release(); e != nil {
-		err = e
-	}
-	if e := c.csmr.Close(); e != nil {
-		err = e
-	}
-	close(c.messages)
-	close(c.errors)
-
-	if e := c.leaveGroup(); e != nil {
-		err = e
-	}
-	close(c.notifications)
-
-	if c.client.own {
-		if e := c.client.Close(); e != nil {
+		if e := c.release(); e != nil {
 			err = e
 		}
-	}
+		if e := c.consumer.Close(); e != nil {
+			err = e
+		}
+		close(c.messages)
+		close(c.errors)
 
+		if e := c.leaveGroup(); e != nil {
+			err = e
+		}
+		close(c.partitions)
+		close(c.notifications)
+
+		// drain
+		for range c.messages {
+		}
+		for range c.errors {
+		}
+		for p := range c.partitions {
+			_ = p.Close()
+		}
+		for range c.notifications {
+		}
+
+		c.client.release()
+		if c.ownClient {
+			if e := c.client.Close(); e != nil {
+				err = e
+			}
+		}
+	})
 	return
 }
 
@@ -236,79 +281,78 @@ func (c *Consumer) mainLoop() {
 		default:
 		}
 
-		// Remember previous subscriptions
-		var notification *Notification
-		if c.client.config.Group.Return.Notifications {
-			notification = newNotification(c.subs.Info())
-		}
+		// Start next consume cycle
+		c.nextTick()
+	}
+}
 
-		// Rebalance, fetch new subscriptions
-		subs, err := c.rebalance()
-		if err != nil {
-			c.rebalanceError(err, notification)
-			continue
-		}
+func (c *Consumer) nextTick() {
+	// Remember previous subscriptions
+	var notification *Notification
+	if c.client.config.Group.Return.Notifications {
+		notification = newNotification(c.subs.Info())
+	}
 
-		// Start the heartbeat
-		hbStop, hbDone := make(chan none), make(chan none)
-		go c.hbLoop(hbStop, hbDone)
+	// Refresh coordinator
+	if err := c.refreshCoordinator(); err != nil {
+		c.rebalanceError(err, nil)
+		return
+	}
 
-		// Subscribe to topic/partitions
-		if err := c.subscribe(subs); err != nil {
-			close(hbStop)
-			<-hbDone
-			c.rebalanceError(err, notification)
-			continue
-		}
+	// Release subscriptions
+	if err := c.release(); err != nil {
+		c.rebalanceError(err, nil)
+		return
+	}
 
-		// Start topic watcher loop
-		twStop, twDone := make(chan none), make(chan none)
-		go c.twLoop(twStop, twDone)
+	// Issue rebalance start notification
+	if c.client.config.Group.Return.Notifications {
+		c.handleNotification(notification)
+	}
 
-		// Start consuming and committing offsets
-		cmStop, cmDone := make(chan none), make(chan none)
-		go c.cmLoop(cmStop, cmDone)
-		atomic.StoreInt32(&c.consuming, 1)
+	// Rebalance, fetch new subscriptions
+	subs, err := c.rebalance()
+	if err != nil {
+		c.rebalanceError(err, notification)
+		return
+	}
 
-		// Update notification with new claims
-		if c.client.config.Group.Return.Notifications {
-			notification.claim(subs)
-			c.notifications <- notification
-		}
+	// Coordinate loops, make sure everything is
+	// stopped on exit
+	tomb := newLoopTomb()
+	defer tomb.Close()
 
-		// Wait for signals
-		select {
-		case <-hbDone:
-			close(cmStop)
-			close(twStop)
-			<-cmDone
-			<-twDone
-		case <-twDone:
-			close(cmStop)
-			close(hbStop)
-			<-cmDone
-			<-hbDone
-		case <-cmDone:
-			close(twStop)
-			close(hbStop)
-			<-twDone
-			<-hbDone
-		case <-c.dying:
-			close(cmStop)
-			close(twStop)
-			close(hbStop)
-			<-cmDone
-			<-twDone
-			<-hbDone
-			return
-		}
+	// Start the heartbeat
+	tomb.Go(c.hbLoop)
+
+	// Subscribe to topic/partitions
+	if err := c.subscribe(tomb, subs); err != nil {
+		c.rebalanceError(err, notification)
+		return
+	}
+
+	// Update/issue notification with new claims
+	if c.client.config.Group.Return.Notifications {
+		notification = notification.success(subs)
+		c.handleNotification(notification)
+	}
+
+	// Start topic watcher loop
+	tomb.Go(c.twLoop)
+
+	// Start consuming and committing offsets
+	tomb.Go(c.cmLoop)
+	atomic.StoreInt32(&c.consuming, 1)
+
+	// Wait for signals
+	select {
+	case <-tomb.Dying():
+	case <-c.dying:
 	}
 }
 
 // heartbeat loop, triggered by the mainLoop
-func (c *Consumer) hbLoop(stop <-chan none, done chan<- none) {
-	defer close(done)
-
+func (c *Consumer) hbLoop(stopped <-chan none) {
 	ticker := time.NewTicker(c.client.config.Group.Heartbeat.Interval)
 	defer ticker.Stop()
 
@@ -323,16 +367,16 @@ func (c *Consumer) hbLoop(stop <-chan none, done chan<- none) {
 				c.handleError(&Error{Ctx: "heartbeat", error: err})
 				return
 			}
-		case <-stop:
+		case <-stopped:
+			return
+		case <-c.dying:
 			return
 		}
 	}
 }
 
 // topic watcher loop, triggered by the mainLoop
-func (c *Consumer) twLoop(stop <-chan none, done chan<- none) {
-	defer close(done)
-
+func (c *Consumer) twLoop(stopped <-chan none) {
 	ticker := time.NewTicker(c.client.config.Metadata.RefreshFrequency / 2)
 	defer ticker.Stop()
 
@@ -352,16 +396,16 @@ func (c *Consumer) twLoop(stop <-chan none, done chan<- none) {
 					return
 				}
 			}
-		case <-stop:
+		case <-stopped:
+			return
+		case <-c.dying:
 			return
 		}
 	}
 }
 
 // commit loop, triggered by the mainLoop
-func (c *Consumer) cmLoop(stop <-chan none, done chan<- none) {
-	defer close(done)
-
+func (c *Consumer) cmLoop(stopped <-chan none) {
 	ticker := time.NewTicker(c.client.config.Consumer.Offsets.CommitInterval)
 	defer ticker.Stop()
 
@@ -372,15 +416,18 @@ func (c *Consumer) cmLoop(stop <-chan none, done chan<- none) {
 				c.handleError(&Error{Ctx: "commit", error: err})
 				return
 			}
-		case <-stop:
+		case <-stopped:
+			return
+		case <-c.dying:
 			return
 		}
 	}
 }
 
-func (c *Consumer) rebalanceError(err error, notification *Notification) {
-	if c.client.config.Group.Return.Notifications {
-		c.notifications <- notification
+func (c *Consumer) rebalanceError(err error, n *Notification) {
+	if n != nil {
+		n.Type = RebalanceError
+		c.handleNotification(n)
 	}
 
 	switch err {
@@ -392,6 +439,16 @@ func (c *Consumer) rebalanceError(err error, notification *Notification) {
 	select {
 	case <-c.dying:
 	case <-time.After(c.client.config.Metadata.Retry.Backoff):
+	}
+}
+
+func (c *Consumer) handleNotification(n *Notification) {
+	if c.client.config.Group.Return.Notifications {
+		select {
+		case c.notifications <- n:
+		case <-c.dying:
+			return
+		}
 	}
 }
 
@@ -416,7 +473,13 @@ func (c *Consumer) release() (err error) {
 	defer c.subs.Clear()
 
 	// Wait for messages to be processed
-	time.Sleep(c.client.config.Consumer.MaxProcessingTime)
+	timeout := time.NewTimer(c.client.config.Group.Offsets.Synchronization.DwellTime)
+	defer timeout.Stop()
+
+	select {
+	case <-c.dying:
+	case <-timeout.C:
+	}
 
 	// Commit offsets, continue on errors
 	if e := c.commitOffsetsWithRetry(c.client.config.Group.Offsets.Retry.Max); e != nil {
@@ -436,10 +499,11 @@ func (c *Consumer) heartbeat() error {
 		return err
 	}
 
+	memberID, generationID := c.membership()
 	resp, err := broker.Heartbeat(&sarama.HeartbeatRequest{
 		GroupId:      c.groupID,
-		MemberId:     c.memberID,
-		GenerationId: c.generationID,
+		MemberId:     memberID,
+		GenerationId: generationID,
 	})
 	if err != nil {
 		c.closeCoordinator(broker, err)
@@ -450,15 +514,8 @@ func (c *Consumer) heartbeat() error {
 
 // Performs a rebalance, part of the mainLoop()
 func (c *Consumer) rebalance() (map[string][]int32, error) {
-	sarama.Logger.Printf("cluster/consumer %s rebalance\n", c.memberID)
-
-	if err := c.refreshMetadata(); err != nil {
-		return nil, err
-	}
-
-	if err := c.client.RefreshCoordinator(c.groupID); err != nil {
-		return nil, err
-	}
+	memberID, _ := c.membership()
+	sarama.Logger.Printf("cluster/consumer %s rebalance\n", memberID)
 
 	allTopics, err := c.client.Topics()
 	if err != nil {
@@ -467,21 +524,17 @@ func (c *Consumer) rebalance() (map[string][]int32, error) {
 	c.extraTopics = c.selectExtraTopics(allTopics)
 	sort.Strings(c.extraTopics)
 
-	// Release subscriptions
-	if err := c.release(); err != nil {
-		return nil, err
-	}
-
 	// Re-join consumer group
 	strategy, err := c.joinGroup()
 	switch {
 	case err == sarama.ErrUnknownMemberId:
+		c.membershipMu.Lock()
 		c.memberID = ""
+		c.membershipMu.Unlock()
 		return nil, err
 	case err != nil:
 		return nil, err
 	}
-	// sarama.Logger.Printf("cluster/consumer %s/%d joined group %s\n", c.memberID, c.generationID, c.groupID)
 
 	// Sync consumer group state, fetch subscriptions
 	subs, err := c.syncGroup(strategy)
@@ -496,7 +549,7 @@ func (c *Consumer) rebalance() (map[string][]int32, error) {
 }
 
 // Performs the subscription, part of the mainLoop()
-func (c *Consumer) subscribe(subs map[string][]int32) error {
+func (c *Consumer) subscribe(tomb *loopTomb, subs map[string][]int32) error {
 	// fetch offsets
 	offsets, err := c.fetchOffsets(subs)
 	if err != nil {
@@ -513,8 +566,8 @@ func (c *Consumer) subscribe(subs map[string][]int32) error {
 			wg.Add(1)
 
 			info := offsets[topic][partition]
-			go func(t string, p int32) {
-				if e := c.createConsumer(t, p, info); e != nil {
+			go func(topic string, partition int32) {
+				if e := c.createConsumer(tomb, topic, partition, info); e != nil {
 					mu.Lock()
 					err = e
 					mu.Unlock()
@@ -536,9 +589,10 @@ func (c *Consumer) subscribe(subs map[string][]int32) error {
 
 // Send a request to the broker to join group on rebalance()
 func (c *Consumer) joinGroup() (*balancer, error) {
+	memberID, _ := c.membership()
 	req := &sarama.JoinGroupRequest{
 		GroupId:        c.groupID,
-		MemberId:       c.memberID,
+		MemberId:       memberID,
 		SessionTimeout: int32(c.client.config.Group.Session.Timeout / time.Millisecond),
 		ProtocolType:   "consumer",
 	}
@@ -585,8 +639,10 @@ func (c *Consumer) joinGroup() (*balancer, error) {
 		}
 	}
 
+	c.membershipMu.Lock()
 	c.memberID = resp.MemberId
 	c.generationID = resp.GenerationId
+	c.membershipMu.Unlock()
 
 	return strategy, nil
 }
@@ -594,10 +650,11 @@ func (c *Consumer) joinGroup() (*balancer, error) {
 // Send a request to the broker to sync the group on rebalance().
 // Returns a list of topics and partitions to consume.
 func (c *Consumer) syncGroup(strategy *balancer) (map[string][]int32, error) {
+	memberID, generationID := c.membership()
 	req := &sarama.SyncGroupRequest{
 		GroupId:      c.groupID,
-		MemberId:     c.memberID,
-		GenerationId: c.generationID,
+		MemberId:     memberID,
+		GenerationId: generationID,
 	}
 
 	for memberID, topics := range strategy.Perform(c.client.config.Group.PartitionStrategy) {
@@ -658,9 +715,6 @@ func (c *Consumer) fetchOffsets(subs map[string][]int32) (map[string]map[int32]o
 		}
 	}
 
-	// Wait for other cluster consumers to process, release and commit
-	time.Sleep(c.client.config.Consumer.MaxProcessingTime * 2)
-
 	broker, err := c.client.Coordinator(c.groupID)
 	if err != nil {
 		c.closeCoordinator(broker, err)
@@ -698,9 +752,10 @@ func (c *Consumer) leaveGroup() error {
 		return err
 	}
 
+	memberID, _ := c.membership()
 	if _, err = broker.LeaveGroup(&sarama.LeaveGroupRequest{
 		GroupId:  c.groupID,
-		MemberId: c.memberID,
+		MemberId: memberID,
 	}); err != nil {
 		c.closeCoordinator(broker, err)
 	}
@@ -709,11 +764,12 @@ func (c *Consumer) leaveGroup() error {
 
 // --------------------------------------------------------------------
 
-func (c *Consumer) createConsumer(topic string, partition int32, info offsetInfo) error {
-	sarama.Logger.Printf("cluster/consumer %s consume %s/%d from %d\n", c.memberID, topic, partition, info.NextOffset(c.client.config.Consumer.Offsets.Initial))
+func (c *Consumer) createConsumer(tomb *loopTomb, topic string, partition int32, info offsetInfo) error {
+	memberID, _ := c.membership()
+	sarama.Logger.Printf("cluster/consumer %s consume %s/%d from %d\n", memberID, topic, partition, info.NextOffset(c.client.config.Consumer.Offsets.Initial))
 
 	// Create partitionConsumer
-	pc, err := newPartitionConsumer(c.csmr, topic, partition, info, c.client.config.Consumer.Offsets.Initial)
+	pc, err := newPartitionConsumer(c.consumer, topic, partition, info, c.client.config.Consumer.Offsets.Initial)
 	if err != nil {
 		return err
 	}
@@ -722,8 +778,17 @@ func (c *Consumer) createConsumer(topic string, partition int32, info offsetInfo
 	c.subs.Store(topic, partition, pc)
 
 	// Start partition consumer goroutine
-	go pc.Loop(c.messages, c.errors)
+	tomb.Go(func(stopper <-chan none) {
+		if c.client.config.Group.Mode == ConsumerModePartitions {
+			pc.WaitFor(stopper, c.errors)
+		} else {
+			pc.Multiplex(stopper, c.messages, c.errors)
+		}
+	})
 
+	if c.client.config.Group.Mode == ConsumerModePartitions {
+		c.partitions <- pc
+	}
 	return nil
 }
 
@@ -777,11 +842,34 @@ func (c *Consumer) isPotentialExtraTopic(topic string) bool {
 	return false
 }
 
-func (c *Consumer) refreshMetadata() error {
-	err := c.client.RefreshMetadata()
-	if err == sarama.ErrTopicAuthorizationFailed {
-		// maybe we didn't have authorization to describe all topics
+func (c *Consumer) refreshCoordinator() error {
+	if err := c.refreshMetadata(); err != nil {
+		return err
+	}
+	return c.client.RefreshCoordinator(c.groupID)
+}
+
+func (c *Consumer) refreshMetadata() (err error) {
+	if c.client.config.Metadata.Full {
+		err = c.client.RefreshMetadata()
+	} else {
+		var topics []string
+		if topics, err = c.client.Topics(); err == nil && len(topics) != 0 {
+			err = c.client.RefreshMetadata(topics...)
+		}
+	}
+
+	// maybe we didn't have authorization to describe all topics
+	switch err {
+	case sarama.ErrTopicAuthorizationFailed:
 		err = c.client.RefreshMetadata(c.coreTopics...)
 	}
-	return err
+	return
+}
+
+func (c *Consumer) membership() (memberID string, generationID int32) {
+	c.membershipMu.RLock()
+	memberID, generationID = c.memberID, c.generationID
+	c.membershipMu.RUnlock()
+	return
 }

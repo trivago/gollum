@@ -12,10 +12,36 @@ payload or from other metadata fields.
 Parameters
 ----------
 
+**Key**
+
+  Defines the key to copy, i.e. the "source". ApplyTo will define
+  the target of the copy, i.e. the "destination". An empty string will
+  use the message payload as source.
+  By default this parameter is set to an empty string (i.e. payload).
+  
+  
+
+**Mode**
+
+  Defines the copy mode to use. This can be one of "append",
+  "prepend" or "replace".
+  By default this parameter is set to "replace".
+  
+  
+
+**Separator**
+
+  When using mode prepend or append, defines the characters
+  inserted between source and destination.
+  By default this parameter is set to an empty string.
+  
+  
+
 **CopyToKeys**
 
-  A list of meta data keys to copy the payload or metadata
-  content to.
+  DEPRECATED. A list of meta data keys to copy the payload
+  or metadata content to. If this field contains at least one value, mode
+  is set to replace and the key field is ignored.
   By default this parameter is set to an empty list.
   
   
@@ -43,9 +69,8 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
-This example copies the payload to the fields prefix and key. The prefix
-field will extract everything up to the first space as hostname, the key
-field will contain a hash over the complete payload.
+This example copies the payload to the field key and applies a hash on
+it contain a hash over the complete payload.
 
 .. code-block:: yaml
 
@@ -54,11 +79,7 @@ field will contain a hash over the complete payload.
 	   Streams: "*"
 	   Modulators:
 	     - format.MetadataCopy:
-	       CopyToKeys: ["prefix", "key"]
-	     - format.SplitPick:
-	       ApplyTo: prefix
-	       Delimiter: " "
-	       Index: 0
+	       ApplyTo: key
 	     - formatter.Identifier
 	       Generator: hash
 	       ApplyTo: key

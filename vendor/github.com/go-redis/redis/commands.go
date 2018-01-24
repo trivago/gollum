@@ -2,7 +2,6 @@ package redis
 
 import (
 	"io"
-	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/internal"
@@ -12,37 +11,41 @@ func readTimeout(timeout time.Duration) time.Duration {
 	if timeout == 0 {
 		return 0
 	}
-	return timeout + time.Second
+	return timeout + 10*time.Second
 }
 
 func usePrecise(dur time.Duration) bool {
 	return dur < time.Second || dur%time.Second != 0
 }
 
-func formatMs(dur time.Duration) string {
+func formatMs(dur time.Duration) int64 {
 	if dur > 0 && dur < time.Millisecond {
 		internal.Logf(
 			"specified duration is %s, but minimal supported value is %s",
 			dur, time.Millisecond,
 		)
 	}
-	return strconv.FormatInt(int64(dur/time.Millisecond), 10)
+	return int64(dur / time.Millisecond)
 }
 
-func formatSec(dur time.Duration) string {
+func formatSec(dur time.Duration) int64 {
 	if dur > 0 && dur < time.Second {
 		internal.Logf(
 			"specified duration is %s, but minimal supported value is %s",
 			dur, time.Second,
 		)
 	}
-	return strconv.FormatInt(int64(dur/time.Second), 10)
+	return int64(dur / time.Second)
 }
 
 type Cmdable interface {
-	Pipeline() *Pipeline
-	Pipelined(fn func(*Pipeline) error) ([]Cmder, error)
+	Pipeline() Pipeliner
+	Pipelined(fn func(Pipeliner) error) ([]Cmder, error)
 
+	TxPipelined(fn func(Pipeliner) error) ([]Cmder, error)
+	TxPipeline() Pipeliner
+
+	ClientGetName() *StringCmd
 	Echo(message interface{}) *StringCmd
 	Ping() *StatusCmd
 	Quit() *StatusCmd
@@ -140,6 +143,7 @@ type Cmdable interface {
 	SInterStore(destination string, keys ...string) *IntCmd
 	SIsMember(key string, member interface{}) *BoolCmd
 	SMembers(key string) *StringSliceCmd
+	SMembersMap(key string) *StringStructMapCmd
 	SMove(source, destination string, member interface{}) *BoolCmd
 	SPop(key string) *StringCmd
 	SPopN(key string, count int64) *StringSliceCmd
@@ -159,6 +163,7 @@ type Cmdable interface {
 	ZIncrXX(key string, member Z) *FloatCmd
 	ZCard(key string) *IntCmd
 	ZCount(key, min, max string) *IntCmd
+	ZLexCount(key, min, max string) *IntCmd
 	ZIncrBy(key string, increment float64, member string) *FloatCmd
 	ZInterStore(destination string, store ZStore, keys ...string) *IntCmd
 	ZRange(key string, start, stop int64) *StringSliceCmd
@@ -190,9 +195,11 @@ type Cmdable interface {
 	ConfigGet(parameter string) *SliceCmd
 	ConfigResetStat() *StatusCmd
 	ConfigSet(parameter, value string) *StatusCmd
-	DbSize() *IntCmd
+	DBSize() *IntCmd
 	FlushAll() *StatusCmd
-	FlushDb() *StatusCmd
+	FlushAllAsync() *StatusCmd
+	FlushDB() *StatusCmd
+	FlushDBAsync() *StatusCmd
 	Info(section ...string) *StringCmd
 	LastSave() *IntCmd
 	Save() *StatusCmd
@@ -208,6 +215,7 @@ type Cmdable interface {
 	ScriptKill() *StatusCmd
 	ScriptLoad(script string) *StringCmd
 	DebugObject(key string) *StringCmd
+	Publish(channel string, message interface{}) *IntCmd
 	PubSubChannels(pattern string) *StringSliceCmd
 	PubSubNumSub(channels ...string) *StringIntMapCmd
 	PubSubNumPat() *IntCmd
@@ -232,10 +240,21 @@ type Cmdable interface {
 	GeoAdd(key string, geoLocation ...*GeoLocation) *IntCmd
 	GeoPos(key string, members ...string) *GeoPosCmd
 	GeoRadius(key string, longitude, latitude float64, query *GeoRadiusQuery) *GeoLocationCmd
+	GeoRadiusRO(key string, longitude, latitude float64, query *GeoRadiusQuery) *GeoLocationCmd
 	GeoRadiusByMember(key, member string, query *GeoRadiusQuery) *GeoLocationCmd
+	GeoRadiusByMemberRO(key, member string, query *GeoRadiusQuery) *GeoLocationCmd
 	GeoDist(key string, member1, member2, unit string) *FloatCmd
 	GeoHash(key string, members ...string) *StringSliceCmd
 	Command() *CommandsInfoCmd
+}
+
+type StatefulCmdable interface {
+	Cmdable
+	Auth(password string) *StatusCmd
+	Select(index int) *StatusCmd
+	ClientSetName(name string) *BoolCmd
+	ReadOnly() *StatusCmd
+	ReadWrite() *StatusCmd
 }
 
 var _ Cmdable = (*Client)(nil)
@@ -247,8 +266,18 @@ type cmdable struct {
 	process func(cmd Cmder) error
 }
 
+func (c *cmdable) setProcessor(fn func(Cmder) error) {
+	c.process = fn
+}
+
 type statefulCmdable struct {
+	cmdable
 	process func(cmd Cmder) error
+}
+
+func (c *statefulCmdable) setProcessor(fn func(Cmder) error) {
+	c.process = fn
+	c.cmdable.setProcessor(fn)
 }
 
 //------------------------------------------------------------------------------
@@ -272,7 +301,6 @@ func (c *cmdable) Ping() *StatusCmd {
 }
 
 func (c *cmdable) Wait(numSlaves int, timeout time.Duration) *IntCmd {
-
 	cmd := NewIntCmd("wait", numSlaves, int(timeout/time.Millisecond))
 	c.process(cmd)
 	return cmd
@@ -649,6 +677,7 @@ func (c *cmdable) DecrBy(key string, decrement int64) *IntCmd {
 	return cmd
 }
 
+// Redis `GET key` command. It returns redis.Nil error when key does not exist.
 func (c *cmdable) Get(key string) *StringCmd {
 	cmd := NewStringCmd("get", key)
 	c.process(cmd)
@@ -1136,8 +1165,16 @@ func (c *cmdable) SIsMember(key string, member interface{}) *BoolCmd {
 	return cmd
 }
 
+// Redis `SMEMBERS key` command output as a slice
 func (c *cmdable) SMembers(key string) *StringSliceCmd {
 	cmd := NewStringSliceCmd("smembers", key)
+	c.process(cmd)
+	return cmd
+}
+
+// Redis `SMEMBERS key` command output as a map
+func (c *cmdable) SMembersMap(key string) *StringStructMapCmd {
+	cmd := NewStringStructMapCmd("smembers", key)
 	c.process(cmd)
 	return cmd
 }
@@ -1330,6 +1367,12 @@ func (c *cmdable) ZCount(key, min, max string) *IntCmd {
 	return cmd
 }
 
+func (c *cmdable) ZLexCount(key, min, max string) *IntCmd {
+	cmd := NewIntCmd("zlexcount", key, min, max)
+	c.process(cmd)
+	return cmd
+}
+
 func (c *cmdable) ZIncrBy(key string, increment float64, member string) *FloatCmd {
 	cmd := NewFloatCmd("zincrby", key, increment, member)
 	c.process(cmd)
@@ -1340,7 +1383,7 @@ func (c *cmdable) ZInterStore(destination string, store ZStore, keys ...string) 
 	args := make([]interface{}, 3+len(keys))
 	args[0] = "zinterstore"
 	args[1] = destination
-	args[2] = strconv.Itoa(len(keys))
+	args[2] = len(keys)
 	for i, key := range keys {
 		args[3+i] = key
 	}
@@ -1536,7 +1579,7 @@ func (c *cmdable) ZUnionStore(dest string, store ZStore, keys ...string) *IntCmd
 	args := make([]interface{}, 3+len(keys))
 	args[0] = "zunionstore"
 	args[1] = dest
-	args[2] = strconv.Itoa(len(keys))
+	args[2] = len(keys)
 	for i, key := range keys {
 		args[3+i] = key
 	}
@@ -1631,7 +1674,7 @@ func (c *statefulCmdable) ClientSetName(name string) *BoolCmd {
 }
 
 // ClientGetName returns the name of the connection.
-func (c *statefulCmdable) ClientGetName() *StringCmd {
+func (c *cmdable) ClientGetName() *StringCmd {
 	cmd := NewStringCmd("client", "getname")
 	c.process(cmd)
 	return cmd
@@ -1655,7 +1698,12 @@ func (c *cmdable) ConfigSet(parameter, value string) *StatusCmd {
 	return cmd
 }
 
+// Deperecated. Use DBSize instead.
 func (c *cmdable) DbSize() *IntCmd {
+	return c.DBSize()
+}
+
+func (c *cmdable) DBSize() *IntCmd {
 	cmd := NewIntCmd("dbsize")
 	c.process(cmd)
 	return cmd
@@ -1667,8 +1715,25 @@ func (c *cmdable) FlushAll() *StatusCmd {
 	return cmd
 }
 
+func (c *cmdable) FlushAllAsync() *StatusCmd {
+	cmd := NewStatusCmd("flushall", "async")
+	c.process(cmd)
+	return cmd
+}
+
+// Deprecated. Use FlushDB instead.
 func (c *cmdable) FlushDb() *StatusCmd {
+	return c.FlushDB()
+}
+
+func (c *cmdable) FlushDB() *StatusCmd {
 	cmd := NewStatusCmd("flushdb")
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) FlushDBAsync() *StatusCmd {
+	cmd := NewStatusCmd("flushdb", "async")
 	c.process(cmd)
 	return cmd
 }
@@ -1755,7 +1820,7 @@ func (c *cmdable) Eval(script string, keys []string, args ...interface{}) *Cmd {
 	cmdArgs := make([]interface{}, 3+len(keys)+len(args))
 	cmdArgs[0] = "eval"
 	cmdArgs[1] = script
-	cmdArgs[2] = strconv.Itoa(len(keys))
+	cmdArgs[2] = len(keys)
 	for i, key := range keys {
 		cmdArgs[3+i] = key
 	}
@@ -1772,7 +1837,7 @@ func (c *cmdable) EvalSha(sha1 string, keys []string, args ...interface{}) *Cmd 
 	cmdArgs := make([]interface{}, 3+len(keys)+len(args))
 	cmdArgs[0] = "evalsha"
 	cmdArgs[1] = sha1
-	cmdArgs[2] = strconv.Itoa(len(keys))
+	cmdArgs[2] = len(keys)
 	for i, key := range keys {
 		cmdArgs[3+i] = key
 	}
@@ -1826,8 +1891,8 @@ func (c *cmdable) DebugObject(key string) *StringCmd {
 //------------------------------------------------------------------------------
 
 // Publish posts the message to the channel.
-func (c *cmdable) Publish(channel, message string) *IntCmd {
-	cmd := NewIntCmd("PUBLISH", channel, message)
+func (c *cmdable) Publish(channel string, message interface{}) *IntCmd {
+	cmd := NewIntCmd("publish", channel, message)
 	c.process(cmd)
 	return cmd
 }
@@ -1984,7 +2049,7 @@ func (c *cmdable) ClusterAddSlots(slots ...int) *StatusCmd {
 	args[0] = "cluster"
 	args[1] = "addslots"
 	for i, num := range slots {
-		args[2+i] = strconv.Itoa(num)
+		args[2+i] = num
 	}
 	cmd := NewStatusCmd(args...)
 	c.process(cmd)
@@ -2022,8 +2087,20 @@ func (c *cmdable) GeoRadius(key string, longitude, latitude float64, query *GeoR
 	return cmd
 }
 
+func (c *cmdable) GeoRadiusRO(key string, longitude, latitude float64, query *GeoRadiusQuery) *GeoLocationCmd {
+	cmd := NewGeoLocationCmd(query, "georadius_ro", key, longitude, latitude)
+	c.process(cmd)
+	return cmd
+}
+
 func (c *cmdable) GeoRadiusByMember(key, member string, query *GeoRadiusQuery) *GeoLocationCmd {
 	cmd := NewGeoLocationCmd(query, "georadiusbymember", key, member)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) GeoRadiusByMemberRO(key, member string, query *GeoRadiusQuery) *GeoLocationCmd {
+	cmd := NewGeoLocationCmd(query, "georadiusbymember_ro", key, member)
 	c.process(cmd)
 	return cmd
 }

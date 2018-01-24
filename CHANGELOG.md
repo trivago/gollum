@@ -1,5 +1,25 @@
 # Gollum changelog
 
+## 0.5.1
+
+This is a patch / minor features release.
+
+### New with 0.5.1
+
+ * format.MetadataCopy has been updated to support free copying between metadata and payload
+ * producer.ElasticSearch alles setting the format of timeBasedIndex
+ * format.GrokToJSON has new options: RemoveEmptyValues, NamedCapturesOnly and SkipDefaultPatterns
+ * using dep for dependencies instead of glide
+
+### Fixed with 0.5.1
+
+ * fixed inversion of -lc always
+ * fixed a nil pointer panic with producer.elasticsearch when receiving messages with unassigned streams
+ * producer.ElasticSearch settings are now named according to config
+ * producer.ElasticSearch dayBasedIndex renamed to timeBasedIndex and it's now working as expected
+ * updated dependencies to latest version (brings support for kafka 1.0, fixes user agent parsing for format.processTSV)
+
+
 ## 0.5.0
 
 Gollum 0.5.0 contains major breaking changes in all areas.

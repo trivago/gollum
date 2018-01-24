@@ -111,15 +111,15 @@ You can enable different producers in that config to test the write performance 
 Dependencies
 ---------------
 
-To handle external go-packages and -libraries Gollum use glide_. Like in other go projects the `vendor`
-is also checked in on github.com. All dependencies can be found in the glide.yaml_ file.
+To handle external go-packages and -libraries Gollum use dep_. Like in other go projects the `vendor`
+is also checked in on github.com. All dependencies can be found in the Gopkg.toml_ file.
 
 To update the external dependencies we provide also a make command:
 
 .. code-block:: bash
 
     # update external dependencies
-    make vendor
+    make update-vendor
 
-.. _glide: https://github.com/Masterminds/glide
-.. _glide.yaml: https://github.com/trivago/gollum/blob/master/glide.yaml
+.. _dep: https://github.com/golang/dep
+.. _Gopkg.toml: https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md

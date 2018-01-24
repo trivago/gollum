@@ -45,13 +45,20 @@ func init() {
 	}
 }
 
+type socketType string
+
+const (
+	udpSocket socketType = "udp"
+	tcpSocket socketType = "tcp"
+)
+
 // StatsdClient is a client library to send events to StatsD
 type StatsdClient struct {
-	conn           net.Conn
-	addr           string
-	prefix         string
-	eventStringTpl string
-	Logger         Logger
+	conn     net.Conn
+	addr     string
+	prefix   string
+	sockType socketType
+	Logger   Logger
 }
 
 // NewStatsdClient - Factory
@@ -59,10 +66,9 @@ func NewStatsdClient(addr string, prefix string) *StatsdClient {
 	// allow %HOST% in the prefix string
 	prefix = strings.Replace(prefix, "%HOST%", Hostname, 1)
 	return &StatsdClient{
-		addr:           addr,
-		prefix:         prefix,
-		Logger:         log.New(os.Stdout, "[StatsdClient] ", log.Ldate|log.Ltime),
-		eventStringTpl: "%s%s:%s",
+		addr:   addr,
+		prefix: prefix,
+		Logger: log.New(os.Stdout, "[StatsdClient] ", log.Ldate|log.Ltime),
 	}
 }
 
@@ -73,22 +79,23 @@ func (c *StatsdClient) String() string {
 
 // CreateSocket creates a UDP connection to a StatsD server
 func (c *StatsdClient) CreateSocket() error {
-	conn, err := net.DialTimeout("udp", c.addr, 5*time.Second)
+	conn, err := net.DialTimeout(string(udpSocket), c.addr, 5*time.Second)
 	if err != nil {
 		return err
 	}
 	c.conn = conn
+	c.sockType = udpSocket
 	return nil
 }
 
 // CreateTCPSocket creates a TCP connection to a StatsD server
 func (c *StatsdClient) CreateTCPSocket() error {
-	conn, err := net.DialTimeout("tcp", c.addr, 5*time.Second)
+	conn, err := net.DialTimeout(string(tcpSocket), c.addr, 5*time.Second)
 	if err != nil {
 		return err
 	}
 	c.conn = conn
-	c.eventStringTpl = "%s%s:%s\n"
+	c.sockType = tcpSocket
 	return nil
 }
 
@@ -266,14 +273,18 @@ func (c *StatsdClient) send(stat string, format string, value interface{}, sampl
 	}
 
 	stat = strings.Replace(stat, "%HOST%", Hostname, 1)
-	// if sending tcp append a newline
-	format = fmt.Sprintf(c.eventStringTpl, c.prefix, stat, format)
+	metricString := c.prefix + stat + ":" + fmt.Sprintf(format, value)
 
 	if sampleRate != 1 {
-		format = fmt.Sprintf("%s|@%f", format, sampleRate)
+		metricString = fmt.Sprintf("%s|@%f", metricString, sampleRate)
 	}
 
-	_, err := fmt.Fprintf(c.conn, format, value)
+	// if sending tcp append a newline
+	if c.sockType == tcpSocket {
+		metricString += "\n"
+	}
+
+	_, err := fmt.Fprint(c.conn, metricString)
 	return err
 }
 

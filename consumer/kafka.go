@@ -241,22 +241,19 @@ func (cons *Kafka) Configure(conf core.PluginConfigReader) {
 		cons.config.Version = kafka.V0_9_0_1
 	case "0.10", "0.10.0", "0.10.0.0":
 		cons.config.Version = kafka.V0_10_0_0
+	case "0.10.0.1":
+		cons.config.Version = kafka.V0_10_0_1
+	case "0.10.1", "0.10.1.0":
+		cons.config.Version = kafka.V0_10_1_0
+	case "0.10.2", "0.10.2.0":
+		cons.config.Version = kafka.V0_10_2_0
+	case "0.11", "0.11.0", "0.11.0.0":
+		cons.config.Version = kafka.V0_11_0_0
+	case "1", "1.0", "1.0.0", "1.0.0.0":
+		cons.config.Version = kafka.V1_0_0_0
 	default:
-		cons.Logger.Warning("Unknown kafka version given: ", ver)
-		parts := strings.Split(ver, ".")
-		if len(parts) < 2 {
-			cons.config.Version = kafka.V0_8_2_2
-		} else {
-			minor, _ := strconv.ParseUint(parts[1], 10, 8)
-			switch {
-			case minor <= 8:
-				cons.config.Version = kafka.V0_8_2_2
-			case minor == 9:
-				cons.config.Version = kafka.V0_9_0_1
-			case minor >= 10:
-				cons.config.Version = kafka.V0_10_0_0
-			}
-		}
+		cons.Logger.Warningf("Unknown kafka version given: %s. Falling back to 0.8.2", ver)
+		cons.config.Version = kafka.V0_8_2_2
 	}
 
 	cons.config.Net.MaxOpenRequests = int(conf.GetInt("MaxOpenRequests", 5))
