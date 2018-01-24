@@ -196,9 +196,8 @@ func TestProcessTSVDirectives(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	// TODO: "rv:48.0" is currently not parsed correctly by the client library (bug)
 	expect.Equal(
-		"2016-08-19 17:10:53\t\"preyamlpost\"\tFirefox\tWindows 10\t48.0\t5.0\tWindows\tWindows 10\t\tGecko\t20100101\tFirefox\t48.0",
+		"2016-08-19 17:10:53\t\"preyamlpost\"\tFirefox\tWindows NT 10.0\t48.0\t5.0\tWindows\tWindows NT 10.0\trv:48.0\tGecko\t20100101\tFirefox\t48.0",
 		msg.String(),
 	)
 }
@@ -237,7 +236,7 @@ func TestProcessTSVDelimiterAndDirectives(t *testing.T) {
 	expect.NoError(err)
 
 	expect.Equal(
-		`2016-08-19 17:10:53,"preyamlpost",Firefox,Windows 10,48.0,5.0,Windows,Windows 10,,Gecko,20100101,Firefox,48.0`,
+		`2016-08-19 17:10:53,"preyamlpost",Firefox,Windows NT 10.0,48.0,5.0,Windows,Windows NT 10.0,rv:48.0,Gecko,20100101,Firefox,48.0`,
 		msg.String(),
 	)
 }
@@ -277,7 +276,7 @@ func TestProcessTSVQuotedValuesAndDirectives(t *testing.T) {
 	expect.NoError(err)
 
 	expect.Equal(
-		"\"2016-08-19 17:10:53\"\t\"pre\tyaml\tpost\"\tFirefox\tWindows 10\t48.0\t5.0\tWindows\tWindows 10\t\tGecko\t20100101\tFirefox\t48.0",
+		"\"2016-08-19 17:10:53\"\t\"pre\tyaml\tpost\"\tFirefox\tWindows NT 10.0\t48.0\t5.0\tWindows\tWindows NT 10.0\trv:48.0\tGecko\t20100101\tFirefox\t48.0",
 		msg.String(),
 	)
 }
@@ -320,7 +319,7 @@ func TestProcessTSVDelimiterAndQuotedValuesAndDirectives(t *testing.T) {
 	expect.NoError(err)
 
 	expect.Equal(
-		`"2016-08-19 17:10:53" "pre yaml post" Firefox "Windows 10" 48.0 5.0 Windows "Windows 10"  Gecko 20100101 Firefox 48.0`,
+		`"2016-08-19 17:10:53" "pre yaml post" Firefox "Windows NT 10.0" 48.0 5.0 Windows "Windows NT 10.0" rv:48.0 Gecko 20100101 Firefox 48.0`,
 		msg.String(),
 	)
 }

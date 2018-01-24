@@ -17,7 +17,8 @@ This is a patch / minor features release.
  * fixed a nil pointer panic with producer.elasticsearch when receiving messages with unassigned streams
  * producer.ElasticSearch settings are now named according to config
  * producer.ElasticSearch dayBasedIndex renamed to timeBasedIndex and it's now working as expected
- * updated dependencies to latest version (brings support for kafka 1.0)
+ * updated dependencies to latest version (brings support for kafka 1.0, fixes user agent parsing for format.processTSV)
+
 
 ## 0.5.0
 
