@@ -360,7 +360,7 @@ func printVersion() {
 }
 
 func printExtVersion() {
-	fmt.Printf("%6s: %s\n", "Gollum", core.GetVersionString()[1:])
+	fmt.Printf("%6s: %s (%d)\n", "Gollum", core.GetVersionString(), core.GetVersionNumber())
 	fmt.Printf("%6s: %s\n", "Go", runtime.Version()[2:])
 	fmt.Printf("%6s: %s\n", "Arch", runtime.GOARCH)
 }
