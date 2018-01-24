@@ -23,12 +23,15 @@ var versionString string
 
 // GetVersionString return a symantic version string
 func GetVersionString() string {
+	if len(versionString) == 0 {
+		return "0.0.0-non_make_build"
+	}
 	return versionString
 }
 
 // GetVersionNumber return a symantic based version number
 func GetVersionNumber() int64 {
-	parts := strings.Split(versionString, ".")
+	parts := strings.Split(GetVersionString(), ".")
 	multiplier := int64(100 * 100) // major, minor, patch
 	version := int64(0)
 	for i, subVerString := range parts {
