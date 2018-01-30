@@ -16,11 +16,41 @@ package format
 
 import (
 	"encoding/json"
+	"fmt"
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
+
+func TestMultilineGrok(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.GrokToJSON")
+	config.Override("Patterns", []string{`(?sm)%{GREEDYDATA:data}`})
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*GrokToJSON)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("us-west.servicename.webserver0.this.\nis.\nthe.\nmeasurement 12.0 1497003802"), nil, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	fmt.Println(msg.String())
+
+	jsonData := tcontainer.NewMarshalMap()
+	err = json.Unmarshal(msg.GetPayload(), &jsonData)
+	expect.NoError(err)
+
+	expect.MapEqual(jsonData, "data", "us-west.servicename.webserver0.this.\nis.\nthe.\nmeasurement 12.0 1497003802")
+
+	expect.NoError(err)
+}
 
 func TestPatternToJSON(t *testing.T) {
 	expect := ttesting.NewExpect(t)
