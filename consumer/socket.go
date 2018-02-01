@@ -15,19 +15,18 @@
 package consumer
 
 import (
-	"container/list"
 	"fmt"
+	"io"
+	"net"
+	"os"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
-	"io"
-	"net"
-	"os"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 )
 
 const (
@@ -44,19 +43,17 @@ const (
 //
 // - Address: This value defines the protocol, host and port or socket to bind to.
 // This can either be any ip address and port like "localhost:5880" or a file
-// like "unix:///var/gollum.socket".
-// By default this parameter is set to ":5880".
+// like "unix:///var/gollum.socket". Valid protocols can be derived from the
+// golang net package documentation. Common values are "udp", "tcp" and "unix".
+// By default this parameter is set to "tcp://0.0.0.0:5880".
 //
 // - Permissions: This value sets the filesystem permissions for UNIX domain
 // sockets as a four-digit octal number.
 // By default this parameter is set to "0770".
 //
 // - Acknowledge: This value can be set to a non-empty value to inform the writer
-// on success or error. On success, the given string is sent. Any error will close
-// the connection. If Acknowledge is enabled and "Address" is set to an IP address,
-// TCP is used to open the connection, otherwise UDP is used. If an error occurs
-// during write, "NOT <Acknowledge>" is returned. To disable this parameter, set it
-// to "".
+// that data has been accepted. On success, the given string is sent. Any error
+// will close the connection. Acknowledge does not work with UDP based sockets.
 // By default this parameter is set to "".
 //
 // - Partitioner: This value defines the algorithm used to read messages from the
@@ -87,13 +84,13 @@ const (
 // connection is retried.
 // By default this parameter is set to "2".
 //
-// - AckTimoutSec: This value defines the number of seconds to wait for acknowledges
+// - AckTimeoutSec: This value defines the number of seconds to wait for acknowledges
 // to succeed.
-// By default this parameter is set to "2".
+// By default this parameter is set to "1".
 //
-// - ReadTimoutSec: This value defines the number of seconds to wait for data
-// to be received.
-// By default this parameter is set to "5".
+// - ReadTimeoutSec: This value defines the number of seconds to wait for data
+// to be received. This setting affects the maximum shutdown duration of this consumer.
+// By default this parameter is set to "2".
 //
 // - RemoveOldSocket: If set to true, any existing file with the same name as the
 // socket (unix://<path>) is removed prior to connecting.
@@ -116,18 +113,16 @@ type Socket struct {
 	acknowledge   string        `config:"Acknowledge" default:""`
 	delimiter     string        `config:"Delimiter" default:"\n"`
 	reconnectTime time.Duration `config:"ReconnectAfterSec" default:"2" metric:"sec"`
-	ackTimeout    time.Duration `config:"AckTimoutSec" default:"2" metric:"sec"`
-	readTimeout   time.Duration `config:"ReadTimoutSec" default:"5" metric:"sec"`
+	ackTimeout    time.Duration `config:"AckTimeoutSec" default:"1" metric:"sec"`
+	readTimeout   time.Duration `config:"ReadTimeoutSec" default:"2" metric:"sec"`
 	fileFlags     os.FileMode   `config:"Permissions" default:"0770"`
 	clearSocket   bool          `config:"RemoveOldSocket" default:"true"`
 	offset        int           `config:"Offset" default:"0"`
 
-	listen     io.Closer
-	clientLock *sync.Mutex
-	clients    *list.List
-	protocol   string
-	address    string
-	flags      tio.BufferedReaderFlags
+	listener io.Closer
+	protocol string
+	address  string
+	flags    tio.BufferedReaderFlags
 }
 
 func init() {
@@ -136,26 +131,16 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *Socket) Configure(conf core.PluginConfigReader) {
-	flags, err := strconv.ParseInt(conf.GetString("Permissions", "0770"), 8, 32)
-	conf.Errors.Push(err)
-	cons.fileFlags = os.FileMode(flags)
-
-	cons.clients = list.New()
-	cons.clientLock = new(sync.Mutex)
-	cons.protocol, cons.address = tnet.ParseAddress(conf.GetString("Address", ":5880"), "tcp")
-
-	if cons.protocol != "unix" {
-		if cons.acknowledge != "" {
-			cons.protocol = "tcp"
-		} else {
-			cons.protocol = "udp"
-		}
+	if len(cons.acknowledge) > 0 && cons.protocol == "udp" {
+		conf.Errors.Pushf("UDP sockets do not support acknowledgment.")
 	}
 
+	address := conf.GetString("Address", "tcp://0.0.0.0:5880")
+	cons.protocol, cons.address = tnet.ParseAddress(address, "tcp")
 	cons.flags = 0
 
-	partitioner := strings.ToLower(conf.GetString("Partitioner", "delimiter"))
-	switch partitioner {
+	partitioner := conf.GetString("Partitioner", "delimiter")
+	switch strings.ToLower(partitioner) {
 	case "binary_be":
 		cons.flags |= tio.BufferedReaderFlagBigEndian
 		fallthrough
@@ -190,182 +175,178 @@ func (cons *Socket) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func (cons *Socket) sendAck(conn net.Conn, success bool) error {
-	if cons.acknowledge != "" {
-		var err error
-		conn.SetWriteDeadline(time.Now().Add(cons.ackTimeout))
-		if success {
-			_, err = fmt.Fprint(conn, cons.acknowledge)
-		} else {
-			_, err = fmt.Fprint(conn, "NOT "+cons.acknowledge)
-		}
-		return err
-	}
-	return nil
-}
-
-func (cons *Socket) processConnection(conn net.Conn) {
-	cons.AddWorker()
+func (cons *Socket) listenUDP() {
 	defer cons.WorkerDone()
-	defer conn.Close()
+	var (
+		err    error
+		socket net.Conn
+	)
 
-	buffer := tio.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
-
-	for cons.IsActive() {
-		conn.SetReadDeadline(time.Now().Add(cons.readTimeout))
-		err := buffer.ReadAll(conn, cons.Enqueue)
-		if err == nil {
-			if err = cons.sendAck(conn, true); err == nil {
-				continue // ### continue, all is well ###
-			}
-		}
-
-		// Silently exit on disconnect/close
-		if !cons.IsActive() || tnet.IsDisconnectedError(err) {
-			return // ### return, connection closed ###
-		}
-
-		// Ignore timeout related errors
-		if netErr, isNetErr := err.(net.Error); isNetErr && netErr.Timeout() {
-			continue // ### return, ignore timeouts ###
-		}
-
-		cons.Logger.Error("Transfer failed: ", err)
-		cons.sendAck(conn, false)
-
-		// Parser errors do not drop the connection
-		if err != tio.BufferDataInvalid {
-			return // ### return, close connections ###
-		}
-	}
-}
-
-func (cons *Socket) processClientConnection(clientElement *list.Element) {
-	defer func() {
-		cons.clientLock.Lock()
-		cons.clients.Remove(clientElement)
-		cons.clientLock.Unlock()
-	}()
-
-	conn := clientElement.Value.(net.Conn)
-	cons.processConnection(conn)
-}
-
-func (cons *Socket) udpAccept() {
-	defer cons.WorkerDone()
-	defer cons.closeConnection()
 	addr, _ := net.ResolveUDPAddr(cons.protocol, cons.address)
-
 	for cons.IsActive() {
-		// (re)open a tcp connection
-		for cons.listen == nil {
-			if listener, err := net.ListenUDP(cons.protocol, addr); err == nil {
-				cons.listen = listener
-			} else {
-				cons.Logger.Error("Connection error: ", err)
-				time.Sleep(cons.reconnectTime)
+		// (re)open a UDP connection
+		for cons.listener == nil {
+			if !cons.IsActive() {
+				return // return, abort
 			}
+
+			socket, err = net.ListenUDP(cons.protocol, addr)
+			if err == nil {
+				cons.listener = socket
+				cons.Logger.Debugf("Listening to %s", cons.address)
+				break // break, listening
+			}
+
+			cons.Logger.WithError(err).Errorf("Failed to listen to %s", cons.address)
+			time.Sleep(cons.reconnectTime)
 		}
 
-		conn := cons.listen.(*net.UDPConn)
-		cons.processConnection(conn)
-		cons.listen = nil
+		cons.readFromConnection(socket, nil)
+		cons.closeListener()
 	}
 }
 
-func (cons *Socket) tcpAccept() {
+func (cons *Socket) listen() {
 	defer cons.WorkerDone()
-	defer cons.closeTCPConnection()
+
+	var (
+		err        error
+		socket     net.Listener
+		forceClose *bool
+	)
 
 	for cons.IsActive() {
 		// (re)open a tcp connection
-		for cons.listen == nil {
-			listener, err := net.Listen(cons.protocol, cons.address)
-			if cons.protocol == "unix" && err == nil {
+		for cons.listener == nil {
+			if !cons.IsActive() {
+				return // return, abort
+			}
+
+			socket, err = net.Listen(cons.protocol, cons.address)
+			if err == nil && cons.protocol == "unix" {
 				err = os.Chmod(cons.address, cons.fileFlags)
 			}
 
 			if err == nil {
-				cons.listen = listener
-			} else {
-				cons.Logger.Error("Connection error: ", err)
+				cons.listener = socket
+				forceClose = new(bool) // new trigger for all clients from this listener
+				cons.Logger.Debugf("Listening to %s", cons.address)
+				break // break, listening
+			}
 
-				// Clear socket if necessary
-				if cons.protocol == "unix" && cons.clearSocket {
-					// Try to create the socket file to check if it exists
-					if socketFile, err := os.Create(cons.address); os.IsExist(err) {
-						cons.Logger.Warning("Found existing socket ", cons.address, ". Removing.")
+			cons.Logger.WithError(err).Errorf("Failed to listen to %s", cons.address)
+			if cons.clearSocket && cons.protocol == "unix" {
+				cons.tryRemoveUnixSocket()
+			}
+			time.Sleep(cons.reconnectTime)
+		}
 
-						if err := os.Remove(cons.address); err != nil {
-							cons.Logger.Warning("Found existing socket ", cons.address, ". Removing.")
-						} else {
-							cons.Logger.Errorf("Socket %s cleared", cons.address)
-						}
-					} else {
-						cons.Logger.Errorf("Existing socket %s was removed by third party", cons.address)
-						socketFile.Close()
-						if err := os.Remove(cons.address); err != nil {
-							cons.Logger.Error("Could not remove test socket ", cons.address)
-						}
-					}
-				}
+		conn, err := socket.Accept()
+		if err == nil {
+			go cons.readFromClientConnection(conn, forceClose)
+			continue // continue, accepted
+		}
 
-				time.Sleep(cons.reconnectTime)
+		if !cons.IsActive() {
+			return // return, shutdown
+		}
+
+		// Trigger full reconnect (suppress errors during shutdown)
+		cons.Logger.WithError(err).Errorf("Socket accept failed for %s ", cons.address)
+		cons.closeListener()
+		*forceClose = true
+	}
+}
+
+func (cons *Socket) readFromClientConnection(conn net.Conn, forceClose *bool) {
+	cons.AddWorker()
+	defer cons.WorkerDone()
+	defer conn.Close()
+	cons.readFromConnection(conn, forceClose)
+}
+
+func (cons *Socket) readFromConnection(conn net.Conn, forceClose *bool) {
+	buffer := tio.NewBufferedReader(socketBufferGrowSize, cons.flags, cons.offset, cons.delimiter)
+
+	for cons.IsActive() && (forceClose == nil || !*forceClose) {
+		// Read from connection
+		// Time out in regular intervals so we can stop the loop on shutdown
+		conn.SetReadDeadline(time.Now().Add(cons.readTimeout))
+		if err := buffer.ReadAll(conn, cons.Enqueue); err != nil {
+			netErr, isNetErr := err.(net.Error)
+			switch {
+			case tnet.IsDisconnectedError(err):
+				cons.Logger.Infof("Client %s closed connection", conn.RemoteAddr())
+				return // return, closed
+
+			case err == tio.BufferDataInvalid:
+				cons.Logger.Infof("Invalid buffer data returnd from %s", conn.RemoteAddr())
+				return // return, invalid data
+
+			case isNetErr && netErr.Timeout():
+				//cons.Logger.Infof("Read from %s timed out", conn.RemoteAddr())
+				continue
+
+			default:
+				cons.Logger.WithError(err).Errorf("Failed to read from %s on %s", conn.RemoteAddr(), cons.address)
+				continue
 			}
 		}
 
-		//cons.Logger.Info("Listening to open: ", cons.address)
-		listener := cons.listen.(net.Listener)
-		if client, err := listener.Accept(); err != nil {
-			// Trigger full reconnect (suppress errors during shutdown)
-			if cons.IsActive() {
-				cons.Logger.Error("Accept failed: ", err)
-			}
-			cons.closeTCPConnection()
-		} else {
-			// Handle client connection
-			cons.clientLock.Lock()
-			element := cons.clients.PushBack(client)
-			cons.clientLock.Unlock()
-			go cons.processClientConnection(element)
+		// Send ack if required
+		if err := cons.sendACK(conn); err != nil {
+			cons.Logger.WithError(err).Errorf("Failed to send ack to %s", conn.RemoteAddr())
 		}
 	}
 }
 
-func (cons *Socket) closeConnection() {
-	if cons.listen != nil {
-		cons.listen.Close()
-		cons.listen = nil
+func (cons *Socket) sendACK(conn net.Conn) error {
+	if len(cons.acknowledge) == 0 || cons.protocol == "udp" {
+		return nil
 	}
+	conn.SetWriteDeadline(time.Now().Add(cons.ackTimeout))
+	_, err := fmt.Fprint(conn, cons.acknowledge)
+	return err
 }
 
-func (cons *Socket) closeTCPConnection() {
-	cons.closeConnection()
-	cons.closeAllClients()
+func (cons *Socket) closeListener() {
+	if cons.listener == nil {
+		return
+	}
+	cons.Logger.Debugf("Closing socket %s", cons.address)
+	cons.listener.Close()
+	cons.listener = nil
 }
 
-func (cons *Socket) closeAllClients() {
-	cons.clientLock.Lock()
-	defer cons.clientLock.Unlock()
+func (cons *Socket) tryRemoveUnixSocket() {
+	// Try to create the socket file to check if it exists
+	socketFile, err := os.Create(cons.address)
+	if os.IsExist(err) {
+		cons.Logger.Warningf("Found existing socket %s. Trying to remove it", cons.address)
+		if err := os.Remove(cons.address); err != nil {
+			cons.Logger.WithError(err).Errorf("Failed to remove %s", cons.address)
+			return
+		}
 
-	for cons.clients.Len() > 0 {
-		client := cons.clients.Front()
-		conn := client.Value.(net.Conn)
-		cons.clients.Remove(client)
-		conn.Close()
+		cons.Logger.Warningf("Removed %s", cons.address)
+		return
+	}
+
+	socketFile.Close()
+	if err := os.Remove(cons.address); err != nil {
+		cons.Logger.WithError(err).Errorf("Could not remove test file %s", cons.address)
 	}
 }
 
 // Consume listens to a given socket.
 func (cons *Socket) Consume(workers *sync.WaitGroup) {
 	cons.AddMainWorker(workers)
+	defer cons.closeListener()
 
 	if cons.protocol == "udp" {
-		go tgo.WithRecoverShutdown(cons.udpAccept)
-		defer cons.closeConnection()
+		go tgo.WithRecoverShutdown(cons.listenUDP)
 	} else {
-		go tgo.WithRecoverShutdown(cons.tcpAccept)
-		defer cons.closeTCPConnection()
+		go tgo.WithRecoverShutdown(cons.listen)
 	}
 
 	cons.ControlLoop()
