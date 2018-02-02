@@ -243,6 +243,8 @@ func (cons *Socket) listen() {
 
 		conn, err := socket.Accept()
 		if err == nil {
+			cons.Logger.Debugf("New client connection to %s for %s", conn.RemoteAddr(), cons.address)
+			cons.AddWorker()
 			go cons.readFromClientConnection(conn, forceClose)
 			continue // continue, accepted
 		}
@@ -259,9 +261,11 @@ func (cons *Socket) listen() {
 }
 
 func (cons *Socket) readFromClientConnection(conn net.Conn, forceClose *bool) {
-	cons.AddWorker()
-	defer cons.WorkerDone()
-	defer conn.Close()
+	defer func() {
+		conn.Close()
+		cons.Logger.Debugf("Closed client connection to %s on %s", conn.RemoteAddr(), cons.address)
+		cons.WorkerDone()
+	}()
 	cons.readFromConnection(conn, forceClose)
 }
 
@@ -275,6 +279,9 @@ func (cons *Socket) readFromConnection(conn net.Conn, forceClose *bool) {
 		if err := buffer.ReadAll(conn, cons.Enqueue); err != nil {
 			netErr, isNetErr := err.(net.Error)
 			switch {
+			case !cons.IsActive():
+				return
+
 			case tnet.IsDisconnectedError(err):
 				cons.Logger.Infof("Client %s closed connection", conn.RemoteAddr())
 				return // return, closed
@@ -288,7 +295,12 @@ func (cons *Socket) readFromConnection(conn net.Conn, forceClose *bool) {
 				continue
 
 			default:
-				cons.Logger.WithError(err).Errorf("Failed to read from %s on %s", conn.RemoteAddr(), cons.address)
+				remote := conn.RemoteAddr()
+				if remote == nil {
+					cons.Logger.WithError(err).Errorf("Failed to read from %s", cons.address)
+				} else {
+					cons.Logger.WithError(err).Errorf("Failed to read from %s on %s", remote, cons.address)
+				}
 				continue
 			}
 		}
