@@ -1,0 +1,20 @@
+FROM fleshgrinder/debian:stretch-go1-build
+
+ADD http://launchpadlibrarian.net/234454186/librdkafka1_0.8.6-1.1_amd64.deb /src/librdkafka1_0.8.6-1.1_amd64.deb
+ADD http://launchpadlibrarian.net/234454185/librdkafka-dev_0.8.6-1.1_amd64.deb /src/librdkafka-dev_0.8.6-1.1_amd64.deb
+COPY ../ /usr/local/src/github.com/trivago/gollum/
+
+WORKDIR /usr/local/src/github.com/trivago/gollum/
+
+RUN apt-install libpcap-dev \
+ && dpkg -i /src/librdkafka1_0.8.6-1.1_amd64.deb \
+ && dpkg -i /src/librdkafka-dev_0.8.6-1.1_amd64.deb \
+ && go get -u github.com/golang/lint/golint \
+ && cp contrib_loader.go.dist contrib_loader.go \
+ && make current \
+ && ln -s $(pwd)/gollum /usr/local/bin/gollum
+
+CMD ["gollum"]
+
+LABEL maintainer.0="marc.siebeneicher@trivago.com"
+LABEL maintainer.1="arne.claus@trivago.com"

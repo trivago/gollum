@@ -1,0 +1,25 @@
+FROM fleshgrinder/debian:stretch-go1-build
+COPY . /usr/local/src/github.com/trivago/gollum
+WORKDIR /usr/local/src/github.com/trivago/gollum
+RUN make -sj$(nproc) current
+LABEL com.trivago.image="gollum"
+
+# ------------------------------------------------------------------------------
+
+FROM fleshgrinder/debian:stretch
+ENV HEALTHCHECK_PATH=/_ALL_
+ENV HEALTHCHECK_PORT=8080
+ENV LOG_LEVEL=1
+
+COPY --from=0 /usr/local/src/github.com/trivago/gollum/gollum /usr/bin/gollum
+RUN mkdir -p /var/spool/gollum && chown -R srv /var/spool/gollum
+
+CMD /usr/bin/entrypoint gollum -c /usr/local/etc/gollum/config.yml -hc ${HEALTHCHECK_PORT} -ll ${LOG_LEVEL}
+USER srv
+
+ARG VERSION
+LABEL com.trivago.service.name="gollum"
+LABEL com.trivago.service.description="An n:m message multiplexer"
+LABEL com.trivago.service.version="${VERSION}"
+LABEL maintainer.0="arne.claus@trivago.com"
+LABEL maintainer.1="marc.siebeneicher@trivago.com"
