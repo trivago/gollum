@@ -1,5 +1,5 @@
 FROM fleshgrinder/debian:stretch-go1-build
-COPY . /usr/local/src/github.com/trivago/gollum
+COPY ../ /usr/local/src/github.com/trivago/gollum
 WORKDIR /usr/local/src/github.com/trivago/gollum
 RUN make -sj$(nproc) current
 LABEL com.trivago.image="gollum"
