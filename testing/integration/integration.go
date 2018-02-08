@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 	"time"
 )
 
@@ -18,6 +19,29 @@ const (
 	tmpTestFilePathFoo     = "/tmp/gollum_test_foo.log"
 	tmpTestFilePathBar     = "/tmp/gollum_test_bar.log"
 )
+
+// StartGollum starts the gollum binary and expects the test to call StopGollum.
+func StartGollum(config string, arg ...string) (*exec.Cmd, error) {
+	if config != "" {
+		arg = append(arg, "-c="+getTestConfigPath(config))
+	}
+
+	cmd := GetGollumCmd(0, arg...)
+	cmd.Stdout = bytes.NewBuffer([]byte{})
+	err := cmd.Start()
+
+	time.Sleep(time.Second)
+
+	return cmd, err
+}
+
+// StopGollum stops the gollum command started with StartGollum
+func StopGollum(cmd *exec.Cmd) *bytes.Buffer {
+	cmd.Process.Signal(syscall.SIGTERM)
+	cmd.Wait()
+	buffer := (cmd.Stdout).(*bytes.Buffer)
+	return buffer
+}
 
 // ExecuteGollum execute gollum binary for integration testing
 func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buffer, err error) {
