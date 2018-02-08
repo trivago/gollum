@@ -18,16 +18,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
 	"io/ioutil"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/kinesis"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
 )
 
 const (

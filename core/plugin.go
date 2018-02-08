@@ -16,9 +16,11 @@ package core
 
 import (
 	"fmt"
-	"github.com/trivago/tgo/treflect"
 	"sync"
 	"sync/atomic"
+
+	metrics "github.com/rcrowley/go-metrics"
+	"github.com/trivago/tgo/treflect"
 )
 
 // TypeRegistry is the global typeRegistry instance.
@@ -62,7 +64,7 @@ const (
 
 var (
 	// Has to be index parallel to PluginState*
-	stateToMetric = []string{
+	stateToMetric = []metrics.Gauge{
 		MetricPluginsInit,
 		MetricPluginsWaiting,
 		MetricPluginsActive,
@@ -89,7 +91,6 @@ var (
 type PluginRunState struct {
 	workers *sync.WaitGroup
 	state   int32 // Pluginstate
-	metric  PluginMetric
 }
 
 // Plugin is the base class for any runtime class that can be configured and
@@ -105,15 +106,19 @@ type PluginWithState interface {
 	GetState() PluginState
 }
 
+// PluginWithID filters plugins that have a string ID
+type PluginWithID interface {
+	Plugin
+	GetID() string
+}
+
 // NewPluginRunState creates a new plugin state helper
 func NewPluginRunState() *PluginRunState {
 	plugin := &PluginRunState{
 		workers: nil,
 		state:   int32(PluginStateInitializing),
-		metric:  PluginMetric{},
 	}
 
-	plugin.metric.Init()
 	return plugin
 }
 
@@ -132,7 +137,8 @@ func (state *PluginRunState) SetState(nextState PluginState) {
 	prevState := PluginState(atomic.SwapInt32(&state.state, int32(nextState)))
 
 	if nextState != prevState {
-		state.metric.UpdateStateMetric(stateToMetric[prevState], stateToMetric[nextState])
+		stateToMetric[prevState].Update(-1)
+		stateToMetric[nextState].Update(1)
 	}
 }
 
@@ -144,14 +150,14 @@ func (state *PluginRunState) SetWorkerWaitGroup(workers *sync.WaitGroup) {
 // AddWorker adds a worker to the waitgroup configured by SetWorkerWaitGroup.
 func (state *PluginRunState) AddWorker() {
 	state.workers.Add(1)
-	state.metric.IncWorker()
+	MetricActiveWorkers.Update(1)
 }
 
 // WorkerDone removes a worker from the waitgroup configured by
 // SetWorkerWaitGroup.
 func (state *PluginRunState) WorkerDone() {
 	state.workers.Done()
-	state.metric.DecWorker()
+	MetricActiveWorkers.Update(-1)
 }
 
 // NewPluginWithConfig creates a new plugin from the type information stored in its

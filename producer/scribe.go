@@ -16,14 +16,15 @@ package producer
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/artyom/fb303"
 	"github.com/artyom/scribe"
 	"github.com/artyom/thrift"
+	metrics "github.com/rcrowley/go-metrics"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tmath"
-	"sync"
-	"time"
 )
 
 // Scribe producer
@@ -82,6 +83,9 @@ type Scribe struct {
 	heartBeatInterval    time.Duration `config:"HeartBeatIntervalSec" default:"5" metric:"sec"`
 	maxWindowSize        int           `config:"WindowSize" default:"2048"`
 	connectionTimeout    time.Duration `config:"ConnectionTimeoutSec" default:"5" metric:"sec"`
+	metricsRegistry      metrics.Registry
+	metricWindowSize     metrics.Gauge
+	metricCount          map[core.MessageStreamID]metrics.Counter
 }
 
 const (
@@ -103,6 +107,8 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) {
 	prod.category = conf.GetStreamMap("Categories", "")
 	prod.windowSize = prod.maxWindowSize
 	prod.categoryGuard = new(sync.RWMutex)
+	prod.metricsRegistry = core.NewPluginRegistry(prod)
+	prod.metricCount = make(map[core.MessageStreamID]metrics.Counter)
 
 	// Initialize scribe connection
 
@@ -114,13 +120,13 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) {
 	binProtocol := thrift.NewTBinaryProtocol(prod.transport, false, false)
 	prod.scribe = scribe.NewScribeClientProtocol(prod.transport, binProtocol, binProtocol)
 
-	tgo.Metric.New(scribeMetricWindowSize)
-	tgo.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
+	prod.metricWindowSize = metrics.NewGauge()
+	prod.metricsRegistry.Register("windowsize", prod.metricWindowSize)
 
-	for _, category := range prod.category {
-		metricName := scribeMetricMessages + category
-		tgo.Metric.New(metricName)
-		tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
+	for streamID, category := range prod.category {
+		counter := metrics.NewCounter()
+		prod.metricCount[streamID] = counter
+		prod.metricsRegistry.Register(category, counter)
 	}
 }
 
@@ -187,18 +193,16 @@ func (prod *Scribe) addCategory(streamID core.MessageStreamID) string {
 	prod.categoryGuard.Lock()
 	defer prod.categoryGuard.Unlock()
 
-	category, exists := prod.category[core.WildcardStreamID]
-	if exists {
-		return category
+	category, ok := prod.category[core.WildcardStreamID]
+	if !ok {
+		category = core.StreamRegistry.GetStreamName(streamID)
 	}
 
-	category = core.StreamRegistry.GetStreamName(streamID)
-
-	metricName := scribeMetricMessages + category
-	tgo.Metric.New(metricName)
-	tgo.Metric.NewRate(metricName, scribeMetricMessagesSec+category, time.Second, 10, 3, true)
-
+	counter := metrics.NewCounter()
+	prod.metricCount[streamID] = counter
+	prod.metricsRegistry.Register(category, counter)
 	prod.category[streamID] = category
+
 	return category
 }
 
@@ -207,12 +211,13 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 
 	// Convert messages to scribe log format
 	for idx, msg := range messages {
+		streamID := msg.GetStreamID()
 		prod.categoryGuard.RLock()
-		category, exists := prod.category[msg.GetStreamID()]
+		category, exists := prod.category[streamID]
 		prod.categoryGuard.RUnlock()
 
 		if !exists {
-			category = prod.addCategory(msg.GetStreamID())
+			category = prod.addCategory(streamID)
 		}
 
 		logBuffer[idx] = &scribe.LogEntry{
@@ -220,7 +225,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 			Message:  string(msg.GetPayload()),
 		}
 
-		tgo.Metric.Inc(scribeMetricMessages + category)
+		prod.metricCount[streamID].Inc(1)
 	}
 
 	// Try to send the whole batch.
@@ -241,7 +246,6 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 			if prod.windowSize < prod.maxWindowSize {
 				prod.windowSize = tmath.MinI(prod.windowSize*2, prod.maxWindowSize)
 			}
-
 			return // ### return, success ###
 		}
 
@@ -257,7 +261,7 @@ func (prod *Scribe) transformMessages(messages []*core.Message) {
 		// Reduce window size to reduce load on server
 
 		prod.windowSize = tmath.MaxI(1, prod.windowSize/2)
-		tgo.Metric.SetI(scribeMetricWindowSize, prod.windowSize)
+		prod.metricWindowSize.Update(int64(prod.windowSize))
 		time.Sleep(time.Duration(scribeMaxSleepTimeMs/scribeMaxRetries) * time.Millisecond)
 	}
 

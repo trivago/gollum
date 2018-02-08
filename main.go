@@ -34,7 +34,6 @@ import (
 	"github.com/trivago/gollum/logger"
 	_ "github.com/trivago/gollum/producer"
 	_ "github.com/trivago/gollum/router"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tos"
@@ -233,16 +232,25 @@ func startMetricsService() func() {
 		return nil
 	}
 
-	server := tgo.NewMetricServer()
 	address, err := parseAddress(*flagMetricsAddress)
 	if err != nil {
-		logrus.WithError(err).Error("Failed to start metrics service")
+		logrus.WithError(err).Error("Failed to parse metrics address")
 		return nil
 	}
 
-	logrus.WithField("address", address).Info("Starting metric service")
-	go server.Start(address)
-	return server.Stop
+	metricsType := "prometheus"
+	if *flagMetricsType != "" {
+		metricsType = strings.ToLower(*flagMetricsType)
+	}
+
+	switch metricsType {
+	case "prometheus":
+		return startPrometheusMetricsService(address)
+
+	default:
+		logrus.Errorf("Unknown metrics type: %s", metricsType)
+		return nil
+	}
 }
 
 // startHealthCheckService creates a health check endpoint if requested.
@@ -391,10 +399,11 @@ func printModules() {
 	}
 }
 
+var currentCount int64
+
 func printProfile() {
-	msgSec, err := tgo.Metric.Get(core.MetricMessagesRoutedAvg)
-	if err == nil {
-		fmt.Printf("Processed %d msg/sec\n", msgSec)
-	}
+	lastCount := currentCount
+	currentCount = core.MetricMessagesRouted.Count()
+	fmt.Printf("Processed %d msg/sec\n", currentCount-lastCount)
 	time.AfterFunc(time.Second*3, printProfile)
 }

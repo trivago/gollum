@@ -54,19 +54,17 @@ func Route(msg *Message, router Router) error {
 	}
 
 	action := router.Modulate(msg)
-
 	streamName := msg.GetStreamID().GetName()
-	streamMetric := GetStreamMetric(msg.GetStreamID())
 
 	switch action {
 	case ModulateResultDiscard:
-		streamMetric.CountMessageDiscarded()
+		MetricMessagesDiscarded.Inc(1)
 		DiscardMessage(msg, router.GetID(), "Router discarded")
 		return nil
 
 	case ModulateResultContinue:
-		streamMetric.CountMessageRouted()
-		CountMessageRouted()
+		MetricMessagesRouted.Inc(1)
+		GetStreamMetric(msg.streamID).Routed.Inc(1)
 		MessageTrace(msg, router.GetID(), "Routed")
 
 		return router.Enqueue(msg)
@@ -93,6 +91,6 @@ func RouteOriginal(msg *Message, router Router) error {
 // DiscardMessage increases the discard statistic and discards the given
 // message.
 func DiscardMessage(msg *Message, pluginID string, comment string) {
-	CountMessageDiscarded()
+	GetStreamMetric(msg.GetStreamID()).Discarded.Inc(1)
 	MessageTrace(msg, pluginID, comment)
 }

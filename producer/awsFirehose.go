@@ -16,14 +16,15 @@ package producer
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
+	"github.com/rcrowley/go-metrics"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/tgo"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 // AwsFirehose producer plugin
@@ -77,12 +78,12 @@ type AwsFirehose struct {
 	delimiter         []byte        `config:"RecordMessageDelimiter" default:"\n"`
 	sendTimeLimit     time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
 
-	client           *firehose.Firehose
-	batch            core.MessageBatch
-	streamMap        map[core.MessageStreamID]string
-	lastSendTime     time.Time
-	lastMetricUpdate time.Time
-	counters         map[string]*int64
+	client          *firehose.Firehose
+	batch           core.MessageBatch
+	streamMap       map[core.MessageStreamID]string
+	metricCount     map[string]metrics.Counter
+	lastSendTime    time.Time
+	metricsRegistry metrics.Registry
 }
 
 const (
@@ -102,11 +103,11 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *AwsFirehose) Configure(conf core.PluginConfigReader) {
-	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
+	streamMap := conf.GetStreamMap("StreamMapping", "default")
 
 	prod.lastSendTime = time.Now()
-	prod.counters = make(map[string]*int64)
-	prod.lastMetricUpdate = time.Now()
+	prod.metricsRegistry = core.NewPluginRegistry(prod)
+	prod.metricCount = make(map[string]metrics.Counter)
 
 	if prod.recordMaxMessages < 1 {
 		prod.recordMaxMessages = 1
@@ -118,10 +119,11 @@ func (prod *AwsFirehose) Configure(conf core.PluginConfigReader) {
 		prod.Logger.Warning("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
-	for _, streamName := range prod.streamMap {
-		tgo.Metric.New(firehoseMetricMessages + streamName)
-		tgo.Metric.New(firehoseMetricMessagesSec + streamName)
-		prod.counters[streamName] = new(int64)
+	for streamID, firehoseStreamName := range streamMap {
+		counter := metrics.NewCounter()
+		prod.streamMap[streamID] = firehoseStreamName
+		prod.metricCount[firehoseStreamName] = counter
+		prod.metricsRegistry.Register(firehoseStreamName, counter)
 	}
 }
 
@@ -159,19 +161,22 @@ func (prod *AwsFirehose) transformMessages(messages []*core.Message) {
 
 	// Format and sort
 	for idx, msg := range messages {
+		streamID := msg.GetStreamID()
 
 		// Fetch buffer for this stream
-		records, recordsExists := streamRecords[msg.GetStreamID()]
+		records, recordsExists := streamRecords[streamID]
 		if !recordsExists {
-			// Select the correct firehose stream
-			streamName, streamMapped := prod.streamMap[msg.GetStreamID()]
-			if !streamMapped {
-				streamName = core.StreamRegistry.GetStreamName(msg.GetStreamID())
-				prod.streamMap[msg.GetStreamID()] = streamName
-
-				tgo.Metric.New(firehoseMetricMessages + streamName)
-				tgo.Metric.New(firehoseMetricMessagesSec + streamName)
-				prod.counters[streamName] = new(int64)
+			// Fetch metadata for this stream
+			firehoseStreamName, ok := prod.streamMap[streamID]
+			if !ok {
+				firehoseStreamName, ok = prod.streamMap[core.WildcardStreamID]
+				if !ok {
+					firehoseStreamName = streamID.GetName()
+					prod.streamMap[streamID] = firehoseStreamName
+				}
+				counter := metrics.NewCounter()
+				prod.metricCount[firehoseStreamName] = counter
+				prod.metricsRegistry.Register(firehoseStreamName, counter)
 			}
 
 			// Create buffers for this firehose stream
@@ -179,12 +184,12 @@ func (prod *AwsFirehose) transformMessages(messages []*core.Message) {
 			records = &firehoseData{
 				content: &firehose.PutRecordBatchInput{
 					Records:            make([]*firehose.Record, 0, maxLength),
-					DeliveryStreamName: aws.String(streamName),
+					DeliveryStreamName: aws.String(firehoseStreamName),
 				},
 				original:           make([][]*core.Message, 0, maxLength),
 				lastRecordMessages: 0,
 			}
-			streamRecords[msg.GetStreamID()] = records
+			streamRecords[streamID] = records
 		}
 
 		// Fetch record for this buffer
@@ -216,9 +221,9 @@ func (prod *AwsFirehose) transformMessages(messages []*core.Message) {
 
 	// Send to AwsFirehose
 	for _, records := range streamRecords {
-		rsp, err := prod.client.PutRecordBatch(records.content)
-		atomic.AddInt64(prod.counters[*records.content.DeliveryStreamName], int64(len(records.content.Records)))
+		prod.metricCount[*records.content.DeliveryStreamName].Inc(int64(len(records.content.Records)))
 
+		rsp, err := prod.client.PutRecordBatch(records.content)
 		if err != nil {
 			// Batch failed, fallback all
 			prod.Logger.WithError(err).Error("Failed to put record batch")
@@ -227,14 +232,15 @@ func (prod *AwsFirehose) transformMessages(messages []*core.Message) {
 					prod.TryFallback(msg)
 				}
 			}
-		} else {
-			// Check each message for errors
-			for msgIdx, record := range rsp.RequestResponses {
-				if record.ErrorMessage != nil {
-					prod.Logger.Error("AwsFirehose message write error: ", *record.ErrorMessage)
-					for _, msg := range records.original[msgIdx] {
-						prod.TryFallback(msg)
-					}
+			continue
+		}
+
+		// Check each message for errors
+		for msgIdx, record := range rsp.RequestResponses {
+			if record.ErrorMessage != nil {
+				prod.Logger.Error("AwsFirehose message write error: ", *record.ErrorMessage)
+				for _, msg := range records.original[msgIdx] {
+					prod.TryFallback(msg)
 				}
 			}
 		}

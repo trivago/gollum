@@ -15,199 +15,150 @@
 package core
 
 import (
-	"fmt"
-	"github.com/trivago/tgo"
+	"runtime"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/rcrowley/go-metrics"
+	"github.com/trivago/tgo/tmath"
 )
 
-const (
-	metricRouters         = "Routers"
-	metricFallbackRouters = "Routers:Fallback"
-	metricCons            = "Consumers"
-	metricProds           = "Producers"
-	metricVersion         = "Version"
-)
+// StreamMetric holds per-stream metrics objects
+type StreamMetric struct {
+	registry  metrics.Registry
+	Routed    metrics.Counter
+	Discarded metrics.Counter
+}
 
-// MetricMessagesRoutedAvg is used as a key for storing message throughput
-const (
-	metricMessagesRouted       = "Messages:Routed"
-	MetricMessagesRoutedAvg    = "Messages:Routed:AvgPerSec"
-	metricMessagesEnqued       = "Messages:Enqueued"
-	metricMessagesEnquedAvg    = "Messages:Enqueued:AvgPerSec"
-	metricMessagesDiscarded    = "Messages:Discarded"
-	metricMessagesDiscardedSec = "Messages:Discarded:AvgPerSec"
-)
+var (
+	MetricsRegistry            metrics.Registry
+	metricsStreamRegistry      map[MessageStreamID]*StreamMetric
+	metricsStreamRegistryGuard sync.RWMutex
 
-const (
-	metricStreamMessagesRouted       = "Stream:%s:Messages:Routed"
-	metricStreamMessagesRoutedAvg    = "Stream:%s:Messages:Routed:AvgPerSec"
-	metricStreamMessagesDiscarded    = "Stream:%s:Messages:Discarded"
-	metricStreamMessagesDiscardedAvg = "Stream:%s:Messages:Discarded:AvgPerSec"
-)
+	metricVersion   metrics.Gauge
+	metricGoVersion metrics.Gauge
 
-// MetricActiveWorkers metric string
-// MetricPluginsInit metric string
-// MetricPluginsActive metric string
-// MetricPluginsWaiting metric string
-// MetricPluginsPrepareStop metric string
-// MetricPluginsStopping metric string
-// MetricPluginsDead metric string
-const (
-	MetricActiveWorkers      = "Plugins:ActiveWorkers"
-	MetricPluginsInit        = "Plugins:State:Initializing"
-	MetricPluginsActive      = "Plugins:State:Active"
-	MetricPluginsWaiting     = "Plugins:State:Waiting"
-	MetricPluginsPrepareStop = "Plugins:State:PrepareStop"
-	MetricPluginsStopping    = "Plugins:State:Stopping"
-	MetricPluginsDead        = "Plugins:State:Dead"
+	// MetricRouters holds the total number of routers created
+	MetricRouters metrics.Counter
+	// MetricFallbackRouters holds the total number of fallback routers created
+	MetricFallbackRouters metrics.Counter
+	// MetricConsumers holds the total number of consumer created
+	MetricConsumers metrics.Counter
+	// MetricProducers holds the total number of producers created
+	MetricProducers metrics.Counter
+	// MetricActiveWorkers holds the number of currently active workers
+	MetricActiveWorkers metrics.Gauge
+	// MetricPluginsInit holds the number of plugins in the init state
+	MetricPluginsInit metrics.Gauge
+	// MetricPluginsWaiting holds the number of plugins in the waiting state
+	MetricPluginsWaiting metrics.Gauge
+	// MetricPluginsActive holds the number of plugins in the active state
+	MetricPluginsActive metrics.Gauge
+	// MetricPluginsPrepareStop holds the number of plugins in the prepare stop state
+	MetricPluginsPrepareStop metrics.Gauge
+	// MetricPluginsStopping holds the number of plugins in the stopping state
+	MetricPluginsStopping metrics.Gauge
+	// MetricPluginsDead holds the number of plugins in the dead state
+	MetricPluginsDead metrics.Gauge
+	// MetricMessagesRouted holds the total number of routed messages
+	MetricMessagesRouted metrics.Counter
+	// MetricMessagesEnqued holds the total number of enqueued messages
+	MetricMessagesEnqued metrics.Counter
+	// MetricMessagesDiscarded holds the total number of discarded messages
+	MetricMessagesDiscarded metrics.Counter
 )
 
 func init() {
-	tgo.EnableGlobalMetrics()
-	tgo.Metric.InitSystemMetrics()
+	MetricsRegistry = metrics.NewRegistry()
+	metricsStreamRegistry = make(map[MessageStreamID]*StreamMetric)
 
-	tgo.Metric.New(metricVersion)
-	tgo.Metric.Set(metricVersion, GetVersionNumber())
+	metricVersion = metrics.NewGauge()
+	metricGoVersion = metrics.NewGauge()
+	MetricRouters = metrics.NewCounter()
+	MetricFallbackRouters = metrics.NewCounter()
+	MetricConsumers = metrics.NewCounter()
+	MetricProducers = metrics.NewCounter()
+	MetricMessagesRouted = metrics.NewCounter()
+	MetricMessagesEnqued = metrics.NewCounter()
+	MetricMessagesDiscarded = metrics.NewCounter()
+	MetricActiveWorkers = metrics.NewGauge()
+	MetricPluginsInit = metrics.NewGauge()
+	MetricPluginsWaiting = metrics.NewGauge()
+	MetricPluginsActive = metrics.NewGauge()
+	MetricPluginsPrepareStop = metrics.NewGauge()
+	MetricPluginsStopping = metrics.NewGauge()
+	MetricPluginsDead = metrics.NewGauge()
 
-	tgo.Metric.New(metricRouters)
-	tgo.Metric.New(metricFallbackRouters)
-	tgo.Metric.New(metricCons)
-	tgo.Metric.New(metricProds)
+	MetricsRegistry.Register("version", metricVersion)
+	MetricsRegistry.Register("go.version", metricGoVersion)
 
-	tgo.Metric.New(MetricPluginsInit)
-	tgo.Metric.New(MetricPluginsWaiting)
-	tgo.Metric.New(MetricPluginsActive)
-	tgo.Metric.New(MetricPluginsPrepareStop)
-	tgo.Metric.New(MetricPluginsStopping)
-	tgo.Metric.New(MetricPluginsDead)
-	tgo.Metric.New(MetricActiveWorkers)
+	MetricsRegistry.Register("consumers", MetricConsumers)
+	MetricsRegistry.Register("producers", MetricProducers)
+	MetricsRegistry.Register("routed", MetricMessagesRouted)
+	MetricsRegistry.Register("enqueued", MetricMessagesEnqued)
+	MetricsRegistry.Register("discarded", MetricMessagesDiscarded)
 
-	tgo.Metric.New(metricMessagesRouted)
-	tgo.Metric.New(metricMessagesEnqued)
-	tgo.Metric.New(metricMessagesDiscarded)
-	tgo.Metric.NewRate(metricMessagesRouted, MetricMessagesRoutedAvg, time.Second, 10, 3, true)
-	tgo.Metric.NewRate(metricMessagesEnqued, metricMessagesEnquedAvg, time.Second, 10, 3, true)
-	tgo.Metric.NewRate(metricMessagesDiscarded, metricMessagesDiscardedSec, time.Second, 10, 3, true)
-}
+	MetricsRegistry.Register("routers.total", MetricRouters)
+	MetricsRegistry.Register("routers.fallback", MetricFallbackRouters)
 
-// CountMessageRouted increases the messages counter by 1
-func CountMessageRouted() {
-	tgo.Metric.Inc(metricMessagesRouted)
-}
+	MetricsRegistry.Register("plugins.workers", MetricActiveWorkers)
+	MetricsRegistry.Register("plugins.init", MetricPluginsInit)
+	MetricsRegistry.Register("plugins.waiting", MetricPluginsWaiting)
+	MetricsRegistry.Register("plugins.active", MetricPluginsActive)
+	MetricsRegistry.Register("plugins.preparestop", MetricPluginsPrepareStop)
+	MetricsRegistry.Register("plugins.stopping", MetricPluginsStopping)
+	MetricsRegistry.Register("plugins.dead", MetricPluginsDead)
 
-// CountMessageDiscarded increases the discarded messages counter by 1
-func CountMessageDiscarded() {
-	tgo.Metric.Inc(metricMessagesDiscarded)
-}
+	// Populate constant values
 
-// CountMessagesEnqueued increases the enqueued messages counter by 1
-func CountMessagesEnqueued() {
-	tgo.Metric.Inc(metricMessagesEnqued)
-}
-
-// CountProducers increases the producer counter by 1
-func CountProducers() {
-	tgo.Metric.Inc(metricProds)
-}
-
-// CountConsumers increases the consumer counter by 1
-func CountConsumers() {
-	tgo.Metric.Inc(metricCons)
-}
-
-// CountRouters increases the stream counter by 1
-func CountRouters() {
-	tgo.Metric.Inc(metricRouters)
-}
-
-// CountFallbackRouters increases the fallback stream counter by 1
-func CountFallbackRouters() {
-	tgo.Metric.Inc(metricFallbackRouters)
-}
-
-var streamMetrics = map[MessageStreamID]StreamMetric{}
-var streamMetricsGuard = new(sync.Mutex)
-
-// GetStreamMetric returns a StreamMetric instance for the given MessageStreamID
-func GetStreamMetric(streamID MessageStreamID) StreamMetric {
-	streamMetricsGuard.Lock()
-	metric, isSet := streamMetrics[streamID]
-	streamMetricsGuard.Unlock()
-
-	if isSet {
-		return metric
+	version := runtime.Version()
+	if version[0] == 'g' && version[1] == 'o' {
+		parts := strings.Split(version[2:], ".")
+		numericVersion := make([]uint64, tmath.MaxI(3, len(parts)))
+		for i, p := range parts {
+			numericVersion[i], _ = strconv.ParseUint(p, 10, 64)
+		}
+		metricGoVersion.Update(int64(numericVersion[0]*10000 + numericVersion[1]*100 + numericVersion[2]))
 	}
 
-	metric = newStreamMetric(streamID)
+	metricGoVersion.Update(GetVersionNumber())
+	metrics.CaptureRuntimeMemStats(MetricsRegistry, time.Second)
+}
 
-	streamMetricsGuard.Lock()
-	if racedMetric, isSet := streamMetrics[streamID]; isSet {
-		metric = racedMetric
-	} else {
-		streamMetrics[streamID] = metric
+// NewSubRegistry creates a new, prefixed metrics registry that can be used
+// to register custom plugin metrics.
+func NewSubRegistry(prefix string) metrics.Registry {
+	return metrics.NewPrefixedChildRegistry(MetricsRegistry, prefix)
+}
+
+// NewPluginRegistry calls NewSubRegistry witht he id of the given plugin.
+func NewPluginRegistry(plugin PluginWithID) metrics.Registry {
+	return NewSubRegistry(plugin.GetID())
+}
+
+// GetStreamMetric returns the metrics handles for a given stream.
+func GetStreamMetric(streamID MessageStreamID) *StreamMetric {
+	metricsStreamRegistryGuard.RLock()
+	if stream, ok := metricsStreamRegistry[streamID]; ok {
+		metricsStreamRegistryGuard.RUnlock()
+		return stream
 	}
-	streamMetricsGuard.Unlock()
+	metricsStreamRegistryGuard.RUnlock()
 
-	return metric
-}
+	metricsStreamRegistryGuard.Lock()
+	defer metricsStreamRegistryGuard.Unlock()
 
-// StreamMetric class for stream based metrics
-type StreamMetric struct {
-	keyRouted    string
-	keyDiscarded string
-}
-
-func newStreamMetric(streamID MessageStreamID) StreamMetric {
-	streamName := StreamRegistry.GetStreamName(streamID)
-
-	metric := StreamMetric{
-		keyRouted:    fmt.Sprintf(metricStreamMessagesRouted, streamName),
-		keyDiscarded: fmt.Sprintf(metricStreamMessagesDiscarded, streamName),
+	stream := &StreamMetric{
+		registry:  NewSubRegistry(streamID.GetName()),
+		Routed:    metrics.NewCounter(),
+		Discarded: metrics.NewCounter(),
 	}
 
-	keyRoutedAvg := fmt.Sprintf(metricStreamMessagesRoutedAvg, streamName)
-	keyDiscardedAvg := fmt.Sprintf(metricStreamMessagesDiscardedAvg, streamName)
+	stream.registry.Register("routed", stream.Routed)
+	stream.registry.Register("discarded", stream.Discarded)
+	metricsStreamRegistry[streamID] = stream
 
-	tgo.Metric.New(metric.keyRouted)
-	tgo.Metric.New(metric.keyDiscarded)
-	tgo.Metric.NewRate(metric.keyRouted, keyRoutedAvg, time.Second, 10, 3, true)
-	tgo.Metric.NewRate(metric.keyDiscarded, keyDiscardedAvg, time.Second, 10, 3, true)
-
-	return metric
-}
-
-// CountMessageRouted increases the messages counter by 1
-func (metric *StreamMetric) CountMessageRouted() {
-	tgo.Metric.Inc(metric.keyRouted)
-}
-
-// CountMessageDiscarded increases the discarded messages counter by 1
-func (metric *StreamMetric) CountMessageDiscarded() {
-	tgo.Metric.Inc(metric.keyDiscarded)
-}
-
-// PluginMetric class for plugin based metrics
-type PluginMetric struct {
-}
-
-// Init increase the plugin state init count
-func (metric *PluginMetric) Init() {
-	tgo.Metric.Inc(MetricPluginsInit)
-}
-
-// UpdateStateMetric decrease the prev plugin state and increase the next plugin state
-func (metric *PluginMetric) UpdateStateMetric(prevState, nextState string) {
-	tgo.Metric.Dec(prevState)
-	tgo.Metric.Inc(nextState)
-}
-
-// IncWorker increase the active worker count
-func (metric *PluginMetric) IncWorker() {
-	tgo.Metric.Inc(MetricActiveWorkers)
-}
-
-// DecWorker decrease the active worker count
-func (metric *PluginMetric) DecWorker() {
-	tgo.Metric.Dec(MetricActiveWorkers)
+	return stream
 }

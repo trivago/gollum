@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tflag"
@@ -33,6 +34,7 @@ var (
 	flagNumCPU         = tflag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
 	flagPidFile        = tflag.String("p", "pidfile", "", "Write the process id into a given file.")
 	flagMetricsAddress = tflag.String("m", "metrics", "", "Address to use for metric queries. Disabled by default.")
+	flagMetricsType    = tflag.String("mt", "metricstype", "", "Type of metrics to generate. Defaults to \"prometheus\"")
 	flagHealthCheck    = tflag.String("hc", "healthcheck", "", "Listening address ([IP]:PORT) to use for healthcheck HTTP endpoint. Disabled by default.")
 	flagCPUProfile     = tflag.String("pc", "profilecpu", "", "Write CPU profiler results to a given file.")
 	flagMemProfile     = tflag.String("pm", "profilemem", "", "Write heap profile results to a given file.")

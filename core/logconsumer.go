@@ -16,25 +16,31 @@ package core
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/logger"
-	"github.com/trivago/tgo"
 	"sync"
 	"time"
+
+	"github.com/rcrowley/go-metrics"
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/logger"
 )
 
 // LogConsumer is an internal consumer plugin used indirectly by the gollum log
 // package.
 type LogConsumer struct {
 	Consumer
-	control        chan PluginControl
-	logRouter      Router
-	metric         string
-	lastCount      int64
-	lastCountWarn  int64
-	lastCountError int64
-	stopped        bool
-	queue          MessageQueue
+	control         chan PluginControl
+	logRouter       Router
+	metric          string
+	lastCount       int64
+	lastCountWarn   int64
+	lastCountError  int64
+	stopped         bool
+	queue           MessageQueue
+	metricErrors    metrics.Counter
+	metricWarning   metrics.Counter
+	metricInfo      metrics.Counter
+	metricDebug     metrics.Counter
+	metricsRegistry metrics.Registry
 }
 
 // Configure initializes this consumer with values from a plugin config.
@@ -45,12 +51,16 @@ func (cons *LogConsumer) Configure(conf PluginConfigReader) {
 	cons.queue = NewMessageQueue(1024)
 
 	if cons.metric != "" {
-		tgo.Metric.New(cons.metric)
-		tgo.Metric.New(cons.metric + "Error")
-		tgo.Metric.New(cons.metric + "Warning")
-		tgo.Metric.NewRate(cons.metric, cons.metric+"Sec", time.Second, 10, 3, true)
-		tgo.Metric.NewRate(cons.metric+"Error", cons.metric+"ErrorSec", time.Second, 10, 3, true)
-		tgo.Metric.NewRate(cons.metric+"Warning", cons.metric+"WarningSec", time.Second, 10, 3, true)
+		cons.metricsRegistry = NewSubRegistry(cons.metric)
+
+		cons.metricErrors = metrics.NewCounter()
+		cons.metricWarning = metrics.NewCounter()
+		cons.metricInfo = metrics.NewCounter()
+		cons.metricDebug = metrics.NewCounter()
+		cons.metricsRegistry.Register("errors", cons.metricErrors)
+		cons.metricsRegistry.Register("warnings", cons.metricWarning)
+		cons.metricsRegistry.Register("info", cons.metricInfo)
+		cons.metricsRegistry.Register("debug", cons.metricDebug)
 	}
 }
 
@@ -150,13 +160,16 @@ func (cons *LogConsumer) Fire(logrusEntry *logrus.Entry) error {
 	if cons.metric != "" {
 		switch logrusEntry.Level {
 		case logrus.ErrorLevel:
-			tgo.Metric.Inc(cons.metric + "Error")
+			cons.metricErrors.Inc(1)
 
 		case logrus.WarnLevel:
-			tgo.Metric.Inc(cons.metric + "Warning")
+			cons.metricWarning.Inc(1)
 
-		default:
-			tgo.Metric.Inc(cons.metric)
+		case logrus.InfoLevel:
+			cons.metricInfo.Inc(1)
+
+		case logrus.DebugLevel:
+			cons.metricDebug.Inc(1)
 		}
 	}
 

@@ -260,7 +260,7 @@ func (co *Coordinator) configureProducers(conf *core.Config) bool {
 
 		producer, _ := plugin.(core.Producer)
 		co.producers = append(co.producers, producer)
-		core.CountProducers()
+		core.MetricProducers.Inc(1)
 
 		// Attach producer to streams
 		streams := producer.Streams()
@@ -310,7 +310,7 @@ func (co *Coordinator) configureConsumers(conf *core.Config) bool {
 
 		consumer, _ := plugin.(core.Consumer)
 		co.consumers = append(co.consumers, consumer)
-		core.CountConsumers()
+		core.MetricConsumers.Inc(1)
 	}
 
 	return allFine

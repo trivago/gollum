@@ -39,9 +39,45 @@
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
-  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/json/jsonutil","private/protocol/jsonrpc","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/firehose","service/kinesis","service/s3","service/sts"]
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/stscreds",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/restxml",
+    "private/protocol/xml/xmlutil",
+    "service/firehose",
+    "service/kinesis",
+    "service/s3",
+    "service/sts"
+  ]
   revision = "9ed0c8de252f04ac45a65358377103d5a1aa2d92"
   version = "v1.12.66"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/beorn7/perks"
+  packages = ["quantile"]
+  revision = "4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9"
 
 [[projects]]
   name = "github.com/bsm/sarama-cluster"
@@ -66,6 +102,12 @@
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/deathowl/go-metrics-prometheus"
+  packages = ["."]
+  revision = "091131e49c335a452af504b8104ac262da41a6e9"
 
 [[projects]]
   name = "github.com/eapache/go-resiliency"
@@ -99,7 +141,14 @@
 
 [[projects]]
   name = "github.com/go-redis/redis"
-  packages = [".","internal","internal/consistenthash","internal/hashtag","internal/pool","internal/proto"]
+  packages = [
+    ".",
+    "internal",
+    "internal/consistenthash",
+    "internal/hashtag",
+    "internal/pool",
+    "internal/proto"
+  ]
   revision = "4021ace05686f632ff17fd824bbed229fc474cf8"
   version = "v6.8.2"
 
@@ -129,7 +178,12 @@
 [[projects]]
   branch = "master"
   name = "github.com/mailru/easyjson"
-  packages = [".","buffer","jlexer","jwriter"]
+  packages = [
+    ".",
+    "buffer",
+    "jlexer",
+    "jwriter"
+  ]
   revision = "32fa128f234d041f196a9f3e0fea5ac9772c08e1"
 
 [[projects]]
@@ -143,6 +197,12 @@
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
+
+[[projects]]
+  name = "github.com/matttproud/golang_protobuf_extensions"
+  packages = ["pbutil"]
+  revision = "3247c84500bff8d9fb6d579d800f20b3e091582c"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -193,8 +253,44 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/prometheus/client_golang"
+  packages = ["prometheus"]
+  revision = "c5b7fccd204277076155f10851dad72b76a49317"
+  version = "v0.8.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/client_model"
+  packages = ["go"]
+  revision = "99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/common"
+  packages = [
+    "expfmt",
+    "internal/bitbucket.org/ww/goautoneg",
+    "model"
+  ]
+  revision = "89604d197083d4781071d3c65855d24ecfb0a563"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/procfs"
+  packages = [
+    ".",
+    "internal/util",
+    "nfs",
+    "xfs"
+  ]
+  revision = "cb4147076ac75738c9a7d279075a253c0cc5acbd"
+
+[[projects]]
   name = "github.com/quipo/statsd"
-  packages = [".","event"]
+  packages = [
+    ".",
+    "event"
+  ]
   revision = "977fadbd5cda9975ab87279994ea2029efdbd436"
   version = "1.4.0"
 
@@ -218,7 +314,21 @@
 
 [[projects]]
   name = "github.com/trivago/tgo"
-  packages = [".","tcontainer","terrors","tflag","thealthcheck","tio","tmath","tnet","tos","treflect","tstrings","tsync","ttesting"]
+  packages = [
+    ".",
+    "tcontainer",
+    "terrors",
+    "tflag",
+    "thealthcheck",
+    "tio",
+    "tmath",
+    "tnet",
+    "tos",
+    "treflect",
+    "tstrings",
+    "tsync",
+    "ttesting"
+  ]
   revision = "e4d1ddd28c17dd89ed26327cf69fded22060671b"
   version = "v1.0.1"
 
@@ -231,7 +341,11 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["bcrypt","blowfish","ssh/terminal"]
+  packages = [
+    "bcrypt",
+    "blowfish",
+    "ssh/terminal"
+  ]
   revision = "39efaea5da11abd5e2b90a435b1f338cdb94619c"
 
 [[projects]]
@@ -243,18 +357,31 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
+  packages = [
+    "unix",
+    "windows"
+  ]
   revision = "af50095a40f9041b3b38960738837185c26e9419"
 
 [[projects]]
   name = "gopkg.in/mcuadros/go-syslog.v2"
-  packages = [".","format","internal/syslogparser","internal/syslogparser/rfc3164","internal/syslogparser/rfc5424"]
+  packages = [
+    ".",
+    "format",
+    "internal/syslogparser",
+    "internal/syslogparser/rfc3164",
+    "internal/syslogparser/rfc5424"
+  ]
   revision = "9cf13b7327c0e153da3cba3540c2ae2b879c3859"
   version = "v2.2.1"
 
 [[projects]]
   name = "gopkg.in/olivere/elastic.v5"
-  packages = [".","config","uritemplates"]
+  packages = [
+    ".",
+    "config",
+    "uritemplates"
+  ]
   revision = "1094ee281ca61a783c9ba22bf86e7e0a8aa2d112"
   version = "v5.0.62"
 
@@ -273,6 +400,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3020907b16ab63f2430804fe0797e533d776655ac141dfe1d95395eabe327327"
+  inputs-digest = "8093712d6f5d49db0e788436990fbfcd7d0e494e9920a66ad1ee7b65f386b5d6"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -16,11 +16,12 @@ package core
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"sync"
-	"time"
 )
 
 // SimpleConsumer consumer
@@ -234,7 +235,7 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 		return
 	}
 
-	CountMessagesEnqueued()
+	MetricMessagesEnqued.Inc(1)
 	MessageTrace(msg, cons.GetID(), "Enqueued by consumer")
 
 	// Send message to all routers registered to this consumer

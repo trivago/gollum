@@ -15,8 +15,9 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
 	"time"
+
+	"github.com/trivago/tgo"
 )
 
 // BufferedProducer plugin base type
@@ -83,7 +84,7 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout time.Duration) {
 		prod.setState(PluginStateWaiting)
 
 	case MessageQueueDiscard:
-		CountMessageDiscarded()
+		MetricMessagesDiscarded.Inc(1)
 		prod.setState(PluginStateWaiting)
 
 	default:

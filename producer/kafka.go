@@ -21,12 +21,11 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	kafka "github.com/Shopify/sarama"
+	metrics "github.com/rcrowley/go-metrics"
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 )
 
 const (
@@ -206,17 +205,18 @@ type Kafka struct {
 	client                kafka.Client
 	config                *kafka.Config
 	producer              kafka.AsyncProducer
-	missCount             int64
 	nilValueAllowed       bool   `config:"AllowNilValue" default:"false"`
 	keyField              string `config:"KeyFrom"`
+	metricsRegistry       metrics.Registry
 }
 
 type topicHandle struct {
-	name          string
-	rttSum        int64
-	sent          int64
-	delivered     int64
-	lastHeartBeat time.Time
+	name             string
+	lastHeartBeat    time.Time
+	metricsRoundtrip metrics.Timer
+	metricsDelivered metrics.Counter
+	metricsSent      metrics.Counter
+	metricsTimeout   metrics.Counter
 }
 
 const (
@@ -237,6 +237,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	prod.streamToTopic = conf.GetStreamMap("Topics", "")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 	prod.topicHandles = make(map[string]*topicHandle)
+	prod.metricsRegistry = core.NewPluginRegistry(prod)
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = prod.clientID
@@ -377,15 +378,13 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func (prod *Kafka) storeRTT(msg *core.Message) {
-	rtt := time.Since(msg.GetCreationTime())
-
+func (prod *Kafka) onMsgReturned(msg *core.Message) {
 	prod.topicGuard.RLock()
 	topic := prod.topic[msg.GetStreamID()]
 	prod.topicGuard.RUnlock()
 
-	atomic.AddInt64(&topic.rttSum, rtt.Nanoseconds()/1000) // microseconds
-	atomic.AddInt64(&topic.delivered, 1)
+	topic.metricsRoundtrip.UpdateSince(msg.GetCreationTime())
+	topic.metricsDelivered.Inc(1)
 }
 
 func (prod *Kafka) pollResults() {
@@ -397,18 +396,18 @@ func (prod *Kafka) pollResults() {
 		case result, hasMore := <-prod.producer.Successes():
 			if hasMore {
 				if msg, hasMsg := result.Metadata.(core.Message); hasMsg {
-					prod.storeRTT(&msg)
+					prod.onMsgReturned(&msg)
 				}
 			}
 
 		case err, hasMore := <-prod.producer.Errors():
 			if hasMore {
 				if msg, hasMsg := err.Msg.Metadata.(core.Message); hasMsg {
-					prod.Logger.Warning("Kafka producer error on return: ", err)
-					prod.storeRTT(&msg)
+					prod.Logger.WithError(err).Warning("Kafka producer error on return: ")
+					prod.onMsgReturned(&msg)
 					if err == kafka.ErrMessageTooLarge {
 						prod.Logger.Error("Message discarded as too large.")
-						core.CountMessageDiscarded()
+						core.MetricMessagesDiscarded.Inc(1)
 					} else {
 						prod.TryFallback(&msg)
 					}
@@ -418,23 +417,6 @@ func (prod *Kafka) pollResults() {
 		case <-timeout.C:
 			keepPolling = false
 		}
-	}
-
-	prod.topicGuard.RLock()
-	defer prod.topicGuard.RUnlock()
-
-	// Update metrics
-	for _, topic := range prod.topic {
-		rttSum := atomic.SwapInt64(&topic.rttSum, 0)
-		delivered := atomic.SwapInt64(&topic.delivered, 0)
-		topicName := topic.name
-
-		avgRoundtripMs := int64(0)
-		if delivered > 0 {
-			avgRoundtripMs = rttSum / (delivered * 1000)
-		}
-
-		tgo.Metric.Set(kafkaMetricRoundtrip+topicName, avgRoundtripMs)
 	}
 }
 
@@ -448,13 +430,20 @@ func (prod *Kafka) registerNewTopic(topicName string, streamID core.MessageStrea
 	}
 
 	topic := &topicHandle{
-		name: topicName,
+		name:             topicName,
+		metricsSent:      metrics.NewCounter(),
+		metricsDelivered: metrics.NewCounter(),
+		metricsTimeout:   metrics.NewCounter(),
+		metricsRoundtrip: metrics.NewTimer(),
 	}
 
 	prod.topicHandles[topicName] = topic
 	prod.topic[streamID] = topic
 
-	tgo.Metric.New(kafkaMetricRoundtrip + topicName)
+	prod.metricsRegistry.Register(topicName+".sent", topic.metricsSent)
+	prod.metricsRegistry.Register(topicName+".delivered", topic.metricsDelivered)
+	prod.metricsRegistry.Register(topicName+".rtt", topic.metricsRoundtrip)
+	prod.metricsRegistry.Register(topicName+".timeout", topic.metricsTimeout)
 
 	return topic
 }
@@ -463,7 +452,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	if !prod.nilValueAllowed && len(msg.GetPayload()) == 0 {
 		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
 		prod.Logger.Errorf("0 byte message detected on %s. Discarded", streamName)
-		core.CountMessageDiscarded()
+		core.MetricMessagesDiscarded.Inc(1)
 		return // ### return, invalid data ###
 	}
 
@@ -485,7 +474,7 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	if isConnected, err := prod.isConnected(topic.name); !isConnected {
 		prod.TryFallback(msg)
 		if err != nil {
-			prod.Logger.Errorf("%s is not connected: %s", topic.name, err.Error())
+			prod.Logger.WithError(err).Errorf("Topic %s is not connected", topic.name)
 		}
 		// TBD: health check? (ex-fuse breaker)
 		return // ### return, not connected ###
@@ -508,10 +497,12 @@ func (prod *Kafka) produceMessage(msg *core.Message) {
 	select {
 	case prod.producer.Input() <- kafkaMsg:
 		timeout.Stop()
+		topic.metricsSent.Inc(1)
 
 	case <-timeout.C:
 		// Sarama channels are full -> fallback
 		prod.TryFallback(msg)
+		topic.metricsTimeout.Inc(1)
 	}
 }
 
@@ -529,7 +520,7 @@ func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
 func (prod *Kafka) checkAllTopics() bool {
 	topics, err := prod.client.Topics()
 	if err != nil {
-		prod.Logger.Error("Failed to get topics ", err.Error())
+		prod.Logger.WithError(err).Error("Failed to get topics")
 	}
 
 	for _, topic := range topics {
@@ -574,7 +565,7 @@ func (prod *Kafka) isConnected(topic string) (bool, error) {
 			if connected, _ := broker.Connected(); connected {
 				req := &kafka.MetadataRequest{Topics: []string{topic}}
 				if _, err := broker.GetMetadata(req); err != nil {
-					prod.Logger.Debug("Server ", broker.Addr(), " found to have an invalid connection: ", err)
+					prod.Logger.WithError(err).Debugf("Server %s found to have an invalid connection", broker.Addr())
 					broker.Close()
 				}
 			}
@@ -597,7 +588,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if client, err := kafka.NewClient(prod.servers, prod.config); err == nil {
 			prod.client = client
 		} else {
-			prod.Logger.Error("Client initialization error:", err)
+			prod.Logger.WithError(err).Error("Client initialization error")
 			return false // ### return, connection failed ###
 		}
 	}
@@ -607,7 +598,7 @@ func (prod *Kafka) tryOpenConnection() bool {
 		if producer, err := kafka.NewAsyncProducerFromClient(prod.client); err == nil {
 			prod.producer = producer
 		} else {
-			prod.Logger.Error("Producer initialization error:", err)
+			prod.Logger.WithError(err).Error("Producer initialization error")
 			return false // ### return, connection failed ###
 		}
 	}

@@ -15,11 +15,12 @@
 package filter
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/rcrowley/go-metrics"
+	"github.com/trivago/gollum/core"
 )
 
 // Rate filter plugin
@@ -54,21 +55,14 @@ type Rate struct {
 	stateGuard        *sync.RWMutex
 	state             map[core.MessageStreamID]*rateState
 	rateLimit         int64 `config:"MessagesPerSec" default:"100"`
+	metricsRegistry   metrics.Registry
 }
 
-const (
-	metricLimit    = "RateLimited-"
-	metricLimitAgo = "RateLimitedSecAgo-"
-
-	rateLimitUpdateIntervalSec = 3
-)
-
 type rateState struct {
-	lastReset time.Time
-	lastLimit time.Time
-	count     *int64
-	filtered  *int64
-	ignore    bool
+	lastReset   time.Time
+	metricLimit metrics.Counter
+	count       *int64
+	ignore      bool
 }
 
 func init() {
@@ -79,39 +73,13 @@ func init() {
 func (filter *Rate) Configure(conf core.PluginConfigReader) {
 	filter.stateGuard = new(sync.RWMutex)
 	filter.state = make(map[core.MessageStreamID]*rateState)
+	filter.metricsRegistry = core.NewSubRegistry("ratelimit")
 
 	ignore := conf.GetStreamArray("Ignore", []core.MessageStreamID{})
 	for _, stream := range ignore {
 		filter.state[stream] = &rateState{
-			count:     new(int64),
-			filtered:  new(int64),
-			ignore:    true,
-			lastReset: time.Now().Add(-time.Second),
+			ignore: true,
 		}
-	}
-
-	time.AfterFunc(rateLimitUpdateIntervalSec*time.Second, filter.updateMetrics)
-}
-
-func (filter *Rate) updateMetrics() {
-	filter.stateGuard.RLock()
-	defer filter.stateGuard.RUnlock()
-
-	for streamID, state := range filter.state {
-		if state.ignore {
-			continue
-		}
-
-		streamName := core.StreamRegistry.GetStreamName(streamID)
-		numFiltered := atomic.SwapInt64(state.filtered, 0)
-
-		tgo.Metric.Add(metricLimit+streamName, numFiltered)
-		if numFiltered > 0 {
-			state.lastLimit = time.Now()
-			filter.Logger.Warningf("Ratelimit reached for %s: %d filtered in %d seconds", streamName, numFiltered, rateLimitUpdateIntervalSec)
-		}
-
-		tgo.Metric.SetF(metricLimitAgo+streamName, time.Since(state.lastLimit).Seconds())
 	}
 }
 
@@ -125,15 +93,14 @@ func (filter *Rate) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	if !known {
 		filter.stateGuard.Lock()
 		state = &rateState{
-			count:     new(int64),
-			filtered:  new(int64),
-			ignore:    false,
-			lastReset: time.Now(),
+			count:       new(int64),
+			ignore:      false,
+			lastReset:   time.Now(),
+			metricLimit: metrics.NewCounter(),
 		}
 		streamName := core.StreamRegistry.GetStreamName(msg.GetStreamID())
 		filter.state[msg.GetStreamID()] = state
-		tgo.Metric.New(metricLimit + streamName)
-		tgo.Metric.New(metricLimitAgo + streamName)
+		filter.metricsRegistry.Register(streamName, state.metricLimit)
 		filter.stateGuard.Unlock()
 	}
 
@@ -145,10 +112,7 @@ func (filter *Rate) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	// Reset if necessary
 	if time.Since(state.lastReset) > time.Second {
 		state.lastReset = time.Now()
-		numFiltered := atomic.SwapInt64(state.count, 0)
-		if numFiltered > filter.rateLimit {
-			atomic.AddInt64(state.filtered, numFiltered-filter.rateLimit)
-		}
+		atomic.SwapInt64(state.count, 0)
 	}
 
 	// Check if to be filtered
@@ -156,5 +120,6 @@ func (filter *Rate) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 		return core.FilterResultMessageAccept, nil // ### return, do not limit ###
 	}
 
+	state.metricLimit.Inc(1)
 	return filter.GetFilterResultMessageReject(), nil
 }

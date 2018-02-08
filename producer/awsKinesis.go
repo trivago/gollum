@@ -16,14 +16,15 @@ package producer
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/tgo"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/kinesis"
+	metrics "github.com/rcrowley/go-metrics"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
 )
 
 // AwsKinesis producer plugin
@@ -79,11 +80,13 @@ type AwsKinesis struct {
 	sendTimeLimit     time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
 
 	streamMap        map[core.MessageStreamID]string
+	metricCount      map[string]metrics.Counter
 	client           *kinesis.Kinesis
 	lastSendTime     time.Time
 	counters         map[string]*int64
 	lastMetricUpdate time.Time
 	sequence         *int64
+	metricsRegistry  metrics.Registry
 }
 
 const (
@@ -107,6 +110,8 @@ func (prod *AwsKinesis) Configure(conf core.PluginConfigReader) {
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
 	prod.sequence = new(int64)
+	prod.metricsRegistry = core.NewPluginRegistry(prod)
+	prod.metricCount = make(map[string]metrics.Counter)
 
 	if prod.recordMaxMessages < 1 {
 		prod.recordMaxMessages = 1
@@ -119,10 +124,10 @@ func (prod *AwsKinesis) Configure(conf core.PluginConfigReader) {
 	}
 
 	prod.streamMap = conf.GetStreamMap("StreamMapping", "")
-	for _, streamName := range prod.streamMap {
-		metricName := kinesisMetricMessages + streamName
-		tgo.Metric.New(metricName)
-		tgo.Metric.NewRate(metricName, kinesisMetricMessagesSec+streamName, time.Second, 10, 3, true)
+	for _, kinesisStreamName := range prod.streamMap {
+		counter := metrics.NewCounter()
+		prod.metricCount[kinesisStreamName] = counter
+		prod.metricsRegistry.Register(kinesisStreamName, counter)
 	}
 }
 
@@ -166,17 +171,16 @@ func (prod *AwsKinesis) transformMessages(messages []*core.Message) {
 		records, recordsExists := streamRecords[msg.GetStreamID()]
 		if !recordsExists {
 			// Select the correct kinesis stream
-			streamName, streamMapped := prod.streamMap[msg.GetStreamID()]
-			if !streamMapped {
-				streamName, streamMapped = prod.streamMap[core.WildcardStreamID]
-				if !streamMapped {
-					streamName = core.StreamRegistry.GetStreamName(msg.GetStreamID())
-					prod.streamMap[msg.GetStreamID()] = streamName
-
-					metricName := kinesisMetricMessages + streamName
-					tgo.Metric.New(metricName)
-					tgo.Metric.NewRate(metricName, kinesisMetricMessagesSec+streamName, time.Second, 10, 3, true)
+			kinesisStreamName, ok := prod.streamMap[msg.GetStreamID()]
+			if !ok {
+				kinesisStreamName, ok = prod.streamMap[core.WildcardStreamID]
+				if !ok {
+					kinesisStreamName = msg.GetStreamID().GetName()
+					prod.streamMap[msg.GetStreamID()] = kinesisStreamName
 				}
+				counter := metrics.NewCounter()
+				prod.metricCount[kinesisStreamName] = counter
+				prod.metricsRegistry.Register(kinesisStreamName, counter)
 			}
 
 			// Create buffers for this kinesis stream
@@ -184,7 +188,7 @@ func (prod *AwsKinesis) transformMessages(messages []*core.Message) {
 			records = &streamData{
 				content: &kinesis.PutRecordsInput{
 					Records:    make([]*kinesis.PutRecordsRequestEntry, 0, maxLength),
-					StreamName: aws.String(streamName),
+					StreamName: aws.String(kinesisStreamName),
 				},
 				original:           make([][]*core.Message, 0, maxLength),
 				lastRecordMessages: 0,
@@ -222,9 +226,9 @@ func (prod *AwsKinesis) transformMessages(messages []*core.Message) {
 
 	// Send to AwsKinesis
 	for _, records := range streamRecords {
-		result, err := prod.client.PutRecords(records.content)
-		atomic.AddInt64(prod.counters[*records.content.StreamName], int64(len(records.content.Records)))
+		prod.metricCount[*records.content.StreamName].Inc(int64(len(records.content.Records)))
 
+		result, err := prod.client.PutRecords(records.content)
 		if err != nil {
 			// Batch failed, fallback all
 			prod.Logger.WithError(err).Error("Failed to put records")
@@ -233,14 +237,15 @@ func (prod *AwsKinesis) transformMessages(messages []*core.Message) {
 					prod.TryFallback(msg)
 				}
 			}
-		} else {
-			// Check each message for errors
-			for msgIdx, record := range result.Records {
-				if record.ErrorMessage != nil {
-					prod.Logger.Error("AwsKinesis message write error: ", *record.ErrorMessage)
-					for _, msg := range records.original[msgIdx] {
-						prod.TryFallback(msg)
-					}
+			continue
+		}
+
+		// Check each message for errors
+		for msgIdx, record := range result.Records {
+			if record.ErrorMessage != nil {
+				prod.Logger.Error("AwsKinesis message write error: ", *record.ErrorMessage)
+				for _, msg := range records.original[msgIdx] {
+					prod.TryFallback(msg)
 				}
 			}
 		}

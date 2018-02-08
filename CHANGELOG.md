@@ -1,13 +1,26 @@
 # Gollum changelog
 
+## 0.6.0
+
+Gollum 0.6.0 contains breaking changes over version 0.5.x.
+Please read the release notes carefully
+
+### New with 0.6.0
+
+ * Added a new flag "-mt" to choose the metrics provider (currently only prometheus)
+
+### Breaking changes with 0.6.0
+
+ * Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
+   Old-style metrics have been removed and many metrics names have changed.
+
 ## 0.5.2
 
 This is a patch / minor features release.
 
-### New with 0.5.1
+### New with 0.5.2
 
  * the version number is now generated via make and git. This will properly identify versions between releases.
-
 
 ## 0.5.1
 
