@@ -33,6 +33,7 @@ type StreamMetric struct {
 }
 
 var (
+	// MetricsRegistry is the root registry for all metrics
 	MetricsRegistry            metrics.Registry
 	metricsStreamRegistry      map[MessageStreamID]*StreamMetric
 	metricsStreamRegistryGuard sync.RWMutex
@@ -91,6 +92,8 @@ func init() {
 	MetricPluginsStopping = metrics.NewGauge()
 	MetricPluginsDead = metrics.NewGauge()
 
+	metrics.RegisterRuntimeMemStats(MetricsRegistry)
+
 	MetricsRegistry.Register("version", metricVersion)
 	MetricsRegistry.Register("go.version", metricGoVersion)
 
@@ -124,7 +127,7 @@ func init() {
 	}
 
 	metricGoVersion.Update(GetVersionNumber())
-	metrics.CaptureRuntimeMemStats(MetricsRegistry, time.Second)
+	go metrics.CaptureRuntimeMemStats(MetricsRegistry, time.Second)
 }
 
 // NewSubRegistry creates a new, prefixed metrics registry that can be used
