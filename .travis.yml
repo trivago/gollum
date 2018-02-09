@@ -7,7 +7,6 @@ git:
 go:
   - 1.9
   - 1.8
-  - 1.7
 env:
   - TEST_SUITE=current      # go build
   - TEST_SUITE=unit         # go test
