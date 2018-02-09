@@ -237,8 +237,8 @@ func (prod *S3) Configure(conf core.PluginConfigReader) {
 				object.buffer = buffer
 				object.lock = new(sync.Mutex)
 				// add missing metrics
-				if counter, exists := prod.counters[s3Path]; !exists {
-					counter = metrics.NewCounter()
+				if _, exists := prod.counters[s3Path]; !exists {
+					counter := metrics.NewCounter()
 					prod.counters[s3Path] = counter
 					prod.metricsRegistry.GetOrRegister(s3Path, counter)
 				}
