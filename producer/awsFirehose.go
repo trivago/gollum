@@ -86,11 +86,6 @@ type AwsFirehose struct {
 	metricsRegistry metrics.Registry
 }
 
-const (
-	firehoseMetricMessages    = "AwsFirehose:Messages-"
-	firehoseMetricMessagesSec = "AwsFirehose:MessagesSec-"
-)
-
 type firehoseData struct {
 	content            *firehose.PutRecordBatchInput
 	original           [][]*core.Message
@@ -103,8 +98,6 @@ func init() {
 
 // Configure initializes this producer with values from a plugin config.
 func (prod *AwsFirehose) Configure(conf core.PluginConfigReader) {
-	streamMap := conf.GetStreamMap("StreamMapping", "default")
-
 	prod.lastSendTime = time.Now()
 	prod.metricsRegistry = core.NewPluginRegistry(prod)
 	prod.metricCount = make(map[string]metrics.Counter)
@@ -119,9 +112,9 @@ func (prod *AwsFirehose) Configure(conf core.PluginConfigReader) {
 		prod.Logger.Warning("RecordMessageDelimiter was empty. Defaulting to \"\\n\".")
 	}
 
-	for streamID, firehoseStreamName := range streamMap {
+	prod.streamMap = conf.GetStreamMap("StreamMapping", "default")
+	for _, firehoseStreamName := range prod.streamMap {
 		counter := metrics.NewCounter()
-		prod.streamMap[streamID] = firehoseStreamName
 		prod.metricCount[firehoseStreamName] = counter
 		prod.metricsRegistry.Register(firehoseStreamName, counter)
 	}

@@ -60,18 +60,13 @@ const (
 	PluginStateStopping = PluginState(iota)
 	// PluginStateDead is set when a plugin is unable to process any data
 	PluginStateDead = PluginState(iota)
+	numStates       = iota
 )
 
 var (
 	// Has to be index parallel to PluginState*
-	stateToMetric = []metrics.Gauge{
-		MetricPluginsInit,
-		MetricPluginsWaiting,
-		MetricPluginsActive,
-		MetricPluginsPrepareStop,
-		MetricPluginsStopping,
-		MetricPluginsDead,
-	}
+	// This is filled by the metrics initialization function
+	stateToMetric = make([]metrics.Gauge, numStates)
 
 	// Has to be index parallel to PluginState*
 	stateToDescription = []string{

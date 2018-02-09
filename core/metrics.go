@@ -35,6 +35,7 @@ type StreamMetric struct {
 var (
 	// MetricsRegistry is the root registry for all metrics
 	MetricsRegistry            metrics.Registry
+	pluginMetricsRegistry      metrics.Registry
 	metricsStreamRegistry      map[MessageStreamID]*StreamMetric
 	metricsStreamRegistryGuard sync.RWMutex
 
@@ -75,44 +76,33 @@ func init() {
 	MetricsRegistry = metrics.NewRegistry()
 	metricsStreamRegistry = make(map[MessageStreamID]*StreamMetric)
 
-	metricVersion = metrics.NewGauge()
-	metricGoVersion = metrics.NewGauge()
-	MetricRouters = metrics.NewCounter()
-	MetricFallbackRouters = metrics.NewCounter()
-	MetricConsumers = metrics.NewCounter()
-	MetricProducers = metrics.NewCounter()
-	MetricMessagesRouted = metrics.NewCounter()
-	MetricMessagesEnqued = metrics.NewCounter()
-	MetricMessagesDiscarded = metrics.NewCounter()
-	MetricActiveWorkers = metrics.NewGauge()
-	MetricPluginsInit = metrics.NewGauge()
-	MetricPluginsWaiting = metrics.NewGauge()
-	MetricPluginsActive = metrics.NewGauge()
-	MetricPluginsPrepareStop = metrics.NewGauge()
-	MetricPluginsStopping = metrics.NewGauge()
-	MetricPluginsDead = metrics.NewGauge()
+	metricVersion = metrics.NewRegisteredGauge("version", MetricsRegistry)
+	metricGoVersion = metrics.NewRegisteredGauge("go_version", MetricsRegistry)
+	MetricMessagesRouted = metrics.NewRegisteredCounter("routed", MetricsRegistry)
+	MetricMessagesEnqued = metrics.NewRegisteredCounter("enqueued", MetricsRegistry)
+	MetricMessagesDiscarded = metrics.NewRegisteredCounter("discarded", MetricsRegistry)
+	MetricActiveWorkers = metrics.NewRegisteredGauge("workers", MetricsRegistry)
+
+	pluginMetricsRegistry = NewSubRegistry("plugins")
+	MetricRouters = metrics.NewRegisteredCounter("routers", pluginMetricsRegistry)
+	MetricFallbackRouters = metrics.NewRegisteredCounter("routers_default", pluginMetricsRegistry)
+	MetricConsumers = metrics.NewRegisteredCounter("consumers", pluginMetricsRegistry)
+	MetricProducers = metrics.NewRegisteredCounter("producers", pluginMetricsRegistry)
+	MetricPluginsInit = metrics.NewRegisteredGauge("init", pluginMetricsRegistry)
+	MetricPluginsWaiting = metrics.NewRegisteredGauge("waiting", pluginMetricsRegistry)
+	MetricPluginsActive = metrics.NewRegisteredGauge("active", pluginMetricsRegistry)
+	MetricPluginsPrepareStop = metrics.NewRegisteredGauge("preparestop", pluginMetricsRegistry)
+	MetricPluginsStopping = metrics.NewRegisteredGauge("stopping", pluginMetricsRegistry)
+	MetricPluginsDead = metrics.NewRegisteredGauge("dead", pluginMetricsRegistry)
+
+	stateToMetric[PluginStateInitializing] = MetricPluginsInit
+	stateToMetric[PluginStateWaiting] = MetricPluginsWaiting
+	stateToMetric[PluginStateActive] = MetricPluginsActive
+	stateToMetric[PluginStatePrepareStop] = MetricPluginsPrepareStop
+	stateToMetric[PluginStateStopping] = MetricPluginsStopping
+	stateToMetric[PluginStateDead] = MetricPluginsDead
 
 	metrics.RegisterRuntimeMemStats(MetricsRegistry)
-
-	MetricsRegistry.Register("version", metricVersion)
-	MetricsRegistry.Register("go.version", metricGoVersion)
-
-	MetricsRegistry.Register("consumers", MetricConsumers)
-	MetricsRegistry.Register("producers", MetricProducers)
-	MetricsRegistry.Register("routed", MetricMessagesRouted)
-	MetricsRegistry.Register("enqueued", MetricMessagesEnqued)
-	MetricsRegistry.Register("discarded", MetricMessagesDiscarded)
-
-	MetricsRegistry.Register("routers.total", MetricRouters)
-	MetricsRegistry.Register("routers.fallback", MetricFallbackRouters)
-
-	MetricsRegistry.Register("plugins.workers", MetricActiveWorkers)
-	MetricsRegistry.Register("plugins.init", MetricPluginsInit)
-	MetricsRegistry.Register("plugins.waiting", MetricPluginsWaiting)
-	MetricsRegistry.Register("plugins.active", MetricPluginsActive)
-	MetricsRegistry.Register("plugins.preparestop", MetricPluginsPrepareStop)
-	MetricsRegistry.Register("plugins.stopping", MetricPluginsStopping)
-	MetricsRegistry.Register("plugins.dead", MetricPluginsDead)
 
 	// Populate constant values
 
