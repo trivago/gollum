@@ -40,6 +40,7 @@ var (
 	metricsStreamRegistryGuard sync.RWMutex
 
 	metricVersion   metrics.Gauge
+	metricBuild     metrics.Gauge
 	metricGoVersion metrics.Gauge
 
 	// MetricRouters holds the total number of routers created
@@ -51,19 +52,19 @@ var (
 	// MetricProducers holds the total number of producers created
 	MetricProducers metrics.Counter
 	// MetricActiveWorkers holds the number of currently active workers
-	MetricActiveWorkers metrics.Gauge
+	MetricActiveWorkers metrics.Counter
 	// MetricPluginsInit holds the number of plugins in the init state
-	MetricPluginsInit metrics.Gauge
+	MetricPluginsInit metrics.Counter
 	// MetricPluginsWaiting holds the number of plugins in the waiting state
-	MetricPluginsWaiting metrics.Gauge
+	MetricPluginsWaiting metrics.Counter
 	// MetricPluginsActive holds the number of plugins in the active state
-	MetricPluginsActive metrics.Gauge
+	MetricPluginsActive metrics.Counter
 	// MetricPluginsPrepareStop holds the number of plugins in the prepare stop state
-	MetricPluginsPrepareStop metrics.Gauge
+	MetricPluginsPrepareStop metrics.Counter
 	// MetricPluginsStopping holds the number of plugins in the stopping state
-	MetricPluginsStopping metrics.Gauge
+	MetricPluginsStopping metrics.Counter
 	// MetricPluginsDead holds the number of plugins in the dead state
-	MetricPluginsDead metrics.Gauge
+	MetricPluginsDead metrics.Counter
 	// MetricMessagesRouted holds the total number of routed messages
 	MetricMessagesRouted metrics.Counter
 	// MetricMessagesEnqued holds the total number of enqueued messages
@@ -77,23 +78,24 @@ func init() {
 	metricsStreamRegistry = make(map[MessageStreamID]*StreamMetric)
 
 	metricVersion = metrics.NewRegisteredGauge("version", MetricsRegistry)
+	metricBuild = metrics.NewRegisteredGauge("build", MetricsRegistry)
 	metricGoVersion = metrics.NewRegisteredGauge("go_version", MetricsRegistry)
 	MetricMessagesRouted = metrics.NewRegisteredCounter("routed", MetricsRegistry)
 	MetricMessagesEnqued = metrics.NewRegisteredCounter("enqueued", MetricsRegistry)
 	MetricMessagesDiscarded = metrics.NewRegisteredCounter("discarded", MetricsRegistry)
-	MetricActiveWorkers = metrics.NewRegisteredGauge("workers", MetricsRegistry)
+	MetricActiveWorkers = metrics.NewRegisteredCounter("workers", MetricsRegistry)
 
 	pluginMetricsRegistry = NewSubRegistry("plugins")
 	MetricRouters = metrics.NewRegisteredCounter("routers", pluginMetricsRegistry)
 	MetricFallbackRouters = metrics.NewRegisteredCounter("routers_default", pluginMetricsRegistry)
 	MetricConsumers = metrics.NewRegisteredCounter("consumers", pluginMetricsRegistry)
 	MetricProducers = metrics.NewRegisteredCounter("producers", pluginMetricsRegistry)
-	MetricPluginsInit = metrics.NewRegisteredGauge("init", pluginMetricsRegistry)
-	MetricPluginsWaiting = metrics.NewRegisteredGauge("waiting", pluginMetricsRegistry)
-	MetricPluginsActive = metrics.NewRegisteredGauge("active", pluginMetricsRegistry)
-	MetricPluginsPrepareStop = metrics.NewRegisteredGauge("preparestop", pluginMetricsRegistry)
-	MetricPluginsStopping = metrics.NewRegisteredGauge("stopping", pluginMetricsRegistry)
-	MetricPluginsDead = metrics.NewRegisteredGauge("dead", pluginMetricsRegistry)
+	MetricPluginsInit = metrics.NewRegisteredCounter("init", pluginMetricsRegistry)
+	MetricPluginsWaiting = metrics.NewRegisteredCounter("waiting", pluginMetricsRegistry)
+	MetricPluginsActive = metrics.NewRegisteredCounter("active", pluginMetricsRegistry)
+	MetricPluginsPrepareStop = metrics.NewRegisteredCounter("preparestop", pluginMetricsRegistry)
+	MetricPluginsStopping = metrics.NewRegisteredCounter("stopping", pluginMetricsRegistry)
+	MetricPluginsDead = metrics.NewRegisteredCounter("dead", pluginMetricsRegistry)
 
 	stateToMetric[PluginStateInitializing] = MetricPluginsInit
 	stateToMetric[PluginStateWaiting] = MetricPluginsWaiting
@@ -116,14 +118,16 @@ func init() {
 		metricGoVersion.Update(int64(numericVersion[0]*10000 + numericVersion[1]*100 + numericVersion[2]))
 	}
 
-	metricGoVersion.Update(GetVersionNumber())
+	ver, build := GetVersionNumber()
+	metricVersion.Update(ver)
+	metricBuild.Update(int64(build))
 	go metrics.CaptureRuntimeMemStats(MetricsRegistry, time.Second)
 }
 
 // NewSubRegistry creates a new, prefixed metrics registry that can be used
 // to register custom plugin metrics.
 func NewSubRegistry(prefix string) metrics.Registry {
-	return metrics.NewPrefixedChildRegistry(MetricsRegistry, prefix)
+	return metrics.NewPrefixedChildRegistry(MetricsRegistry, prefix+".")
 }
 
 // NewPluginRegistry calls NewSubRegistry witht he id of the given plugin.

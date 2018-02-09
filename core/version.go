@@ -29,13 +29,19 @@ func GetVersionString() string {
 	return versionString
 }
 
-// GetVersionNumber return a symantic based version number
-func GetVersionNumber() int64 {
-	parts := strings.Split(GetVersionString(), ".")
+// GetVersionNumber returns the version as integer. Each part of the semver
+// string is assigned to decimals, so v1.2.3 will be 10203.
+// The build number refers to the first postfix of the semver string, i.e.
+// v1.2.3-4-badf00d will return 10203 and 4
+func GetVersionNumber() (int64, int) {
+	ver := strings.Replace(GetVersionString(), "-", ".", -1)
+	parts := strings.Split(ver, ".")
 	multiplier := int64(100 * 100) // major, minor, patch
 	version := int64(0)
+	buildNum := int(0)
 	for i, subVerString := range parts {
 		if i == 3 {
+			buildNum, _ = strconv.Atoi(subVerString)
 			break // done
 		}
 		subVer, err := strconv.Atoi(subVerString)
@@ -46,5 +52,5 @@ func GetVersionNumber() int64 {
 		multiplier /= 100
 
 	}
-	return version
+	return version, buildNum
 }

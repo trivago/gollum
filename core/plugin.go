@@ -66,7 +66,7 @@ const (
 var (
 	// Has to be index parallel to PluginState*
 	// This is filled by the metrics initialization function
-	stateToMetric = make([]metrics.Gauge, numStates)
+	stateToMetric = make([]metrics.Counter, numStates)
 
 	// Has to be index parallel to PluginState*
 	stateToDescription = []string{
@@ -109,12 +109,11 @@ type PluginWithID interface {
 
 // NewPluginRunState creates a new plugin state helper
 func NewPluginRunState() *PluginRunState {
-	plugin := &PluginRunState{
+	stateToMetric[PluginStateInitializing].Inc(1)
+	return &PluginRunState{
 		workers: nil,
 		state:   int32(PluginStateInitializing),
 	}
-
-	return plugin
 }
 
 // GetState returns the current plugin state casted to the correct type
@@ -132,8 +131,8 @@ func (state *PluginRunState) SetState(nextState PluginState) {
 	prevState := PluginState(atomic.SwapInt32(&state.state, int32(nextState)))
 
 	if nextState != prevState {
-		stateToMetric[prevState].Update(-1)
-		stateToMetric[nextState].Update(1)
+		stateToMetric[prevState].Dec(1)
+		stateToMetric[nextState].Inc(1)
 	}
 }
 
@@ -145,14 +144,14 @@ func (state *PluginRunState) SetWorkerWaitGroup(workers *sync.WaitGroup) {
 // AddWorker adds a worker to the waitgroup configured by SetWorkerWaitGroup.
 func (state *PluginRunState) AddWorker() {
 	state.workers.Add(1)
-	MetricActiveWorkers.Update(1)
+	MetricActiveWorkers.Inc(1)
 }
 
 // WorkerDone removes a worker from the waitgroup configured by
 // SetWorkerWaitGroup.
 func (state *PluginRunState) WorkerDone() {
 	state.workers.Done()
-	MetricActiveWorkers.Update(-1)
+	MetricActiveWorkers.Dec(1)
 }
 
 // NewPluginWithConfig creates a new plugin from the type information stored in its
