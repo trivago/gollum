@@ -99,7 +99,7 @@ func init() {
 // Configure initializes this producer with values from a plugin config.
 func (prod *AwsFirehose) Configure(conf core.PluginConfigReader) {
 	prod.lastSendTime = time.Now()
-	prod.metricsRegistry = core.NewPluginRegistry(prod)
+	prod.metricsRegistry = core.NewMetricsRegistryForPlugin(prod)
 	prod.metricCount = make(map[string]metrics.Counter)
 
 	if prod.recordMaxMessages < 1 {

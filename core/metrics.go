@@ -85,7 +85,7 @@ func init() {
 	MetricMessagesDiscarded = metrics.NewRegisteredCounter("discarded", MetricsRegistry)
 	MetricActiveWorkers = metrics.NewRegisteredCounter("workers", MetricsRegistry)
 
-	pluginMetricsRegistry = NewSubRegistry("plugins")
+	pluginMetricsRegistry = NewMetricsRegistry("plugins")
 	MetricRouters = metrics.NewRegisteredCounter("routers", pluginMetricsRegistry)
 	MetricFallbackRouters = metrics.NewRegisteredCounter("routers_default", pluginMetricsRegistry)
 	MetricConsumers = metrics.NewRegisteredCounter("consumers", pluginMetricsRegistry)
@@ -124,15 +124,15 @@ func init() {
 	go metrics.CaptureRuntimeMemStats(MetricsRegistry, time.Second)
 }
 
-// NewSubRegistry creates a new, prefixed metrics registry that can be used
+// NewMetricsRegistry creates a new, prefixed metrics registry that can be used
 // to register custom plugin metrics.
-func NewSubRegistry(prefix string) metrics.Registry {
+func NewMetricsRegistry(prefix string) metrics.Registry {
 	return metrics.NewPrefixedChildRegistry(MetricsRegistry, prefix+".")
 }
 
-// NewPluginRegistry calls NewSubRegistry witht he id of the given plugin.
-func NewPluginRegistry(plugin PluginWithID) metrics.Registry {
-	return NewSubRegistry(plugin.GetID())
+// NewMetricsRegistryForPlugin calls NewMetricsRegistry witht he id of the given plugin.
+func NewMetricsRegistryForPlugin(plugin PluginWithID) metrics.Registry {
+	return NewMetricsRegistry(plugin.GetID())
 }
 
 // GetStreamMetric returns the metrics handles for a given stream.
@@ -148,7 +148,7 @@ func GetStreamMetric(streamID MessageStreamID) *StreamMetric {
 	defer metricsStreamRegistryGuard.Unlock()
 
 	stream := &StreamMetric{
-		registry:  NewSubRegistry(streamID.GetName()),
+		registry:  NewMetricsRegistry(streamID.GetName()),
 		Routed:    metrics.NewCounter(),
 		Discarded: metrics.NewCounter(),
 	}

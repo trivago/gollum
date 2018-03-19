@@ -73,7 +73,7 @@ func init() {
 func (filter *Rate) Configure(conf core.PluginConfigReader) {
 	filter.stateGuard = new(sync.RWMutex)
 	filter.state = make(map[core.MessageStreamID]*rateState)
-	filter.metricsRegistry = core.NewSubRegistry("ratelimit")
+	filter.metricsRegistry = core.NewMetricsRegistry("ratelimit")
 
 	ignore := conf.GetStreamArray("Ignore", []core.MessageStreamID{})
 	for _, stream := range ignore {

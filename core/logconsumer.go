@@ -51,7 +51,7 @@ func (cons *LogConsumer) Configure(conf PluginConfigReader) {
 	cons.queue = NewMessageQueue(1024)
 
 	if cons.metric != "" {
-		cons.metricsRegistry = NewSubRegistry(cons.metric)
+		cons.metricsRegistry = NewMetricsRegistry(cons.metric)
 
 		cons.metricErrors = metrics.NewCounter()
 		cons.metricWarning = metrics.NewCounter()

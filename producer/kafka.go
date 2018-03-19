@@ -237,7 +237,7 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 	prod.streamToTopic = conf.GetStreamMap("Topics", "")
 	prod.topic = make(map[core.MessageStreamID]*topicHandle)
 	prod.topicHandles = make(map[string]*topicHandle)
-	prod.metricsRegistry = core.NewPluginRegistry(prod)
+	prod.metricsRegistry = core.NewMetricsRegistryForPlugin(prod)
 
 	prod.config = kafka.NewConfig()
 	prod.config.ClientID = prod.clientID

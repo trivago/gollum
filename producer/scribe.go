@@ -107,7 +107,7 @@ func (prod *Scribe) Configure(conf core.PluginConfigReader) {
 	prod.category = conf.GetStreamMap("Categories", "")
 	prod.windowSize = prod.maxWindowSize
 	prod.categoryGuard = new(sync.RWMutex)
-	prod.metricsRegistry = core.NewPluginRegistry(prod)
+	prod.metricsRegistry = core.NewMetricsRegistryForPlugin(prod)
 	prod.metricCount = make(map[core.MessageStreamID]metrics.Counter)
 
 	// Initialize scribe connection

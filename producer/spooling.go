@@ -127,7 +127,7 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) {
 	prod.SetPrepareStopCallback(prod.waitForReader)
 	prod.SetStopCallback(prod.close)
 	prod.SetRollCallback(prod.onRoll)
-	prod.metricsRegistry = core.NewPluginRegistry(prod)
+	prod.metricsRegistry = core.NewMetricsRegistryForPlugin(prod)
 
 	serializePlugin, err := core.NewPluginWithConfig(core.NewPluginConfig("", "format.Serialize"))
 	conf.Errors.Push(err)

@@ -110,7 +110,7 @@ func (prod *AwsKinesis) Configure(conf core.PluginConfigReader) {
 	prod.counters = make(map[string]*int64)
 	prod.lastMetricUpdate = time.Now()
 	prod.sequence = new(int64)
-	prod.metricsRegistry = core.NewPluginRegistry(prod)
+	prod.metricsRegistry = core.NewMetricsRegistryForPlugin(prod)
 	prod.metricCount = make(map[string]metrics.Counter)
 
 	if prod.recordMaxMessages < 1 {

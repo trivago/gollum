@@ -196,7 +196,7 @@ func (prod *S3) Configure(conf core.PluginConfigReader) {
 	prod.objects = make(map[string]*objectData)
 	prod.objectsLock = new(sync.Mutex)
 
-	prod.metricsRegistry = core.NewSubRegistry(prod.GetID())
+	prod.metricsRegistry = core.NewMetricsRegistry(prod.GetID())
 	prod.counters = make(map[string]metrics.Counter)
 
 	for _, s3Path := range prod.streamMap {
