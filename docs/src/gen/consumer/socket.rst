@@ -92,11 +92,11 @@ Parameters
     
     
 
-**Delimiter** (default: \n)
+**Delimiter** (default: \\n)
 
   This value defines the delimiter used by the text and delimiter
   partitioners.
-  By default this parameter is set to "\n".
+  By default this parameter is set to "\\n".
   
   
 
