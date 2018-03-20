@@ -400,7 +400,7 @@ func (cons *Kafka) readFromGroup() {
 		case event, ok := <-consumer.Messages():
 			if ok {
 				cons.enqueueEvent(event)
-				consumer.MarkOffset(msg, "")
+				consumer.MarkOffset(event, "")
 			}
 
 		case err := <-consumer.Errors():
