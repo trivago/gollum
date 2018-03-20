@@ -397,8 +397,11 @@ func (cons *Kafka) readFromGroup() {
 
 	for !cons.groupClient.Closed() {
 		select {
-		case event := <-consumer.Messages():
-			cons.enqueueEvent(event)
+		case event, ok := <-consumer.Messages():
+			if ok {
+				cons.enqueueEvent(event)
+				consumer.MarkOffset(msg, "")
+			}
 
 		case err := <-consumer.Errors():
 			defer cons.restartGroup()
