@@ -70,12 +70,16 @@ install:: current
 	@go install
 
 docker:: linux
-	@echo "Building docker image"
-	@docker build --squash -t trivago/gollum:$(GOLLUM_VERSION) .
+	@echo "Building Docker Alpine image"
+	@docker build -f docker/apline.docker --squash -t trivago/gollum:$(GOLLUM_VERSION) .
+
+docker-prod::
+	@echo "Building Docker Debian production image"
+	@docker build --build-arg 'VERSION=$(GOLLUM_VERSION)' -f docker/debian.docker -t trivago/gollum:$(GOLLUM_VERSION)-debian-stretch .
 
 docker-dev::
-	@echo "Building development docker image"
-	@docker build -t trivago/gollum:$(GOLLUM_VERSION)-dev -f Dockerfile-dev .
+	@echo "Building Docker development image"
+	@docker build -f docker/dev.docker -t trivago/gollum:$(GOLLUM_VERSION)-dev .
 
 #############################################################################################################
 # Administrivia
