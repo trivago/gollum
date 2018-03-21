@@ -46,17 +46,17 @@ win:
 	@zip dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip gollum
 
 .PHONY: docker # Build the gollum docker image
-docker: linux
+docker:
 	@echo "\033[0;33mBuilding docker image\033[0;0m"
-	@docker build --squash -t trivago/gollum:$(GOLLUM_VERSION) .
+	@docker build -t trivago/gollum:$(GOLLUM_VERSION) .
 
 .PHONY: docker-dev # Build the gollum docker development image
 docker-dev:
 	@echo "\033[0;33mBuilding development docker image\033[0;0m"
 	@docker build -t trivago/gollum:$(GOLLUM_VERSION)-dev -f Dockerfile-dev .
 
-.PHONY: current # Build the gollum binary for the current platform
-current:
+.PHONY: build # Build the gollum binary for the current platform
+build:
 	@$(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)"
 
 .PHONY: debug # Build the gollum binary for the current platform with additional debugging flags 
@@ -67,7 +67,7 @@ debug:
 all: clean test freebsd linux docker mac pi win
 
 .PHONY: install # Install the current gollum build to the system
-install: current
+install: build
 	@go install
 
 .PHONY: clean # Remove all files created by build and distribution targets
@@ -109,7 +109,7 @@ test-unit:
 	@$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags="$(TAGS_GOLLUM) $(TAGS_UNIT)" ./...
 
 .PHONY: test-integration # Run all integration tests
-test-integration:: current
+test-integration:: build
 	@echo "\033[0;33mRunning integration tests\033[0;0m"
 	@$(GO_ENV) go test $(GO_FLAGS) -v -race -tags="$(TAGS_GOLLUM) $(TAGS_INTEGRATION)" ./testing/integration
 
