@@ -50,7 +50,7 @@ func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buf
 	}
 
 	var stdin io.WriteCloser
-	timeout := 2 * time.Second
+	timeout := 4 * time.Second
 	hasInputValues := len(inputs) > 0
 
 	cmd := GetGollumCmd(timeout, arg...)
