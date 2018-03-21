@@ -16,9 +16,6 @@ matrix:
     - 
       go: "1.8"	
       env: ACCEPT_TARGET=test-integration
-    - 
-      go: "1.7"	
-      env: ACCEPT_TARGET=test-integration
  
 #before_install:
 #  - sudo apt-get -qq update
