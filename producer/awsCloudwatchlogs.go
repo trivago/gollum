@@ -273,8 +273,8 @@ func (prod *AwsCloudwatchLogs) createGroup() error {
 		LogGroupName: &prod.group,
 	}
 	_, err := prod.service.CreateLogGroup(params)
-	if err, ok := err.(awserr.Error); ok {
-		if err.Code() == "ResourceAlreadyExistsException" {
+	if awsErr, ok := err.(awserr.Error); ok {
+		if awsErr.Code() == "ResourceAlreadyExistsException" {
 			return nil
 		}
 	}
@@ -288,8 +288,8 @@ func (prod *AwsCloudwatchLogs) createStream() error {
 		LogStreamName: &prod.stream,
 	}
 	_, err := prod.service.CreateLogStream(params)
-	if err, ok := err.(awserr.Error); ok {
-		if err.Code() == "ResourceAlreadyExistsException" {
+	if awsErr, ok := err.(awserr.Error); ok {
+		if awsErr.Code() == "ResourceAlreadyExistsException" {
 			return nil
 		}
 	}
