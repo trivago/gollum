@@ -3,9 +3,10 @@
 package integration
 
 import (
-	"github.com/trivago/tgo/ttesting"
 	"strings"
 	"testing"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 const (
@@ -26,7 +27,9 @@ func TestDropProducerFilter(t *testing.T) {
 	expect.Contains(out.String(), "(startup)")
 
 	ResultFileDefault, err := getResultFile(tmpTestFilePathDefault)
-	expect.NoError(err)
+	if err == nil {
+		expect.Equal(0, ResultFileDefault.lines)
+	}
 
 	ResultFileDrops, err := getResultFile(tmpTestFilePathFoo)
 	expect.NoError(err)
@@ -36,8 +39,6 @@ func TestDropProducerFilter(t *testing.T) {
 	expect.True(strings.Contains(ResultFileDrops.content, "123"))
 	expect.True(strings.Contains(ResultFileDrops.content, "def"))
 	expect.Equal(1, ResultFileDrops.lines)
-
-	expect.Equal(0, ResultFileDefault.lines)
 }
 
 func TestDropRouterFilter(t *testing.T) {
