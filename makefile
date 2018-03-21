@@ -20,42 +20,42 @@ all: clean test freebsd linux docker mac pi win
 
 .PHONY: freebsd # Build gollum zip-file for FreeBSD (x64)
 freebsd:
-	@echo "Building for FreeBSD/x64"
+	@echo "\033[0;33mBuilding for FreeBSD/x64"
 	@GOOS=freebsd GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
 	@zip dist/gollum-$(GOLLUM_VERSION)-FreeBSD_x64.zip gollum
 
 .PHONY: linux # Build gollum zip-file for Linux (x64)
 linux:
-	@echo "Building for Linux/x64"
+	@echo "\033[0;33mBuilding for Linux/x64"
 	@GOOS=linux GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
 	@zip dist/gollum-$(GOLLUM_VERSION)-Linux_x64.zip gollum
 
 .PHONY: mac # Build gollum zip-file for MacOS X (x64)
 mac:
-	@echo "Building for MacOS X (MacOS/x64)"
+	@echo "\033[0;33mBuilding for MacOS X (MacOS/x64)"
 	@GOOS=darwin GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
 	@zip dist/gollum-$(GOLLUM_VERSION)-MacOS_x64.zip gollum
 
 .PHONY: pi # Build gollum zip-file for Raspberry Pi / Linux (ARMv6)
 pi:
-	@echo "Building for Raspberry Pi (Linux/ARMv6)"
+	@echo "\033[0;33mBuilding for Raspberry Pi (Linux/ARMv6)"
 	@GOOS=linux GOARCH=arm GOARM=6 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
 	@zip dist/gollum-$(GOLLUM_VERSION)-Linux_Arm6.zip gollum
 
 .PHONY: win # Build gollum zip-file for Windows (x64)
 win:
-	@echo "Building for Windows/x64"
+	@echo "\033[0;33mBuilding for Windows/x64"
 	@GOOS=windows GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum.exe
 	@zip dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip gollum
 
 .PHONY: docker # Build the gollum docker image
 docker: linux
-	@echo "Building docker image"
+	@echo "\033[0;33mBuilding docker image"
 	@docker build --squash -t trivago/gollum:$(GOLLUM_VERSION) .
 
 .PHONY: docker-dev # Build the gollum docker development image
 docker-dev:
-	@echo "Building development docker image"
+	@echo "\033[0;33mBuilding development docker image"
 	@docker build -t trivago/gollum:$(GOLLUM_VERSION)-dev -f Dockerfile-dev .
 
 .PHONY: current # Build the gollum binary for the current platform
@@ -105,13 +105,13 @@ test: test-unit test-integration
 
 .PHONY: test-unit # Run all unit tests
 test-unit:
-	@echo "go tests SDK"
-	$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags="$(TAGS_GOLLUM) $(TAGS_UNIT)" ./...
+	@echo "\033[0;33mRunning unit tests"
+	@$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags="$(TAGS_GOLLUM) $(TAGS_UNIT)" ./...
 
 .PHONY: test-integration # Run all integration tests
 test-integration:: current
-	@echo "go tests integration"
-	$(GO_ENV) go test $(GO_FLAGS) -v -race -tags="$(TAGS_GOLLUM) $(TAGS_INTEGRATION)" ./...
+	@echo "\033[0;33mRunning integration tests"
+	@$(GO_ENV) go test $(GO_FLAGS) -v -race -tags="$(TAGS_GOLLUM) $(TAGS_INTEGRATION)" ./...
 
 #############################################################################################################
 # Linter related targets
@@ -121,7 +121,7 @@ lint: lint-fmt lint-meta
 
 .PHONY: lint-meta # Run the go meta linter
 lint-meta:
-	@echo "Running go linters"
+	@echo "\033[0;33mRunning go linters"
 	@gometalinter.v2 --vendor --cyclo-over=20 \
 	--disable=goconst \
 	--disable=gas \
@@ -134,16 +134,17 @@ lint-meta:
 	--skip=testing \
 	--deadline=5m \
 	 ./...
+	@echo "\033[0;32mDone"
 
 .PHONY: lint-fmt # Run go fmt and see if anything would be changed
 lint-fmt:
-	@echo "Running go fmt"
+	@echo "\033[0;33mRunning go fmt"
 ifneq ($(shell go list -f '"cd {{.Dir}}; gofmt -s -l {{join .GoFiles " "}}"' ./... | xargs sh -c), )
 	@go list -f '"cd {{.Dir}}; gofmt -s -l {{join .GoFiles " "}}"' ./... | xargs sh -c
-	@echo "FAILED"
+	@echo "\033[0;31mFAILED"
 	@exit 1
 else
-	@echo "OK"
+	@echo "\033[0;32mOK"
 endif
 
 #############################################################################################################
@@ -151,10 +152,11 @@ endif
 
 .PHONY: pipeline-tools # Go get required tools
 pipeline-tools:
-	@echo Installing required go tools ...
+	@echo "\033[0;33mInstalling required go tools ..."
 	@go get github.com/mattn/goveralls
 	@go get gopkg.in/alecthomas/gometalinter.v2
 	@gometalinter.v2 --install
+	@echo "\033[0;32mDone"
 
 .PHONY: pipeline-accept # Accept runs all targets required for PR acceptance
 pipeline-accept: lint test
@@ -162,9 +164,9 @@ pipeline-accept: lint test
 .PHONY: pipeline-build # Run all platform builds required for PR acceptance
 pipeline-build: mac linux win
 
-.PHONY: pipeline-coverage # Generate coveralls profile files required for PR acceptance
+.PHONY: pipeline-coverage # Generate cover profiles files required for PR acceptance
 pipeline-coverage:
-	@echo "go tests -covermode=count -coverprofile=profile.cov"
+	@echo "\033[0;33mGenerating cover profiles"
 	@$(GO_ENV) go test $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -covermode=count -coverprofile=core.cov ./core
 	@$(GO_ENV) go test $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -covermode=count -coverprofile=format.cov ./format
 	@$(GO_ENV) go test $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -covermode=count -coverprofile=filter.cov ./filter
