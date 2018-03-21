@@ -16,6 +16,7 @@ This is a patch / minor features release.
  * producer.awsKinesis failed to produce records under certain conditions
  * The consumer.Kafka folderPermissions property is now correctly applied
  * formt.ExtractJSON trimValues property is now correctly applied
+ * The gollum binary inside the Dockerfile is built on the same baseimage as deployed
 
 ## 0.5.1
 
