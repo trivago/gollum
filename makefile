@@ -153,8 +153,9 @@ endif
 .PHONY: pipeline-tools # Go get required tools
 pipeline-tools:
 	@echo "\033[0;33mInstalling required go tools ...\033[0;0m"
-	@go get github.com/mattn/goveralls
-	@go get gopkg.in/alecthomas/gometalinter.v2
+	@go get -u github.com/mattn/goveralls
+	@go get -u github.com/golang/dep/cmd/dep
+	@go get -u gopkg.in/alecthomas/gometalinter.v2
 	@gometalinter.v2 --install
 	@echo "\033[0;32mDone\033[0;0m"
 

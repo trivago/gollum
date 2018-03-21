@@ -27,6 +27,7 @@ before_install:
 
 install:
   - make pipeline-tools
+  - make vendor
 
 script:
   - make pipeline-build
