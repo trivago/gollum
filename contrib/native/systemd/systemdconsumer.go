@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build linux
+// +build linux,cgo
 
 package native
 
@@ -94,7 +94,7 @@ func (cons *SystemdConsumer) Configure(conf core.PluginConfigReader) error {
 	if cons.offsetFile != "" {
 		fileContents, err := ioutil.ReadFile(cons.offsetFile)
 		if err != nil {
-			cons.Log.Error.Print("Error reading offset file: ", err)
+			cons.Logger.WithError(err).Error("Error reading offset file")
 		}
 		if string(fileContents) != "" {
 			offsetValue = string(fileContents)
@@ -156,18 +156,18 @@ func (cons *SystemdConsumer) read() {
 
 		c, err := cons.journal.Next()
 		if err != nil {
-			cons.Log.Error.Print("Failed to advance journal: ", err)
+			cons.Logger.WithError(err).Error("Failed to advance journal")
 		} else if c == 0 {
 			// reached end of log
 			cons.journal.Wait(1 * time.Second)
 		} else {
 			msg, err := cons.journal.GetDataValue("MESSAGE")
 			if err != nil {
-				cons.Log.Error.Print("Failed to read journal message: ", err)
+				cons.Logger.WithError(err).Error("Failed to read journal message")
 			} else {
 				offset, err := cons.journal.GetRealtimeUsec()
 				if err != nil {
-					cons.Log.Error.Print("Failed to read journal realtime: ", err)
+					cons.Logger.WithError(err).Error("Failed to read journal realtime")
 				} else if cons.offsetFile != "" {
 					cons.enqueueAndPersist([]byte(msg), offset)
 				} else {

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build cgo
+
 package native
 
 import (
@@ -19,12 +21,13 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/miekg/pcap"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/miekg/pcap"
+	"github.com/sirupsen/logrus"
 )
 
 type pcapSession struct {

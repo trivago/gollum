@@ -12,17 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build cgo
+
 package native
 
 import (
 	"fmt"
-	kafka "github.com/trivago/gollum/contrib/native/kafka/librdkafka"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	kafka "github.com/trivago/gollum/contrib/native/kafka/librdkafka"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
 )
 
 // KafkaProducer producer
