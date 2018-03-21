@@ -111,7 +111,7 @@ test-unit:
 .PHONY: test-integration # Run all integration tests
 test-integration:: current
 	@echo "\033[0;33mRunning integration tests\033[0;0m"
-	@$(GO_ENV) go test $(GO_FLAGS) -v -race -tags="$(TAGS_GOLLUM) $(TAGS_INTEGRATION)" ./...
+	@$(GO_ENV) go test $(GO_FLAGS) -v -race -tags="$(TAGS_GOLLUM) $(TAGS_INTEGRATION)" ./testing/integration
 
 #############################################################################################################
 # Linter related targets
@@ -122,7 +122,7 @@ lint: lint-fmt lint-meta
 .PHONY: lint-meta # Run the go meta linter
 lint-meta:
 	@echo "\033[0;33mRunning go linters\033[0;0m"
-	@pwd
+	@gometalinter.v2 --help
 	@gometalinter.v2 --vendor --cyclo-over=20 \
 	--disable=goconst \
 	--disable=gas \
@@ -162,8 +162,8 @@ pipeline-tools:
 .PHONY: pipeline-accept # Accept runs all targets required for PR acceptance
 pipeline-accept: | lint test
 
-.PHONY: pipeline-build # Run all platform builds required for PR acceptance
-pipeline-build: mac linux win
+.PHONY: pipeline-build # Run all relevant platform builds required for PR acceptance
+pipeline-build: mac linux win freebsd
 
 .PHONY: pipeline-coverage # Generate cover profiles files required for PR acceptance
 pipeline-coverage:
