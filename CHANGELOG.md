@@ -8,6 +8,7 @@ This is a patch / minor features release.
 
  * The version number is now generated via make and git. This will properly identify versions between releases.
  * New producer.AwsCloudwatchLogs. Thanks to @luqasz
+ * The makefile has been cleaned up and go meta-linter support has been added
 
 ### Fixed with 0.5.2
 

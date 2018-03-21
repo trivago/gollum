@@ -19,12 +19,13 @@ before_install:
   - sudo apt-get install -y libsystemd-journal-dev
 
 install:
-  - make install-tools
+  - make pipeline-tools
 
 script:
-  - make build accept coverprofile
+  - make pipeline-build pipeline-accept
 
 after_success:
+  - make pipeline-coverage
   - $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
 notifications:

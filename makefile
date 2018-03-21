@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := current
+.DEFAULT_GOAL := help
 
 GOLLUM_TAG := $(shell git describe --tags --match "v*" | sed -E 's/^v([0-9\.]+)(-[0-9]+){0,1}((-)g([a-f0-9]+)){0,1}.*/\1\2\4\5/')
 GOLLUM_DIRTY := $(if $(shell git status --porcelain),-dirty)
@@ -94,7 +94,7 @@ Gopkg.lock: Gopkg.toml
 vendor: Gopkg.toml
 	@dep ensure
 
-.PHONY: vendor # Update all dependencies in the vendor folder
+.PHONY: vendor-update # Update all dependencies in the vendor folder
 vendor-update: Gopkg.lock
 	@dep ensure -update
 
@@ -122,7 +122,10 @@ test-integration:: current
 # Linter related targets
 
 .PHONY: lint # Run all linters
-lint: lint-fmt
+lint: lint-fmt lint-meta
+
+.PHONY: lint-meta # Run the go meta linter
+lint-meta:
 	@echo "Running go linters"
 	@gometalinter.v2 --vendor --cyclo-over=20 \
 	--disable=goconst \
@@ -150,20 +153,20 @@ endif
 #############################################################################################################
 # Build pipeline targets
 
-.PHONY: install-tools # Go get required tools
-install-tools:
+.PHONY: pipeline-tools # Go get required tools
+build-tools:
 	@go get github.com/mattn/goveralls
 	@go get gopkg.in/alecthomas/gometalinter.v2
 	@gometalinter.v2 --install
 
-.PHONY: accept # Accept runs all targets required for PR acceptance
-accept: lint test
+.PHONY: pipeline-accept # Accept runs all targets required for PR acceptance
+pipeline-accept: lint test
 
-.PHONY: build # Run all platform builds required for PR acceptance
-build: mac linux win
+.PHONY: pipeline-build # Run all platform builds required for PR acceptance
+pipeline-build: mac linux win
 
-.PHONY: coverprofile # Generate coveralls profile files required for PR acceptance
-coverprofile:
+.PHONY: pipeline-coverage # Generate coveralls profile files required for PR acceptance
+pipeline-coverage:
 	@echo "go tests -covermode=count -coverprofile=profile.cov"
 	@$(GO_ENV) go test $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -covermode=count -coverprofile=core.cov ./core
 	@$(GO_ENV) go test $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -covermode=count -coverprofile=format.cov ./format
@@ -179,3 +182,13 @@ coverprofile:
 
 	@echo "INFO: profile.cov successfully generated"
 	@rm core.cov format.cov filter.cov router.cov
+
+#############################################################################################################
+
+.PHONY: help # Print the make help screen
+help:
+	@echo "GOLLUM v$(GOLLUM_VERSION)"
+	@echo "Make targets overview"
+	@echo
+	@echo "\033[0;33mAvailable targets:"
+	@grep '^.PHONY: .* #' makefile | sed -E 's/\.PHONY: (.*) # (.*)/"\1" "\2"/g' | xargs printf "  \033[0;32m%-25s \033[0;0m%s\n"
