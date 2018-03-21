@@ -16,11 +16,12 @@ package core
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"sync"
-	"time"
 )
 
 // SimpleProducer producer
@@ -205,7 +206,9 @@ func (prod *SimpleProducer) HasContinueAfterModulate(msg *Message) bool {
 		return false
 
 	case ModulateResultFallback:
-		RouteOriginal(msg, msg.GetRouter())
+		if err := RouteOriginal(msg, msg.GetRouter()); err != nil {
+			prod.Logger.WithError(err).Error("Failed to route to fallback")
+		}
 		return false
 
 	case ModulateResultContinue:
@@ -220,7 +223,9 @@ func (prod *SimpleProducer) HasContinueAfterModulate(msg *Message) bool {
 
 // TryFallback routes the message to the configured fallback stream.
 func (prod *SimpleProducer) TryFallback(msg *Message) {
-	RouteOriginal(msg, prod.fallbackStream)
+	if err := RouteOriginal(msg, prod.fallbackStream); err != nil {
+		prod.Logger.WithError(err).Error("Failed to route to fallback")
+	}
 }
 
 // ControlLoop listens to the control channel and triggers callbacks for these

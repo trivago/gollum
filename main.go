@@ -208,7 +208,10 @@ func readConfig(configFile string) *core.Config {
 // behavior or enables global functionality
 func configureRuntime() {
 	if *flagPidFile != "" {
-		ioutil.WriteFile(*flagPidFile, []byte(strconv.Itoa(os.Getpid())), 0644)
+		err := ioutil.WriteFile(*flagPidFile, []byte(strconv.Itoa(os.Getpid())), 0644)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to write pid file")
+		}
 	}
 
 	if *flagNumCPU == 0 {

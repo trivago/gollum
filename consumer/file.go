@@ -173,7 +173,9 @@ func (cons *File) Enqueue(data []byte) {
 }
 
 func (cons *File) storeOffset() {
-	ioutil.WriteFile(cons.source.offsetFileName, []byte(strconv.FormatInt(cons.seeker.offset, 10)), 0644)
+	if err := ioutil.WriteFile(cons.source.offsetFileName, []byte(strconv.FormatInt(cons.seeker.offset, 10)), 0644); err != nil {
+		cons.Logger.WithError(err).Error("Failed to store offset")
+	}
 }
 
 func (cons *File) enqueueAndPersist(data []byte) {

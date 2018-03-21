@@ -599,14 +599,18 @@ func (cons *Kafka) dumpIndex() {
 
 		data, err := json.Marshal(encodedOffsets)
 		if err != nil {
-			cons.Logger.Error("Kafka index file write error - ", err)
-		} else {
-			fileDir := path.Dir(cons.offsetFile)
-			if err := os.MkdirAll(fileDir, cons.folderPermissions); err != nil {
-				cons.Logger.Errorf("Failed to create %s because of %s", fileDir, err.Error())
-			} else {
-				ioutil.WriteFile(cons.offsetFile, data, 0644)
-			}
+			cons.Logger.WithError(err).Error("Kafka index file write error")
+			return
+		}
+
+		fileDir := path.Dir(cons.offsetFile)
+		if err := os.MkdirAll(fileDir, cons.folderPermissions); err != nil {
+			cons.Logger.WithError(err).Errorf("Failed to create %s", fileDir)
+			return
+		}
+
+		if err := ioutil.WriteFile(cons.offsetFile, data, 0644); err != nil {
+			cons.Logger.WithError(err).Error("Failed to write offsets")
 		}
 	}
 }
@@ -616,7 +620,7 @@ func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 	cons.SetWorkerWaitGroup(workers)
 
 	if err := cons.startAllConsumers(); err != nil {
-		cons.Logger.Error("Kafka client error - ", err)
+		cons.Logger.WithError(err).Error("Kafka client error")
 		time.AfterFunc(cons.config.Net.DialTimeout, func() { cons.Consume(workers) })
 		return
 	}
