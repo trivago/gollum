@@ -1,29 +1,15 @@
 language: go
 sudo: required
-dist: trusty
+dist: stretch
+
 git:
   depth: 3
 
 go:
-  - 1.9
-  - 1.8
-  - 1.7
-env:
-  - TEST_SUITE=current      # go build
-  - TEST_SUITE=unit         # go test
-  - TEST_SUITE=integration  # go test -tags="integration"
-
-matrix:
-  include:
-    - go: 1.8
-      env: TEST_SUITE="vet lint fmt-check ineffassign" # go vet, golint, gofmt -s -l, ineffassign
-    - go: 1.8
-      env: TEST_SUITE=coverprofile                     # go tests -coverprofile
-    - go: 1.9
-      env: TEST_SUITE="vet lint fmt-check ineffassign" # go vet, golint, gofmt -s -l, ineffassign
-    - go: 1.9
-      env: TEST_SUITE=coverprofile                     # go tests -coverprofile
-
+  - "1.10"
+  - "1.9"
+  - "1.8"
+ 
 before_install:
   - sudo apt-get install -y libpcap-dev
   - wget http://launchpadlibrarian.net/234454186/librdkafka1_0.8.6-1.1_amd64.deb
@@ -31,14 +17,15 @@ before_install:
   - sudo dpkg -i librdkafka1_0.8.6-1.1_amd64.deb
   - sudo dpkg -i librdkafka-dev_0.8.6-1.1_amd64.deb
   - sudo apt-get install -y libsystemd-journal-dev
+
 install:
-  - go get github.com/mattn/goveralls
-  - go get github.com/golang/lint/golint
+  - make install-tools
 
 script:
-  - make $TEST_SUITE
+  - make build accept coverprofile
+
 after_success:
-  - if [[ $TEST_SUITE == "coverprofile" ]]; then $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci; fi
+  - $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
 notifications:
   slack:
