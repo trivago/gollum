@@ -5,18 +5,16 @@ dist: trusty
 git:
   depth: 3
 
-go:
-  - "1.10"
-  - "1.9"
-  - "1.8"
-
 matrix:
   include:
-    - go: "1.10"
+    - 
+      go: "1.10"
       env: ACCEPT_TARGET=pipeline-accept
-    - go: "1.9"	
+    - 
+      go: "1.9"	
       env: ACCEPT_TARGET=test
-    - go: "1.8"	
+    - 
+      go: "1.8"	
       env: ACCEPT_TARGET=test
  
 before_install:
