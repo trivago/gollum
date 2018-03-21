@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-GOLLUM_TAG := $(shell git describe --tags --match "v*" | sed -E 's/^v([0-9\.]+)(-[0-9]+){0,1}((-)g([a-f0-9]+)){0,1}.*/\1\2\4\5/')
+GOLLUM_TAG := $(shell git describe --always --tags --match "v*" | sed -E 's/^v([0-9\.]+)(-[0-9]+){0,1}((-)g([a-f0-9]+)){0,1}.*/\1\2\4\5/')
 GOLLUM_DIRTY := $(if $(shell git status --porcelain),-dirty)
 GOLLUM_VERSION := $(join $(GOLLUM_TAG),$(GOLLUM_DIRTY))
 
@@ -132,6 +132,7 @@ lint-meta:
 	--skip=contrib \
 	--skip=docs \
 	--skip=testing \
+	--deadline=5m
 	 ./...
 
 .PHONY: lint-fmt # Run go fmt and see if anything would be changed
