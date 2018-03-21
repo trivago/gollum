@@ -70,11 +70,11 @@ const (
 //    Pipe: stdin
 type Console struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	autoExit            bool   `config:"ExitOnEOF" default:"true"`
+	pipe                *os.File
 	pipeName            string `config:"Pipe" default:"stdin"`
 	pipePerm            uint32 `config:"Permissions" default:"0644"`
 	hasToSetMetadata    bool   `config:"SetMetadata" default:"false"`
-	pipe                *os.File
+	autoExit            bool   `config:"ExitOnEOF" default:"true"`
 }
 
 func init() {

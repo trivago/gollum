@@ -17,12 +17,13 @@ package tio
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/trivago/tgo/tstrings"
 	"io"
+
+	"github.com/trivago/tgo/tstrings"
 )
 
 // BufferedReaderFlags is an enum to configure a buffered reader
-type BufferedReaderFlags byte
+type BufferedReaderFlags int
 
 const (
 	// BufferedReaderFlagDelimiter enables reading for a delimiter. This flag is

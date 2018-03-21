@@ -63,7 +63,6 @@ type SimpleConsumer struct {
 	control         chan PluginControl
 	runState        *PluginRunState
 	routers         []Router       `config:"Streams"`
-	shutdownTimeout time.Duration  `config:"ShutdownTimeoutMs" default:"1000" metric:"ms"`
 	modulators      ModulatorArray `config:"Modulators"`
 	onRoll          func()
 	onPrepareStop   func()
@@ -71,6 +70,7 @@ type SimpleConsumer struct {
 	enqueueMessage  func(*Message)
 	modulatorQueue  MessageQueue
 	Logger          logrus.FieldLogger
+	shutdownTimeout time.Duration `config:"ShutdownTimeoutMs" default:"1000" metric:"ms"`
 }
 
 // Configure initializes standard consumer values from a plugin config.

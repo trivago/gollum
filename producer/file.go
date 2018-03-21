@@ -76,19 +76,16 @@ type File struct {
 	Pruner      file.Pruner                    `gollumdoc:"embed_type"`
 	BatchConfig components.BatchedWriterConfig `gollumdoc:"embed_type"`
 
-	// configuration
-	overwriteFile     bool        `config:"FileOverwrite"`
+	batchedFileGuard  *sync.RWMutex
+	filesByStream     map[core.MessageStreamID]*components.BatchedWriterAssembly // mapped files by stream
+	files             map[string]*components.BatchedWriterAssembly               // unique files by target path
+	fileDir           string
+	fileName          string
+	fileExt           string
 	filePermissions   os.FileMode `config:"Permissions" default:"0644"`
 	folderPermissions os.FileMode `config:"FolderPermissions" default:"0755"`
-
-	// properties
-	filesByStream    map[core.MessageStreamID]*components.BatchedWriterAssembly // mapped files by stream
-	files            map[string]*components.BatchedWriterAssembly               // unique files by target path
-	fileDir          string
-	fileName         string
-	fileExt          string
-	wildcardPath     bool
-	batchedFileGuard *sync.RWMutex
+	overwriteFile     bool        `config:"FileOverwrite"`
+	wildcardPath      bool
 }
 
 func init() {

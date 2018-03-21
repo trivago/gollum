@@ -377,13 +377,13 @@ func (prod *ElasticSearch) Produce(workers *sync.WaitGroup) {
 // -- elasticConnection --
 
 type elasticConnection struct {
+	retrier           retrier
+	client            *elastic.Client
 	servers           []string
 	user              string
 	password          string
 	setGzip           bool
-	client            *elastic.Client
 	isConnectedStatus bool
-	retrier           retrier
 }
 
 func (conn *elasticConnection) isConnected() bool {
@@ -414,9 +414,9 @@ func (conn *elasticConnection) connect() error {
 // -- retrier --
 
 type retrier struct {
-	retry   int
-	backoff elastic.Backoff
 	logger  logrus.FieldLogger
+	backoff elastic.Backoff
+	retry   int
 }
 
 // Retry implements type Retrier interface
