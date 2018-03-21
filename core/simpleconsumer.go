@@ -16,11 +16,12 @@ package core
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"sync"
-	"time"
 )
 
 // SimpleConsumer consumer
@@ -244,10 +245,10 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 
 	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
 		router := cons.routers[streamIdx]
-		msg := msg.Clone()
-		msg.SetlStreamIDAsOriginal(router.GetStreamID())
+		msgClone := msg.Clone()
+		msgClone.SetlStreamIDAsOriginal(router.GetStreamID())
 
-		if err := Route(msg, router); err != nil {
+		if err := Route(msgClone, router); err != nil {
 			cons.Logger.Error(err)
 		}
 	}

@@ -16,13 +16,14 @@ package producer
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/gollum/producer/file"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
+	"github.com/trivago/gollum/producer/file"
 )
 
 // File producer plugin
@@ -122,8 +123,6 @@ func (prod *File) Produce(workers *sync.WaitGroup) {
 }
 
 func (prod *File) getBatchedFile(streamID core.MessageStreamID) (*components.BatchedWriterAssembly, error) {
-	var err error
-
 	// get batchedFile from filesByStream[streamID] map
 	prod.batchedFileGuard.RLock()
 	batchedFile, fileIsLinked := prod.filesByStream[streamID]
@@ -168,7 +167,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID) (*components.Bat
 		}
 	}
 
-	err = prod.rotateBatchedFile(batchedFile, streamTargetFile)
+	err := prod.rotateBatchedFile(batchedFile, streamTargetFile)
 
 	return batchedFile, err
 }

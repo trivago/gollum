@@ -123,8 +123,8 @@ func (format *ProcessTSV) Configure(conf core.PluginConfigReader) {
 	directives := conf.GetStringArray("Directives", []string{})
 
 	format.directives = make([]tsvDirective, 0, len(directives))
-	for _, directive := range directives {
-		directive := strings.Replace(directive, "\\:", "\r", -1)
+	for _, d := range directives {
+		directive := strings.Replace(d, "\\:", "\r", -1)
 		parts := strings.Split(directive, ":")
 		for i, value := range parts {
 			parts[i] = strings.Replace(value, "\r", ":", -1)

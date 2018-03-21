@@ -157,7 +157,7 @@ func (prod *AwsS3) getBatchedFile(streamID core.MessageStreamID, forceRotate boo
 	defer prod.batchedFileGuard.Unlock()
 
 	// check again to avoid race conditions
-	if batchedFile, fileExists := prod.filesByStream[streamID]; fileExists {
+	if batchedFile, fileExists = prod.filesByStream[streamID]; fileExists {
 		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}

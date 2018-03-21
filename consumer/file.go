@@ -15,12 +15,6 @@
 package consumer
 
 import (
-	"github.com/fsnotify/fsnotify"
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tsync"
 	"io"
 	"io/ioutil"
 	"os"
@@ -29,6 +23,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tsync"
 )
 
 const (
@@ -418,13 +419,11 @@ type watcher struct {
 }
 
 func newWatcher(logger logrus.FieldLogger, source *sourceFile, readFunction func()) *watcher {
-	watcher := watcher{}
-
-	watcher.logger = logger
-	watcher.source = source
-	watcher.read = readFunction
-
-	return &watcher
+	return &watcher{
+		logger: logger,
+		source: source,
+		read:   readFunction,
+	}
 }
 
 func (w *watcher) close(watcher *fsnotify.Watcher) {

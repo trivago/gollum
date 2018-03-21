@@ -16,13 +16,14 @@ package core
 
 import (
 	"fmt"
+	"io/ioutil"
+	"reflect"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/treflect"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"reflect"
 )
 
 const pluginAggregate = "Aggregate"
@@ -42,18 +43,19 @@ type Config struct {
 // ReadConfig creates a config from a yaml byte stream.
 func ReadConfig(buffer []byte) (*Config, error) {
 	config := new(Config)
-	err := yaml.Unmarshal(buffer, &config.Values)
-	if err != nil {
+	if err := yaml.Unmarshal(buffer, &config.Values); err != nil {
 		return nil, err
 	}
 
 	// As there might be multiple instances of the same plugin class we iterate
 	// over an array here.
+	hasError := false
 	for pluginID, configValues := range config.Values {
 		if typeName, _ := configValues.String("Type"); typeName == pluginAggregate {
 			// aggregate behavior
 			aggregateMap, err := configValues.MarshalMap("Plugins")
 			if err != nil {
+				hasError = true
 				logrus.Error("Can't read 'Aggregate' configuration: ", err)
 				continue
 			}
@@ -63,6 +65,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 				subPluginsID := fmt.Sprintf("%s-%s", pluginID, subPluginID)
 				subConfig, err := tcontainer.ConvertToMarshalMap(subConfigValues, nil)
 				if err != nil {
+					hasError = true
 					logrus.Error("Error in plugin config ", subPluginsID, err)
 					continue
 				}
@@ -85,7 +88,10 @@ func ReadConfig(buffer []byte) (*Config, error) {
 		}
 	}
 
-	return config, err
+	if hasError {
+		return config, fmt.Errorf("Configuration parsing produced errors")
+	}
+	return config, nil
 }
 
 // ReadConfigFromFile parses a YAML config file into a new Config struct.
