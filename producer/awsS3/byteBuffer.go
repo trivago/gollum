@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package awsS3
+package awss3
 
 import (
 	"crypto/sha1"
