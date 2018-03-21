@@ -16,6 +16,7 @@ package format
 
 import (
 	"bytes"
+
 	"github.com/trivago/gollum/core"
 )
 
@@ -78,7 +79,7 @@ func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
 
 	default:
 		streamName := content[:delimiterIdx]
-		streamMsg := core.NewMessage(nil, []byte(streamName), nil, msg.GetStreamID())
+		streamMsg := core.NewMessage(nil, streamName, nil, msg.GetStreamID())
 
 		content = content[(delimiterIdx + len(format.delimiter)):]
 		format.SetAppliedContent(msg, content)
