@@ -154,7 +154,8 @@ endif
 # Build pipeline targets
 
 .PHONY: pipeline-tools # Go get required tools
-build-tools:
+pipeline-tools:
+	@echo Installing required go tools ...
 	@go get github.com/mattn/goveralls
 	@go get gopkg.in/alecthomas/gometalinter.v2
 	@gometalinter.v2 --install

@@ -22,7 +22,8 @@ install:
   - make pipeline-tools
 
 script:
-  - make pipeline-build pipeline-accept
+  - make pipeline-build
+  - make pipeline-accept
 
 after_success:
   - make pipeline-coverage
