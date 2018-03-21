@@ -132,7 +132,7 @@ lint-meta:
 	--skip=contrib \
 	--skip=docs \
 	--skip=testing \
-	--deadline=5m
+	--deadline=5m \
 	 ./...
 
 .PHONY: lint-fmt # Run go fmt and see if anything would be changed
