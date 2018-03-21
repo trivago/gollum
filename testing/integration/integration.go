@@ -140,30 +140,24 @@ type resultFile struct {
 
 // getResultFile returns file content as a string
 func getResultFile(filepath string) (resultFile, error) {
-	fileContent, lineCount := getResultFileData(filepath, 1)
+	fileContent, lineCount, err := getResultFileData(filepath)
 
 	// create result
 	result := resultFile{}
 	result.content = fileContent
 	result.lines = lineCount
 
-	return result, nil
+	return result, err
 }
 
-func getResultFileData(filepath string, try int) (string, int) {
-	maxTry := 3
-
-	fileContent, lineCount, err := getResultFileDataWithError(filepath)
-	if err != nil {
-		if try <= maxTry {
-			time.Sleep(1 * time.Second)
-			try++
-			return getResultFileData(filepath, try)
+func getResultFileData(filepath string) (string, int, error) {
+	for try := 0; ; try++ {
+		fileContent, lineCount, err := getResultFileDataWithError(filepath)
+		if err == nil || try >= 3 {
+			return fileContent, lineCount, err
 		}
-		panic(err)
+		time.Sleep(time.Second)
 	}
-
-	return fileContent, lineCount
 }
 
 func getResultFileDataWithError(filepath string) (string, int, error) {
