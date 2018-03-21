@@ -1,4 +1,4 @@
-// Copyright 2015-2017 trivago GmbH
+// Copyright 2015-2018 trivago N.V.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -397,8 +397,11 @@ func (cons *Kafka) readFromGroup() {
 
 	for !cons.groupClient.Closed() {
 		select {
-		case event := <-consumer.Messages():
-			cons.enqueueEvent(event)
+		case event, ok := <-consumer.Messages():
+			if ok {
+				cons.enqueueEvent(event)
+				consumer.MarkOffset(event, "")
+			}
 
 		case err := <-consumer.Errors():
 			defer cons.restartGroup()
