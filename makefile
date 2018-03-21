@@ -22,35 +22,30 @@ all: clean test freebsd linux docker mac pi win
 freebsd:
 	@echo "Building for FreeBSD/x64"
 	@GOOS=freebsd GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-FreeBSD_x64.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-FreeBSD_x64.zip gollum
 
 .PHONY: linux # Build gollum zip-file for Linux (x64)
 linux:
 	@echo "Building for Linux/x64"
 	@GOOS=linux GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-Linux_x64.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-Linux_x64.zip gollum
 
 .PHONY: mac # Build gollum zip-file for MacOS X (x64)
 mac:
 	@echo "Building for MacOS X (MacOS/x64)"
 	@GOOS=darwin GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-MacOS_x64.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-MacOS_x64.zip gollum
 
 .PHONY: pi # Build gollum zip-file for Raspberry Pi / Linux (ARMv6)
 pi:
 	@echo "Building for Raspberry Pi (Linux/ARMv6)"
 	@GOOS=linux GOARCH=arm GOARM=6 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-Linux_Arm6.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-Linux_Arm6.zip gollum
 
 .PHONY: win # Build gollum zip-file for Windows (x64)
 win:
 	@echo "Building for Windows/x64"
 	@GOOS=windows GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum.exe
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip
 	@zip dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip gollum
 
 .PHONY: docker # Build the gollum docker image
