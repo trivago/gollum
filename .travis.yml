@@ -9,6 +9,16 @@ go:
   - "1.10"
   - "1.9"
   - "1.8"
+
+env:
+  - ACCEPT_TARGET=pipeline-accept
+
+matrix:	
+  include:
+    - go: 1.8	
+      env: ACCEPT_TARGET=test
+    - go: 1.9	
+      env: ACCEPT_TARGET=test
  
 before_install:
   - sudo apt-get -qq update
@@ -23,7 +33,7 @@ install:
 
 script:
   - make pipeline-build
-  - make pipeline-accept
+  - make ${ACCEPT_TARGET}
 
 after_success:
   - make pipeline-coverage
