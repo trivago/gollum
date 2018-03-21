@@ -177,7 +177,7 @@ func (cons *File) storeOffset() {
 }
 
 func (cons *File) enqueueAndPersist(data []byte) {
-	cons.seeker.offset, _ = cons.source.file.Seek(io.SeekStart, io.SeekCurrent)
+	cons.seeker.offset, _ = cons.source.file.Seek(0, io.SeekCurrent)
 	cons.Enqueue(data)
 	cons.storeOffset()
 }
@@ -373,11 +373,7 @@ func (source *sourceFile) getRealFileName() string {
 func newSourceFile(conf core.PluginConfigReader) (sourceFile, error) {
 	source := sourceFile{}
 	err := conf.Configure(&source)
-	if err != nil {
-		return source, err
-	}
-
-	return source, nil
+	return source, err
 }
 
 // -- seeker --

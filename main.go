@@ -370,9 +370,7 @@ func printModules() {
 	allMods := []string{}
 	for _, pkg := range namespaces {
 		modules := core.TypeRegistry.GetRegistered(pkg)
-		for _, typeName := range modules {
-			allMods = append(allMods, typeName)
-		}
+		allMods = append(allMods, modules...)
 	}
 
 	sort.Strings(allMods)

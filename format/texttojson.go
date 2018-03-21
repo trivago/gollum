@@ -232,6 +232,7 @@ func (format *TextToJSON) Configure(conf core.PluginConfigReader) {
 		parserFunctions["obj"] = format.readObject
 		parserFunctions["end"] = format.readEnd
 		parserFunctions["arr+val"] = format.readArrayValue
+		parserFunctions["arr+dat"] = format.readArrayDate
 		parserFunctions["arr+esc"] = format.readArrayEscaped
 		parserFunctions["val+end"] = format.readValueEnd
 		parserFunctions["esc+end"] = format.readEscapedEnd

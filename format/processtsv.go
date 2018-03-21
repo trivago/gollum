@@ -261,7 +261,7 @@ func (format *ProcessTSV) ApplyFormatter(msg *core.Message) error {
 	values := make([]tsvValue, 0)
 	if format.quotedValues {
 		remainder := string(format.GetAppliedContent(msg))
-		for true {
+		for {
 			if remainder[:1] != `"` {
 				split := strings.SplitN(remainder, format.delimiter+`"`, 2)
 				tsvValues := stringsToTSVValues(strings.Split(split[0], format.delimiter))

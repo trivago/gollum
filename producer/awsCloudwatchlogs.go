@@ -72,7 +72,6 @@ type AwsCloudwatchLogs struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
 	stream               string `config:"LogStream" default:""`
 	group                string `config:"LogGroup" default:""`
-	config               *aws.Config
 	token                *string
 	service              *cloudwatchlogs.CloudWatchLogs
 }

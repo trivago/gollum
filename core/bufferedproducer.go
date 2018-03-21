@@ -15,8 +15,9 @@
 package core
 
 import (
-	"github.com/trivago/tgo"
 	"time"
+
+	"github.com/trivago/tgo"
 )
 
 // BufferedProducer plugin base type
@@ -67,7 +68,7 @@ func (prod *BufferedProducer) Enqueue(msg *Message, timeout time.Duration) {
 		return // ### return, closing down ###
 	}
 
-	if prod.HasContinueAfterModulate(msg) == false {
+	if !prod.HasContinueAfterModulate(msg) {
 		return
 	}
 

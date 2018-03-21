@@ -32,7 +32,6 @@ import (
 //      - format.StreamRevert
 type StreamRevert struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	delimiter            []byte
 }
 
 func init() {

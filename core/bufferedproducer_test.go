@@ -15,13 +15,14 @@
 package core
 
 import (
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/tgo/ttesting"
 	"math"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/tgo/ttesting"
 )
 
 type mockBufferedProducer struct {
@@ -208,12 +209,11 @@ func TestProducerTickerLoop(t *testing.T) {
 			atomic.AddInt32(counter, 1)
 			return
 		}
-		diff := time.Now().Sub(timeRecorded)
+		diff := time.Since(timeRecorded)
 		deltaDiff := math.Abs(float64(tickerLoopTimeout - diff))
 		expect.Less(deltaDiff, delta)
 		timeRecorded = time.Now()
 		atomic.AddInt32(counter, 1)
-		return
 	}
 
 	mockP.tickerLoop(tickerLoopTimeout, onTimeOut)

@@ -16,10 +16,11 @@ package format
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tmath"
-	"strings"
 )
 
 // CollectdToInflux10 formatter
@@ -37,7 +38,6 @@ import (
 type CollectdToInflux10 struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	tagString            *strings.Replacer
-	stringString         *strings.Replacer
 }
 
 func init() {
@@ -47,15 +47,10 @@ func init() {
 // Configure initializes this formatter with values from a plugin config.
 func (format *CollectdToInflux10) Configure(conf core.PluginConfigReader) {
 	format.tagString = strings.NewReplacer(",", "\\,", " ", "\\ ")
-	format.stringString = strings.NewReplacer("\"", "\\\"")
 }
 
 func (format *CollectdToInflux10) escapeTag(value string) string {
 	return format.tagString.Replace(value)
-}
-
-func (format *CollectdToInflux10) escapeString(value string) string {
-	return format.stringString.Replace(value)
 }
 
 // ApplyFormatter update message payload

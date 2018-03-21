@@ -16,9 +16,10 @@ package core
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 type dummyFormatter struct {
@@ -147,7 +148,7 @@ func getDummyFormatter() (*dummyFormatter, error) {
 	}
 
 	formatter, casted := plugin.(*dummyFormatter)
-	if casted != true {
+	if !casted {
 		return nil, errors.New("Could not carst to dummyFormatter")
 	}
 
@@ -164,7 +165,7 @@ func getDummyErrorFormatter() (*dummyErrorFormatter, error) {
 	}
 
 	formatter, casted := plugin.(*dummyErrorFormatter)
-	if casted != true {
+	if !casted {
 		return nil, errors.New("Could not carst to dummyErrorFormatter")
 	}
 

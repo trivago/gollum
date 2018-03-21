@@ -15,11 +15,12 @@
 package core
 
 import (
-	"github.com/trivago/tgo/ttesting"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 type TypeMockA struct {
@@ -27,7 +28,6 @@ type TypeMockA struct {
 }
 
 func (mock *TypeMockA) Consume(workers *sync.WaitGroup) {
-	return
 }
 
 type TypeMockB struct {

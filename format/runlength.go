@@ -15,8 +15,9 @@
 package format
 
 import (
-	"github.com/trivago/gollum/core"
 	"strconv"
+
+	"github.com/trivago/gollum/core"
 )
 
 // Runlength formatter plugin
@@ -71,7 +72,7 @@ func (format *Runlength) ApplyFormatter(msg *core.Message) error {
 	lengthStr := strconv.Itoa(contentLen)
 
 	var payload []byte
-	if format.storeRunlengthOnly == false {
+	if !format.storeRunlengthOnly {
 		dataSize := len(lengthStr) + len(format.separator) + contentLen
 		payload = core.MessageDataPool.Get(dataSize)
 

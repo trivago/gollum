@@ -16,11 +16,12 @@ package components
 
 import (
 	"errors"
+	"io"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tmath"
-	"io"
-	"time"
 )
 
 // BatchedWriterConfig defines batch configurations
@@ -150,7 +151,7 @@ func (bwa *BatchedWriterAssembly) NeedsRotate(rotate RotateConfig, forceRotate b
 	}
 
 	// File can be accessed?
-	if bwa.GetWriter().IsAccessible() == false {
+	if !bwa.GetWriter().IsAccessible() {
 		bwa.logger.Debug("Rotate false: ", "no access")
 		return false, errors.New("Can' access file to rotate")
 	}

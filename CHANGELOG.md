@@ -12,6 +12,9 @@ This is a patch / minor features release.
 ### Fixed with 0.5.2
 
  * consumer.Kafka now properly commits the consumer offsets to kafka. Thanks to @crewton
+ * producer.awsKinesis failed to produce records under certain conditions
+ * The consumer.Kafka folderPermissions property is now correctly applied
+ * formt.ExtractJSON trimValues property is now correctly applied
 
 ## 0.5.1
 

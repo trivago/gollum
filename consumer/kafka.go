@@ -602,7 +602,7 @@ func (cons *Kafka) dumpIndex() {
 			cons.Logger.Error("Kafka index file write error - ", err)
 		} else {
 			fileDir := path.Dir(cons.offsetFile)
-			if err := os.MkdirAll(fileDir, 0755); err != nil {
+			if err := os.MkdirAll(fileDir, cons.folderPermissions); err != nil {
 				cons.Logger.Errorf("Failed to create %s because of %s", fileDir, err.Error())
 			} else {
 				ioutil.WriteFile(cons.offsetFile, data, 0644)

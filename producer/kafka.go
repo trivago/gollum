@@ -206,7 +206,6 @@ type Kafka struct {
 	client                kafka.Client
 	config                *kafka.Config
 	producer              kafka.AsyncProducer
-	missCount             int64
 	nilValueAllowed       bool   `config:"AllowNilValue" default:"false"`
 	keyField              string `config:"KeyFrom"`
 }
@@ -214,7 +213,6 @@ type Kafka struct {
 type topicHandle struct {
 	name          string
 	rttSum        int64
-	sent          int64
 	delivered     int64
 	lastHeartBeat time.Time
 }
@@ -524,22 +522,6 @@ func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
 
 	return []byte{}
 
-}
-
-func (prod *Kafka) checkAllTopics() bool {
-	topics, err := prod.client.Topics()
-	if err != nil {
-		prod.Logger.Error("Failed to get topics ", err.Error())
-	}
-
-	for _, topic := range topics {
-		connected, _ := prod.isConnected(topic)
-		if !connected {
-			return false
-		}
-	}
-
-	return true
 }
 
 func (prod *Kafka) isConnected(topic string) (bool, error) {

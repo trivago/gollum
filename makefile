@@ -122,7 +122,7 @@ test-integration:: current
 # Linter related targets
 
 .PHONY: lint # Run all linters
-lint:
+lint: lint-fmt
 	@gometalinter.v2 --vendor \
 	--disable=gocyclo \
 	--disable=goconst \
@@ -130,7 +130,8 @@ lint:
 	--disable=gas \
 	--disable=structcheck \
 	--disable=errcheck \
-	--disable=megacheck \
+	--disable=maligned \
+	--disable=interfacer \
 	--skip=contrib \
 	--skip=docs \
 	--skip=testing \

@@ -96,8 +96,8 @@ type AwsKinesis struct {
 	recordsPerQuery int64         `config:"RecordsPerQuery" default:"100"`
 	delimiter       []byte        `config:"RecordMessageDelimiter"`
 	sleepTime       time.Duration `config:"QuerySleepTimeMs" default:"1000" metric:"ms"`
-	retryTime       time.Duration `config:"RetrySleepTimeSec" default:"4" metric:"sec"`
-	shardTime       time.Duration `config:"CheckNewShardsSec" default:"0" metric:"sec"`
+	//retryTime       time.Duration `config:"RetrySleepTimeSec" default:"4" metric:"sec"`
+	shardTime time.Duration `config:"CheckNewShardsSec" default:"0" metric:"sec"`
 
 	client        *kinesis.Kinesis
 	offsets       map[string]string
