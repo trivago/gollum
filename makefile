@@ -123,15 +123,14 @@ test-integration:: current
 
 .PHONY: lint # Run all linters
 lint: lint-fmt
-	@gometalinter.v2 --vendor \
-	--disable=gocyclo \
+	@echo "Running go linters"
+	@gometalinter.v2 --vendor --cyclo-over=20 \
 	--disable=goconst \
-	--disable=deadcode \
 	--disable=gas \
-	--disable=structcheck \
-	--disable=errcheck \
 	--disable=maligned \
-	--disable=interfacer \
+	--disable=gocyclo \
+	--disable=errcheck \
+	--exclude="\.[cC]lose[^ ]*\(.*\) \(errcheck\)" \
 	--skip=contrib \
 	--skip=docs \
 	--skip=testing \
