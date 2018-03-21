@@ -122,7 +122,6 @@ lint: lint-fmt lint-meta
 .PHONY: lint-meta # Run the go meta linter
 lint-meta:
 	@echo "\033[0;33mRunning go linters\033[0;0m"
-	@gometalinter.v2 --help
 	@gometalinter.v2 --vendor --cyclo-over=20 \
 	--disable=goconst \
 	--disable=gas \
