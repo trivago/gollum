@@ -9,6 +9,10 @@ This is a patch / minor features release.
  * The version number is now generated via make and git. This will properly identify versions between releases.
  * New producer.AwsCloudwatchLogs. Thanks to @luqasz
 
+### Fixed with 0.5.2
+
+ * consumer.Kafka now properly commits the consumer offsets to kafka. Thanks to @crewton
+
 ## 0.5.1
 
 This is a patch / minor features release.
