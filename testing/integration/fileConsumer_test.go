@@ -102,7 +102,7 @@ func executeDefaultTest(sourceFile string, targetFile string) (resultFile, strin
 	}
 
 	// execute gollum
-	cmd := executeGollumAndGetCmd(testConfigConsumer, []string{}, "-ll=3")
+	cmd := executeGollumAndGetCmd(10*time.Second, testConfigConsumer, []string{}, "-ll=3")
 	time.Sleep(2 * time.Second) // wait till gollum should booted
 
 	// write more to file - result for gollum
@@ -135,7 +135,7 @@ func executeFileRotationTest(sourceFile string, targetFile string) (resultFile, 
 	}
 
 	// execute gollum
-	cmd := executeGollumAndGetCmd(testConfigConsumer, []string{}, "-ll=3")
+	cmd := executeGollumAndGetCmd(10*time.Second, testConfigConsumer, []string{}, "-ll=3")
 	time.Sleep(2 * time.Second) // wait till gollum should booted
 
 	// write more to file - result for gollum

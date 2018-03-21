@@ -4,11 +4,12 @@ package integration
 
 import (
 	"fmt"
-	"github.com/trivago/tgo/ttesting"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 const (
@@ -61,7 +62,7 @@ func TestProducerAggregationPipeline(t *testing.T) {
 	expect.NoError(err)
 
 	// execute gollum
-	cmd := executeGollumAndGetCmd(testPipelineAggregationConfig, []string{}, "-ll=2")
+	cmd := executeGollumAndGetCmd(10*time.Second, testPipelineAggregationConfig, []string{}, "-ll=2")
 	time.Sleep(2 * time.Second) // wait till gollum should booted
 
 	// write more to files - result for gollum

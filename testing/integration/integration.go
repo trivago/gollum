@@ -50,7 +50,7 @@ func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buf
 	}
 
 	var stdin io.WriteCloser
-	timeout := 2 * time.Second
+	timeout := 4 * time.Second
 	hasInputValues := len(inputs) > 0
 
 	cmd := GetGollumCmd(timeout, arg...)
@@ -80,7 +80,7 @@ func ExecuteGollum(config string, inputs []string, arg ...string) (out bytes.Buf
 	return
 }
 
-func executeGollumAndGetCmd(config string, inputs []string, arg ...string) (cmd *exec.Cmd) {
+func executeGollumAndGetCmd(timeout time.Duration, config string, inputs []string, arg ...string) (cmd *exec.Cmd) {
 	if config != "" {
 		arg = append(arg, "-c="+getTestConfigPath(config))
 	}
@@ -88,7 +88,6 @@ func executeGollumAndGetCmd(config string, inputs []string, arg ...string) (cmd 
 	var stdin io.WriteCloser
 	var err error
 
-	timeout := 10 * time.Second
 	hasInputValues := len(inputs) > 0
 
 	cmd = GetGollumCmd(timeout, arg...)
