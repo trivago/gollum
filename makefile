@@ -100,13 +100,18 @@ vendor-clean:
 #############################################################################################################
 # Test related targets
 
-.PHONY: test # Run all tests
+.PHONY: test # Run all relevant tests (no native tests)
 test: test-unit test-integration
 
 .PHONY: test-unit # Run all unit tests
 test-unit:
 	@echo "\033[0;33mRunning unit tests\033[0;0m"
 	@$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags="$(TAGS_GOLLUM) $(TAGS_UNIT)" ./...
+
+.PHONY: test-native # Run all unit tests for native plugins
+test-native:
+	@echo "\033[0;33mRunning unit tests for native plugins\033[0;0m"
+	@$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags="$(TAGS_GOLLUM)" ./contrib/native/...
 
 .PHONY: test-integration # Run all integration tests
 test-integration:: build
