@@ -144,9 +144,7 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 
 	var err error
 	cons.source, err = newSourceFile(conf)
-	if err != nil {
-		cons.Logger.Fatal(err)
-	}
+	conf.Errors.Push(err)
 
 	cons.seeker = newSeeker(conf)
 
@@ -424,13 +422,6 @@ func newWatcher(logger logrus.FieldLogger, source *sourceFile, readFunction func
 	}
 }
 
-func (w *watcher) close(watcher *fsnotify.Watcher) {
-	err := watcher.Close()
-	if err != nil {
-		w.logger.Fatal(err)
-	}
-}
-
 func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byte)) {
 	// init
 	w.done = make(chan int)
@@ -450,9 +441,11 @@ func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 func (w *watcher) watchLoop() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		w.logger.Fatal(err)
+		w.logger.WithError(err).Error("Failed to start watcher")
+		return
 	}
-	defer w.close(watcher)
+
+	defer watcher.Close()
 
 	for {
 		if _, err := os.Stat(w.source.realFileName); os.IsNotExist(err) {
