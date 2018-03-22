@@ -3,9 +3,7 @@
 package integration
 
 import (
-	"fmt"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -18,32 +16,35 @@ const (
 )
 
 func TestProducerAggregation(t *testing.T) {
-	setup()
+	removeTestResultFiles()
 	expect := ttesting.NewExpect(t)
 
 	// execute gollum
-	input := []string{"", "abc", "123"}
-	out, err := ExecuteGollum(testProducerAggregationConfig, input, "-ll=2")
-
-	expect.NoError(err)
-	expect.Contains(out.String(), "(startup)")
-
-	resultFileProducer1, err := getResultFile(tmpTestFilePathFoo)
+	cmd, err := StartGollum(testProducerAggregationConfig, DefaultStartIndicator, "-ll=3")
 	expect.NoError(err)
 
-	resultFileProducer2, err := getResultFile(tmpTestFilePathBar)
+	err = cmd.SendStdIn(time.Second, "abc", "123")
+	expect.NoError(err)
+
+	err = cmd.Stop()
+	expect.NoError(err)
+
+	content1, _, err := readResultFile(tmpTestFilePathFoo)
+	expect.NoError(err)
+
+	content2, _, err := readResultFile(tmpTestFilePathBar)
 	expect.NoError(err)
 
 	// final expectations
-	expect.True(strings.Contains(resultFileProducer1.content, "abc"))
-	expect.True(strings.Contains(resultFileProducer2.content, "abc"))
+	expect.Contains(content1, "abc")
+	expect.Contains(content1, "abc")
 
-	expect.True(strings.Contains(resultFileProducer1.content, "123"))
-	expect.True(strings.Contains(resultFileProducer2.content, "123"))
+	expect.Contains(content2, "123")
+	expect.Contains(content2, "123")
 }
 
 func TestProducerAggregationPipeline(t *testing.T) {
-	setup()
+	removeTestResultFiles()
 	expect := ttesting.NewExpect(t)
 
 	// create files
@@ -51,39 +52,36 @@ func TestProducerAggregationPipeline(t *testing.T) {
 	defer fileFoo.Close()
 	expect.NoError(err)
 
-	_, err = fileFoo.Write([]byte("hello\ngo\n"))
+	_, err = fileFoo.WriteString("hello\ngo\n")
 	expect.NoError(err)
 
 	fileBar, err := os.OpenFile(tmpTestFilePathBar, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	defer fileBar.Close()
 	expect.NoError(err)
 
-	_, err = fileBar.Write([]byte("hello\ngo\n"))
+	_, err = fileBar.WriteString("hello\ngo\n")
 	expect.NoError(err)
 
 	// execute gollum
-	cmd := executeGollumAndGetCmd(10*time.Second, testPipelineAggregationConfig, []string{}, "-ll=2")
-	time.Sleep(2 * time.Second) // wait till gollum should booted
+	cmd, err := StartGollum(testPipelineAggregationConfig, DefaultStartIndicator, "-ll=2")
+	expect.NoError(err)
 
 	// write more to files - result for gollum
-	_, err = fileFoo.Write([]byte("foo\n"))
+	_, err = fileFoo.WriteString("foo\n")
 	expect.NoError(err)
 
-	_, err = fileBar.Write([]byte("bar\n"))
+	_, err = fileBar.WriteString("bar\n")
 	expect.NoError(err)
 
-	// wait until gollum process is done
-	cmd.Wait()
-
-	out := fmt.Sprint(cmd.Stdout)
-	expect.Contains(out, "(startup)")
+	err = cmd.StopAfter(2 * time.Second)
+	expect.NoError(err)
 
 	// get results from file targets
-	ResultFile, err := getResultFile(tmpTestFilePathDefault)
+	content, lines, err := readResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
 	// final expectations filter in producer
-	expect.True(strings.Contains(ResultFile.content, "foo"))
-	expect.True(strings.Contains(ResultFile.content, "bar"))
-	expect.Equal(4, ResultFile.lines)
+	expect.ContainsN(content, "foo", 1)
+	expect.ContainsN(content, "bar", 1)
+	expect.Equal(5, lines)
 }

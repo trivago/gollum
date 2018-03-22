@@ -4,63 +4,66 @@ package integration
 
 import (
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
 )
 
-var TmpTestFiles = []string{tmpTestFilePathDefault, tmpTestFilePathFoo, tmpTestFilePathBar}
-
-func setup() {
-	removeTestResultFile()
-}
-
-func teardown() {
-}
-
-func removeTestResultFile() {
-	for _, path := range TmpTestFiles {
-		if _, err := os.Stat(path); err == nil {
-			os.Remove(path)
-		}
-	}
-}
-
 func TestMain(m *testing.M) {
-	setup()
-	defer teardown() // only called if we panic
+	removeTestResultFiles()
+	defer removeTestResultFiles()
 	result := m.Run()
-	teardown()
 	os.Exit(result)
 }
 
 func TestRunableVersion(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	out, err := ExecuteGollum("", nil, "-v")
 
+	cmd, err := StartGollum("", NoStartIndicator, "-v")
 	expect.NoError(err)
-	expect.Equal(core.GetVersionString()+"\n", out.String())
+
+	err = cmd.Wait()
+	expect.NoError(err)
+
+	out := cmd.ReadStdOut()
+	expect.Greater(len(out), 0)
+
+	expect.Contains(out, core.GetVersionString())
 }
 
 func TestRunableList(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	out, err := ExecuteGollum("", nil, "-l")
 
+	cmd, err := StartGollum("", NoStartIndicator, "-l")
 	expect.NoError(err)
-	expect.True(strings.Contains(out.String(), "consumer"))
-	expect.True(strings.Contains(out.String(), "filter"))
-	expect.True(strings.Contains(out.String(), "format"))
-	expect.True(strings.Contains(out.String(), "producer"))
-	expect.True(strings.Contains(out.String(), "router"))
+
+	err = cmd.Wait()
+	expect.NoError(err)
+
+	out := cmd.ReadStdOut()
+	expect.Greater(len(out), 0)
+
+	expect.Contains(out, "consumer")
+	expect.Contains(out, "filter")
+	expect.Contains(out, "format")
+	expect.Contains(out, "producer")
+	expect.Contains(out, "router")
 }
 
 func TestRunableHelp(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	out, err := ExecuteGollum("", nil, "-h")
 
+	cmd, err := StartGollum("", NoStartIndicator, "-h")
 	expect.NoError(err)
-	expect.True(strings.Contains(out.String(), "Usage: gollum [OPTIONS]"))
-	expect.True(strings.Contains(out.String(), "Options:"))
+
+	err = cmd.Wait()
+	expect.NoError(err)
+
+	out := cmd.ReadStdOut()
+	expect.Greater(len(out), 0)
+
+	expect.Contains(out, "-h")
+	expect.Contains(out, "help")
+	expect.Contains(out, core.GetVersionString())
 }
