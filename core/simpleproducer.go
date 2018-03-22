@@ -206,7 +206,7 @@ func (prod *SimpleProducer) HasContinueAfterModulate(msg *Message) bool {
 		return false
 
 	case ModulateResultFallback:
-		if err := RouteOriginal(msg, msg.GetRouter()); err != nil {
+		if err := Route(msg, msg.GetRouter()); err != nil {
 			prod.Logger.WithError(err).Error("Failed to route to fallback")
 		}
 		return false

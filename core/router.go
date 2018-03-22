@@ -78,7 +78,12 @@ func Route(msg *Message, router Router) error {
 			return NewModulateResultError("Routing loop detected for router %s (from %s)", streamName, prevStreamName)
 		}
 
-		return RouteOriginal(msg, msg.GetRouter())
+		// Do NOT route the original message in this case.
+		// If a modulate pipeline returns fallback, the message might have been
+		// modified already. To meet expectations the CHANGED message has to be
+		// routed.
+
+		return Route(msg, msg.GetRouter())
 	}
 
 	return NewModulateResultError("Unknown ModulateResult action: %d", action)

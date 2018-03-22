@@ -17,6 +17,7 @@ This is a patch / minor features release.
  * The consumer.Kafka folderPermissions property is now correctly applied
  * formt.ExtractJSON trimValues property is now correctly applied
  * The gollum binary inside the Dockerfile is built on the same baseimage as deployed
+ * Filter will now always filter out the MODIFIED message, not the original. This behavior is more "expected".
 
 ## 0.5.1
 
