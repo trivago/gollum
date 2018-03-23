@@ -15,14 +15,15 @@
 package producer
 
 import (
-	"github.com/gorilla/websocket"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tnet"
-	"github.com/trivago/tgo/tsync"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tnet"
+	"github.com/trivago/tgo/tsync"
 )
 
 // Websocket producer plugin
@@ -55,14 +56,14 @@ import (
 //
 type Websocket struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
-	address               string        `config:"Address" default:":81"`
-	path                  string        `config:"Path" default:"/"`
-	readTimeoutSec        time.Duration `config:"ReadTimeoutSec" default:"3" metric:"sec"`
-	ignoreOrigin          bool          `config:"IgnoreOrigin" default:"false"`
 	listen                *tnet.StopListener
-	clients               [2]clientList
-	clientIdx             uint32
+	readTimeoutSec        time.Duration `config:"ReadTimeoutSec" default:"3" metric:"sec"`
 	upgrader              websocket.Upgrader
+	clients               [2]clientList
+	address               string `config:"Address" default:":81"`
+	path                  string `config:"Path" default:"/"`
+	clientIdx             uint32
+	ignoreOrigin          bool `config:"IgnoreOrigin" default:"false"`
 }
 
 type clientList struct {

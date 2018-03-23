@@ -45,7 +45,7 @@ func (prod *DirectProducer) Enqueue(msg *Message, timeout time.Duration) {
 		return // ### return, closing down ###
 	}
 
-	if prod.HasContinueAfterModulate(msg) == false {
+	if !prod.HasContinueAfterModulate(msg) {
 		return
 	}
 

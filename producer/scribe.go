@@ -89,11 +89,8 @@ type Scribe struct {
 }
 
 const (
-	scribeMetricMessages    = "Scribe:Messages-"
-	scribeMetricMessagesSec = "Scribe:MessagesSec-"
-	scribeMetricWindowSize  = "Scribe:WindowSize"
-	scribeMaxRetries        = 30
-	scribeMaxSleepTimeMs    = 3000
+	scribeMaxRetries     = 30
+	scribeMaxSleepTimeMs = 3000
 )
 
 func init() {

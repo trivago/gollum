@@ -31,9 +31,6 @@ type LogConsumer struct {
 	control         chan PluginControl
 	logRouter       Router
 	metric          string
-	lastCount       int64
-	lastCountWarn   int64
-	lastCountError  int64
 	stopped         bool
 	queue           MessageQueue
 	metricErrors    metrics.Counter

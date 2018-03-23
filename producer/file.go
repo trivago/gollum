@@ -16,13 +16,14 @@ package producer
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/gollum/producer/file"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
+	"github.com/trivago/gollum/producer/file"
 )
 
 // File producer plugin
@@ -75,19 +76,16 @@ type File struct {
 	Pruner      file.Pruner                    `gollumdoc:"embed_type"`
 	BatchConfig components.BatchedWriterConfig `gollumdoc:"embed_type"`
 
-	// configuration
-	overwriteFile     bool        `config:"FileOverwrite"`
+	batchedFileGuard  *sync.RWMutex
+	filesByStream     map[core.MessageStreamID]*components.BatchedWriterAssembly // mapped files by stream
+	files             map[string]*components.BatchedWriterAssembly               // unique files by target path
+	fileDir           string
+	fileName          string
+	fileExt           string
 	filePermissions   os.FileMode `config:"Permissions" default:"0644"`
 	folderPermissions os.FileMode `config:"FolderPermissions" default:"0755"`
-
-	// properties
-	filesByStream    map[core.MessageStreamID]*components.BatchedWriterAssembly // mapped files by stream
-	files            map[string]*components.BatchedWriterAssembly               // unique files by target path
-	fileDir          string
-	fileName         string
-	fileExt          string
-	wildcardPath     bool
-	batchedFileGuard *sync.RWMutex
+	overwriteFile     bool        `config:"FileOverwrite"`
+	wildcardPath      bool
 }
 
 func init() {
@@ -122,8 +120,6 @@ func (prod *File) Produce(workers *sync.WaitGroup) {
 }
 
 func (prod *File) getBatchedFile(streamID core.MessageStreamID) (*components.BatchedWriterAssembly, error) {
-	var err error
-
 	// get batchedFile from filesByStream[streamID] map
 	prod.batchedFileGuard.RLock()
 	batchedFile, fileIsLinked := prod.filesByStream[streamID]
@@ -168,7 +164,7 @@ func (prod *File) getBatchedFile(streamID core.MessageStreamID) (*components.Bat
 		}
 	}
 
-	err = prod.rotateBatchedFile(batchedFile, streamTargetFile)
+	err := prod.rotateBatchedFile(batchedFile, streamTargetFile)
 
 	return batchedFile, err
 }

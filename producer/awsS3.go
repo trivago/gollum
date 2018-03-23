@@ -16,14 +16,15 @@ package producer
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/gollum/producer/awsS3"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/gollum/core/components"
+	"github.com/trivago/gollum/producer/awss3"
 )
 
 const defaultAwsEndpoint = "s3.amazonaws.com"
@@ -156,7 +157,7 @@ func (prod *AwsS3) getBatchedFile(streamID core.MessageStreamID, forceRotate boo
 	defer prod.batchedFileGuard.Unlock()
 
 	// check again to avoid race conditions
-	if batchedFile, fileExists := prod.filesByStream[streamID]; fileExists {
+	if batchedFile, fileExists = prod.filesByStream[streamID]; fileExists {
 		if rotate, err := prod.needsRotate(batchedFile, forceRotate); !rotate {
 			return batchedFile, err // ### return, already open or error ###
 		}
@@ -187,7 +188,7 @@ func (prod *AwsS3) getBatchedFile(streamID core.MessageStreamID, forceRotate boo
 	}
 
 	// Update BatchedWriterAssembly writer
-	writer := awsS3.NewBatchedFileWriter(prod.s3Client, prod.bucket, prod.getFinalFileName(baseFileName), prod.Logger)
+	writer := awss3.NewBatchedFileWriter(prod.s3Client, prod.bucket, prod.getFinalFileName(baseFileName), prod.Logger)
 	batchedFile.SetWriter(&writer)
 
 	return batchedFile, nil
@@ -202,7 +203,7 @@ func (prod *AwsS3) needsRotate(batchedFile *components.BatchedWriterAssembly, fo
 	// check if max multipart uploads of 1000 reached
 	// @see: http://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html
 	// we use 995 to have a small buffer to the limit and need at least +1 upload part for the last flush
-	writer, ok := batchedFile.GetWriter().(awsS3.BatchedFileWriterInterface)
+	writer, ok := batchedFile.GetWriter().(awss3.BatchedFileWriterInterface)
 	if ok && writer.GetUploadCount() > 995 {
 		prod.Logger.Debug("Rotate true: ", "upload count reached limit of 1000")
 		return true, nil

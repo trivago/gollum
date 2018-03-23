@@ -17,14 +17,15 @@ package producer
 import (
 	"bytes"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tio"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tio"
 )
 
 const (
@@ -36,7 +37,6 @@ type influxDBWriter09 struct {
 	client           http.Client
 	writeURL         string
 	queryURL         string
-	testURL          string
 	pingURL          string
 	messageHeader    string
 	databaseTemplate string

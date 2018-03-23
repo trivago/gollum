@@ -219,10 +219,6 @@ type topicHandle struct {
 	metricsTimeout   metrics.Counter
 }
 
-const (
-	kafkaMetricRoundtrip = "Kafka:AvgRoundtripMs-"
-)
-
 func init() {
 	core.TypeRegistry.Register(Kafka{})
 }
@@ -515,22 +511,6 @@ func (prod *Kafka) getKafkaMsgKey(msg *core.Message) []byte {
 
 	return []byte{}
 
-}
-
-func (prod *Kafka) checkAllTopics() bool {
-	topics, err := prod.client.Topics()
-	if err != nil {
-		prod.Logger.WithError(err).Error("Failed to get topics")
-	}
-
-	for _, topic := range topics {
-		connected, _ := prod.isConnected(topic)
-		if !connected {
-			return false
-		}
-	}
-
-	return true
 }
 
 func (prod *Kafka) isConnected(topic string) (bool, error) {

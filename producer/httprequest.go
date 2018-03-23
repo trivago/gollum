@@ -18,15 +18,15 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/thealthcheck"
-	"github.com/trivago/tgo/tnet"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/thealthcheck"
 )
 
 // HTTPRequest producer
@@ -79,7 +79,6 @@ type HTTPRequest struct {
 	destinationURL *url.URL
 	encoding       string `config:"Encoding" default:"text/plain; charset=utf-8"`
 	rawPackets     bool   `config:"RawData" default:"true"`
-	listen         *tnet.StopListener
 	lastError      error
 }
 
@@ -93,7 +92,8 @@ func (prod *HTTPRequest) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 
 	address := conf.GetString("Address", "http://localhost:80")
-	if strings.Index(address, "://") == -1 {
+
+	if !strings.Contains(address, "://") {
 		address = "http://" + address
 	}
 	prod.destinationURL, err = url.Parse(address)
@@ -191,9 +191,9 @@ func (prod *HTTPRequest) sendReq(msg *core.Message) {
 		prod.lastError = err
 		if err != nil {
 			// Fail
-			prod.Logger.Error("Send failed: ", err)
+			prod.Logger.WithError(err).Error("Send failed")
 			if !prod.isHostUp() {
-				// TBD: health check? (ex-fuse breaker)
+				prod.Logger.Error("Host is down")
 			}
 			prod.TryFallback(msg)
 			return

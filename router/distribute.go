@@ -15,6 +15,7 @@
 package router
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 )
 
@@ -70,13 +71,13 @@ func (router *Distribute) Start() error {
 	return nil
 }
 
-func (router *Distribute) route(msg *core.Message, targetRouter core.Router) {
+func (router *Distribute) route(msg *core.Message, targetRouter core.Router) error {
 	if router.GetStreamID() == targetRouter.GetStreamID() {
-		router.Broadcast.Enqueue(msg)
-	} else {
-		msg.SetStreamID(targetRouter.GetStreamID())
-		core.Route(msg, targetRouter)
+		return router.Broadcast.Enqueue(msg)
 	}
+
+	msg.SetStreamID(targetRouter.GetStreamID())
+	return core.Route(msg, targetRouter)
 }
 
 // Enqueue enques a message to the router
@@ -87,13 +88,26 @@ func (router *Distribute) Enqueue(msg *core.Message) error {
 			"Router %s: no streams configured", router.GetID())
 	}
 
+	hadErrors := false
 	lastRouterIdx := len(routers) - 1
 	for _, targetRouter := range routers[:lastRouterIdx] {
-		router.route(msg.Clone(), targetRouter)
+		err := router.route(msg.Clone(), targetRouter)
+		if err != nil {
+			logrus.WithError(err).Errorf("%s failed to route message", router.GetID())
+			hadErrors = true
+		}
 	}
 
 	// Cloning is a rather expensive operation, so skip cloning for the last
 	// message (not required)
-	router.route(msg, routers[lastRouterIdx])
+
+	if err := router.route(msg, routers[lastRouterIdx]); err != nil {
+		logrus.WithError(err).Errorf("%s failed to route message", router.GetID())
+		hadErrors = true
+	}
+
+	if hadErrors {
+		return core.NewModulateResultError("%s reported errors during routing process", router.GetID())
+	}
 	return nil
 }

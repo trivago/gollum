@@ -19,10 +19,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/firehose"
+	metrics "github.com/rcrowley/go-metrics"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
 )
@@ -70,6 +69,7 @@ import (
 //
 type AwsFirehose struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
+	metricsRegistry      metrics.Registry
 
 	// AwsMultiClient is public to make AwsMultiClient.Configure() callable (bug in treflect package)
 	AwsMultiClient components.AwsMultiClient `gollumdoc:"embed_type"`
@@ -78,12 +78,10 @@ type AwsFirehose struct {
 	delimiter         []byte        `config:"RecordMessageDelimiter" default:"\n"`
 	sendTimeLimit     time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
 
-	client          *firehose.Firehose
-	batch           core.MessageBatch
-	streamMap       map[core.MessageStreamID]string
-	metricCount     map[string]metrics.Counter
-	lastSendTime    time.Time
-	metricsRegistry metrics.Registry
+	client       *firehose.Firehose
+	streamMap    map[core.MessageStreamID]string
+	metricCount  map[string]metrics.Counter
+	lastSendTime time.Time
 }
 
 type firehoseData struct {

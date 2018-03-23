@@ -17,18 +17,19 @@ package format
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tstrings"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tstrings"
 )
 
 type jsonReaderState int
 
 const (
-	jsonReadArrayEnd    = jsonReaderState(iota)
-	jsonReadObjectEnd   = jsonReaderState(iota)
+	//jsonReadArrayEnd    = jsonReaderState(iota)
+	//jsonReadObjectEnd   = jsonReaderState(iota)
 	jsonReadObject      = jsonReaderState(iota)
 	jsonReadKey         = jsonReaderState(iota)
 	jsonReadValue       = jsonReaderState(iota)
@@ -231,6 +232,7 @@ func (format *TextToJSON) Configure(conf core.PluginConfigReader) {
 		parserFunctions["obj"] = format.readObject
 		parserFunctions["end"] = format.readEnd
 		parserFunctions["arr+val"] = format.readArrayValue
+		parserFunctions["arr+dat"] = format.readArrayDate
 		parserFunctions["arr+esc"] = format.readArrayEscaped
 		parserFunctions["val+end"] = format.readValueEnd
 		parserFunctions["esc+end"] = format.readEscapedEnd

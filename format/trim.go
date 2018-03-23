@@ -16,6 +16,7 @@ package format
 
 import (
 	"bytes"
+
 	"github.com/trivago/gollum/core"
 )
 
@@ -105,6 +106,4 @@ func (format *Trim) extendContent(content *[]byte, size int) {
 		*content = core.MessageDataPool.Get(size)
 		copy(*content, old)
 	}
-
-	return
 }

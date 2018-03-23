@@ -15,9 +15,10 @@
 package core
 
 import (
-	"github.com/trivago/tgo/tmath"
 	"sync"
 	"time"
+
+	"github.com/trivago/tgo/tmath"
 )
 
 // BatchedProducer producer
@@ -71,7 +72,7 @@ func (prod *BatchedProducer) Enqueue(msg *Message, timeout time.Duration) {
 		return // ### return, closing down ###
 	}
 
-	if prod.HasContinueAfterModulate(msg) == false {
+	if !prod.HasContinueAfterModulate(msg) {
 		return
 	}
 

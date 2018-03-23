@@ -3,7 +3,6 @@
 package integration
 
 import (
-	"bytes"
 	"net"
 	"testing"
 	"time"
@@ -16,11 +15,11 @@ const (
 )
 
 func TestSocketWriteSocket(t *testing.T) {
-	setup()
+	removeTestResultFiles()
 	expect := ttesting.NewExpect(t)
 
 	// execute gollum
-	cmd, err := StartGollum(TestConfigSocket, "-ll=2")
+	cmd, err := StartGollum(TestConfigSocket, FileStartIndicator("/tmp/integration.socket"), "-ll=2")
 	expect.NoError(err)
 
 	udp, err := net.Dial("udp", "127.0.0.1:5880")
@@ -62,25 +61,22 @@ func TestSocketWriteSocket(t *testing.T) {
 	expect.NoError(err)
 	expect.Equal([]byte("ACK"), buffer[:n])
 
-	out := StopGollum(cmd)
-
-	buffer = make([]byte, 4096)
-	n, err = out.Read(buffer)
+	err = cmd.Stop()
 	expect.NoError(err)
 
-	text := string(buffer[:n])
-	expect.Contains(text, "### test UDP")
-	expect.Contains(text, "### test Socket")
-	expect.Contains(text, "### test TCP")
-	expect.Contains(text, "### test ACK")
+	out := cmd.ReadStdOut()
+	expect.Contains(out, "### test UDP")
+	expect.Contains(out, "### test Socket")
+	expect.Contains(out, "### test TCP")
+	expect.Contains(out, "### test ACK")
 }
 
 func TestSocketCleanup(t *testing.T) {
-	setup()
+	removeTestResultFiles()
 	expect := ttesting.NewExpect(t)
 
 	// execute gollum
-	cmd, err := StartGollum(TestConfigSocket, "-ll=3")
+	cmd, err := StartGollum(TestConfigSocket, DefaultStartIndicator, "-ll=3")
 	expect.NoError(err)
 
 	socket, err := net.Dial("unix", "/tmp/integration.socket")
@@ -89,19 +85,14 @@ func TestSocketCleanup(t *testing.T) {
 	tcp, err := net.Dial("tcp", "127.0.0.1:5881")
 	expect.NoError(err)
 
-	var out *bytes.Buffer
-	expect.NonBlocking(10*time.Second, func() {
-		out = StopGollum(cmd)
-	})
-
-	buffer := make([]byte, 8192)
-	_, err = out.Read(buffer)
+	err = cmd.Stop()
 	expect.NoError(err)
 
-	_, err = socket.Write(buffer)
+	dummyData := make([]byte, 8192)
+	_, err = socket.Write(dummyData)
 	expect.NotNil(err)
 
-	tcp.Write(buffer)
-	_, err = tcp.Read(buffer)
+	tcp.Write(dummyData)
+	_, err = tcp.Read(dummyData)
 	expect.NotNil(err)
 }

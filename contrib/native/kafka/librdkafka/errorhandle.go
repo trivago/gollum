@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build cgo,!unit
+
 package librdkafka
 
-// #cgo CFLAGS: -I/usr/local/include -std=c99
+// #cgo CFLAGS: -I/usr/local/include -std=c99 -Wno-deprecated-declarations
 // #cgo LDFLAGS: -L/usr/local/lib -L/usr/local/opt/librdkafka/lib -lrdkafka
 // #include "wrapper.h"
 // #include <string.h>

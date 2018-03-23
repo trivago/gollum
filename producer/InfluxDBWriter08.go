@@ -17,30 +17,31 @@ package producer
 import (
 	"bytes"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tio"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tio"
 )
 
 // influxDBWriter08 implements the io.Writer interface for InfluxDB 0.9 connections
 type influxDBWriter08 struct {
 	client           http.Client
-	connectionUp     bool
+	Control          func() chan<- core.PluginControl
+	buffer           tio.ByteStream
 	host             string
 	username         string
 	password         string
 	writeURL         string
 	testURL          string
 	databaseTemplate string
-	timeBasedDBName  bool
-	Control          func() chan<- core.PluginControl
-	buffer           tio.ByteStream
 	logger           logrus.FieldLogger
+	connectionUp     bool
+	timeBasedDBName  bool
 }
 
 // Configure sets the database connection values
