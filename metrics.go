@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -48,7 +49,7 @@ func startPrometheusMetricsService(address string) func() {
 	// Return stop function
 	return func() {
 		close(quit)
-		if err := srv.Shutdown(nil); err != nil {
+		if err := srv.Shutdown(context.Background()); err != nil {
 			logrus.WithError(err).Error("Failed to shutdown metrics http server")
 		}
 	}
