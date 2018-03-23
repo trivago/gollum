@@ -15,11 +15,12 @@
 package producer
 
 import (
-	"github.com/quipo/statsd"
-	"github.com/trivago/gollum/core"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/quipo/statsd"
+	"github.com/trivago/gollum/core"
 )
 
 // StatsdMetrics producer
@@ -114,12 +115,6 @@ func (prod *StatsdMetrics) sendBatchOnTimeOut() {
 
 func (prod *StatsdMetrics) sendBatch() {
 	prod.batch.Flush(prod.transformMessages)
-}
-
-func (prod *StatsdMetrics) tryFallbackForMessages(messages []*core.Message) {
-	for _, msg := range messages {
-		prod.TryFallback(msg)
-	}
 }
 
 func (prod *StatsdMetrics) transformMessages(messages []*core.Message) {

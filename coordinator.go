@@ -31,11 +31,11 @@ const (
 	coordinatorStateConfigure      = coordinatorState(iota)
 	coordinatorStateStartProducers = coordinatorState(iota)
 	coordinatorStateStartConsumers = coordinatorState(iota)
-	coordinatorStateRunning        = coordinatorState(iota)
-	coordinatorStateShutdown       = coordinatorState(iota)
-	coordinatorStateStopConsumers  = coordinatorState(iota)
-	coordinatorStateStopProducers  = coordinatorState(iota)
-	coordinatorStateStopped        = coordinatorState(iota)
+	//coordinatorStateRunning        = coordinatorState(iota)
+	coordinatorStateShutdown      = coordinatorState(iota)
+	coordinatorStateStopConsumers = coordinatorState(iota)
+	coordinatorStateStopProducers = coordinatorState(iota)
+	coordinatorStateStopped       = coordinatorState(iota)
 )
 
 const (

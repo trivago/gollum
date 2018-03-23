@@ -15,12 +15,6 @@
 package consumer
 
 import (
-	"github.com/fsnotify/fsnotify"
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tsync"
 	"io"
 	"io/ioutil"
 	"os"
@@ -29,6 +23,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tsync"
 )
 
 const (
@@ -143,9 +144,7 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 
 	var err error
 	cons.source, err = newSourceFile(conf)
-	if err != nil {
-		cons.Logger.Fatal(err)
-	}
+	conf.Errors.Push(err)
 
 	cons.seeker = newSeeker(conf)
 
@@ -172,11 +171,13 @@ func (cons *File) Enqueue(data []byte) {
 }
 
 func (cons *File) storeOffset() {
-	ioutil.WriteFile(cons.source.offsetFileName, []byte(strconv.FormatInt(cons.seeker.offset, 10)), 0644)
+	if err := ioutil.WriteFile(cons.source.offsetFileName, []byte(strconv.FormatInt(cons.seeker.offset, 10)), 0644); err != nil {
+		cons.Logger.WithError(err).Error("Failed to store offset")
+	}
 }
 
 func (cons *File) enqueueAndPersist(data []byte) {
-	cons.seeker.offset, _ = cons.source.file.Seek(io.SeekStart, io.SeekCurrent)
+	cons.seeker.offset, _ = cons.source.file.Seek(0, io.SeekCurrent)
 	cons.Enqueue(data)
 	cons.storeOffset()
 }
@@ -372,11 +373,7 @@ func (source *sourceFile) getRealFileName() string {
 func newSourceFile(conf core.PluginConfigReader) (sourceFile, error) {
 	source := sourceFile{}
 	err := conf.Configure(&source)
-	if err != nil {
-		return source, err
-	}
-
-	return source, nil
+	return source, err
 }
 
 // -- seeker --
@@ -418,19 +415,10 @@ type watcher struct {
 }
 
 func newWatcher(logger logrus.FieldLogger, source *sourceFile, readFunction func()) *watcher {
-	watcher := watcher{}
-
-	watcher.logger = logger
-	watcher.source = source
-	watcher.read = readFunction
-
-	return &watcher
-}
-
-func (w *watcher) close(watcher *fsnotify.Watcher) {
-	err := watcher.Close()
-	if err != nil {
-		w.logger.Fatal(err)
+	return &watcher{
+		logger: logger,
+		source: source,
+		read:   readFunction,
 	}
 }
 
@@ -453,9 +441,11 @@ func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byt
 func (w *watcher) watchLoop() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		w.logger.Fatal(err)
+		w.logger.WithError(err).Error("Failed to start watcher")
+		return
 	}
-	defer w.close(watcher)
+
+	defer watcher.Close()
 
 	for {
 		if _, err := os.Stat(w.source.realFileName); os.IsNotExist(err) {

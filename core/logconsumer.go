@@ -16,25 +16,23 @@ package core
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/logger"
 	"github.com/trivago/tgo"
-	"sync"
-	"time"
 )
 
 // LogConsumer is an internal consumer plugin used indirectly by the gollum log
 // package.
 type LogConsumer struct {
 	Consumer
-	control        chan PluginControl
-	logRouter      Router
-	metric         string
-	lastCount      int64
-	lastCountWarn  int64
-	lastCountError int64
-	stopped        bool
-	queue          MessageQueue
+	control   chan PluginControl
+	logRouter Router
+	metric    string
+	stopped   bool
+	queue     MessageQueue
 }
 
 // Configure initializes this consumer with values from a plugin config.

@@ -15,12 +15,13 @@
 package producer
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tmath"
-	"github.com/trivago/tgo/tnet"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tmath"
+	"github.com/trivago/tgo/tnet"
 )
 
 // Socket producer plugin
@@ -144,10 +145,6 @@ func (prod *Socket) closeConnection() error {
 	if prod.connection != nil {
 		prod.connection.Close()
 		prod.connection = nil
-
-		if !prod.IsStopping() {
-			// TBD: action needed? (ex-fuse breaker)
-		}
 	}
 	return nil
 }

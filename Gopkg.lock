@@ -39,7 +39,38 @@
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
-  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/json/jsonutil","private/protocol/jsonrpc","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/firehose","service/kinesis","service/s3","service/sts"]
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/stscreds",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/restxml",
+    "private/protocol/xml/xmlutil",
+    "service/cloudwatchlogs",
+    "service/firehose",
+    "service/kinesis",
+    "service/s3",
+    "service/sts"
+  ]
   revision = "9ed0c8de252f04ac45a65358377103d5a1aa2d92"
   version = "v1.12.66"
 
@@ -99,7 +130,14 @@
 
 [[projects]]
   name = "github.com/go-redis/redis"
-  packages = [".","internal","internal/consistenthash","internal/hashtag","internal/pool","internal/proto"]
+  packages = [
+    ".",
+    "internal",
+    "internal/consistenthash",
+    "internal/hashtag",
+    "internal/pool",
+    "internal/proto"
+  ]
   revision = "4021ace05686f632ff17fd824bbed229fc474cf8"
   version = "v6.8.2"
 
@@ -129,7 +167,12 @@
 [[projects]]
   branch = "master"
   name = "github.com/mailru/easyjson"
-  packages = [".","buffer","jlexer","jwriter"]
+  packages = [
+    ".",
+    "buffer",
+    "jlexer",
+    "jwriter"
+  ]
   revision = "32fa128f234d041f196a9f3e0fea5ac9772c08e1"
 
 [[projects]]
@@ -194,7 +237,10 @@
 
 [[projects]]
   name = "github.com/quipo/statsd"
-  packages = [".","event"]
+  packages = [
+    ".",
+    "event"
+  ]
   revision = "977fadbd5cda9975ab87279994ea2029efdbd436"
   version = "1.4.0"
 
@@ -218,7 +264,21 @@
 
 [[projects]]
   name = "github.com/trivago/tgo"
-  packages = [".","tcontainer","terrors","tflag","thealthcheck","tio","tmath","tnet","tos","treflect","tstrings","tsync","ttesting"]
+  packages = [
+    ".",
+    "tcontainer",
+    "terrors",
+    "tflag",
+    "thealthcheck",
+    "tio",
+    "tmath",
+    "tnet",
+    "tos",
+    "treflect",
+    "tstrings",
+    "tsync",
+    "ttesting"
+  ]
   revision = "e4d1ddd28c17dd89ed26327cf69fded22060671b"
   version = "v1.0.1"
 
@@ -231,7 +291,11 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["bcrypt","blowfish","ssh/terminal"]
+  packages = [
+    "bcrypt",
+    "blowfish",
+    "ssh/terminal"
+  ]
   revision = "39efaea5da11abd5e2b90a435b1f338cdb94619c"
 
 [[projects]]
@@ -243,18 +307,31 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
+  packages = [
+    "unix",
+    "windows"
+  ]
   revision = "af50095a40f9041b3b38960738837185c26e9419"
 
 [[projects]]
   name = "gopkg.in/mcuadros/go-syslog.v2"
-  packages = [".","format","internal/syslogparser","internal/syslogparser/rfc3164","internal/syslogparser/rfc5424"]
+  packages = [
+    ".",
+    "format",
+    "internal/syslogparser",
+    "internal/syslogparser/rfc3164",
+    "internal/syslogparser/rfc5424"
+  ]
   revision = "9cf13b7327c0e153da3cba3540c2ae2b879c3859"
   version = "v2.2.1"
 
 [[projects]]
   name = "gopkg.in/olivere/elastic.v5"
-  packages = [".","config","uritemplates"]
+  packages = [
+    ".",
+    "config",
+    "uritemplates"
+  ]
   revision = "1094ee281ca61a783c9ba22bf86e7e0a8aa2d112"
   version = "v5.0.62"
 
@@ -273,6 +350,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3020907b16ab63f2430804fe0797e533d776655ac141dfe1d95395eabe327327"
+  inputs-digest = "20fbf5e17cec36753234dcde7f6601019ad48275ad6decc99d28d696a1d33e14"
   solver-name = "gps-cdcl"
   solver-version = 1

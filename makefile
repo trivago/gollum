@@ -1,6 +1,6 @@
-.DEFAULT_GOAL := current
+.DEFAULT_GOAL := help
 
-GOLLUM_TAG := $(shell git describe --tags --match "v*" | sed -E 's/^v([0-9\.]+)(-[0-9]+){0,1}((-)g([a-f0-9]+)){0,1}.*/\1\2\4\5/')
+GOLLUM_TAG := $(shell git describe --always --tags --match "v*" | sed -E 's/^v([0-9\.]+)(-[0-9]+){0,1}((-)g([a-f0-9]+)){0,1}.*/\1\2\4\5/')
 GOLLUM_DIRTY := $(if $(shell git status --porcelain),-dirty)
 GOLLUM_VERSION := $(join $(GOLLUM_TAG),$(GOLLUM_DIRTY))
 
@@ -8,185 +8,192 @@ GO_ENV := GORACE="halt_on_error=0"
 GO_FLAGS := -ldflags="-s -X 'github.com/trivago/gollum/core.versionString=$(GOLLUM_VERSION)'"
 GO_FLAGS_DEBUG := $(GO_FLAGS) -ldflags='-linkmode=internal' -gcflags='-N -l'
 
-GO_TAGS=netgo
-UNIT_TEST_TAG=unit
-INTEGRATION_TEST_TAG=integration
-
-GOFMT_OPTIONS=-s
-
-UNIT_TEST_ONLY_PKGS=$(shell go list -tags="${UNIT_TEST_TAG}" ./... | grep -v "/vendor/" | grep -v "/contrib/" | grep -v "/testing/integration" )
-INTEGRATION_TEST_ONLY_PKGS=$(shell go list -tags="${INTEGRATION_TEST_TAG}" ./testing/integration/...)
-
-CHECK_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/vendor/')
-CHECK_FILES=$(shell find . -type f -name '*.go' | grep -vE '^\./vendor/')
-
-LINT_PKGS=$(shell go list ./... | grep -vE '^github.com/trivago/gollum/(core$$|vendor/)')
-LINT_FILES_CORE=$(shell find core -maxdepth 1 -type f -name '*.go' -not -name '*.pb.go')
-
-LS_COV=ls -f *.cov
+TAGS_GOLLUM=netgo
+TAGS_UNIT=unit
+TAGS_INTEGRATION=integration
 
 #############################################################################################################
-# Build targets
+# Build related targets
 
-all:: clean test freebsd linux docker mac pi win
-
-freebsd::
-	@echo "Building for FreeBSD/x64"
-	@GOOS=freebsd GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-FreeBSD_x64.zip
+.PHONY: freebsd # Build gollum zip-file for FreeBSD (x64)
+freebsd:
+	@echo "\033[0;33mBuilding for FreeBSD/x64\033[0;0m"
+	@GOOS=freebsd GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
 	@zip dist/gollum-$(GOLLUM_VERSION)-FreeBSD_x64.zip gollum
 
-linux::
-	@echo "Building for Linux/x64"
-	@GOOS=linux GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-Linux_x64.zip
+.PHONY: linux # Build gollum zip-file for Linux (x64)
+linux:
+	@echo "\033[0;33mBuilding for Linux/x64\033[0;0m"
+	@GOOS=linux GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
 	@zip dist/gollum-$(GOLLUM_VERSION)-Linux_x64.zip gollum
 
-mac::
-	@echo "Building for MacOS X (MacOS/x64)"
-	@GOOS=darwin GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-MacOS_x64.zip
+.PHONY: mac # Build gollum zip-file for MacOS X (x64)
+mac:
+	@echo "\033[0;33mBuilding for MacOS X (MacOS/x64)\033[0;0m"
+	@GOOS=darwin GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
 	@zip dist/gollum-$(GOLLUM_VERSION)-MacOS_x64.zip gollum
 
-pi::
-	@echo "Building for Raspberry Pi (Linux/ARMv6)"
-	@GOOS=linux GOARCH=arm GOARM=6 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-Linux_Arm6.zip
+.PHONY: pi # Build gollum zip-file for Raspberry Pi / Linux (ARMv6)
+pi:
+	@echo "\033[0;33mBuilding for Raspberry Pi (Linux/ARMv6)\033[0;0m"
+	@GOOS=linux GOARCH=arm GOARM=6 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum
 	@zip dist/gollum-$(GOLLUM_VERSION)-Linux_Arm6.zip gollum
 
-win::
-	@echo "Building for Windows/x64"
-	@GOOS=windows GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}" -o gollum.exe
-	@rm -f dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip
+.PHONY: win # Build gollum zip-file for Windows (x64)
+win:
+	@echo "\033[0;33mBuilding for Windows/x64\033[0;0m"
+	@GOOS=windows GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum.exe
 	@zip dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip gollum
 
-current::
-	@$(GO_ENV) go build $(GO_FLAGS) -tags="${GO_TAGS}"
+.PHONY: docker # Build the gollum docker image
+docker:
+	@echo "\033[0;33mBuilding docker image\033[0;0m"
+	@docker build -t trivago/gollum:$(GOLLUM_VERSION) .
 
-debug::
-	@$(GO_ENV) go build $(GO_FLAGS_DEBUG) -tags="${GO_TAGS}"
-
-install:: current
-	@go install
-
-docker:: linux
-	@echo "Building docker image"
-	@docker build --squash -t trivago/gollum:$(GOLLUM_VERSION) .
-
-docker-dev::
-	@echo "Building development docker image"
+.PHONY: docker-dev # Build the gollum docker development image
+docker-dev:
+	@echo "\033[0;33mBuilding development docker image\033[0;0m"
 	@docker build -t trivago/gollum:$(GOLLUM_VERSION)-dev -f Dockerfile-dev .
 
-#############################################################################################################
-# Administrivia
+.PHONY: build # Build the gollum binary for the current platform
+build:
+	@$(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)"
 
-clean::
+.PHONY: debug # Build the gollum binary for the current platform with additional debugging flags 
+debug:
+	@$(GO_ENV) go build $(GO_FLAGS_DEBUG) -tags="$(TAGS_GOLLUM)"
+
+.PHONY: all # Test and build all distributions of gollum
+all: clean test freebsd linux docker mac pi win
+
+.PHONY: install # Install the current gollum build to the system
+install: build
+	@go install
+
+.PHONY: clean # Remove all files created by build and distribution targets
+clean:
 	@rm -f ./gollum
 	@rm -f ./dist/gollum_*.zip
 	@go clean
 
-list-src::
-	@find . -mindepth 1 -maxdepth 1 -not -name vendor -not -name debug -not -name docs -not -name .git -not -name .idea
-
-# Lists directories / files present in the filesystem which are ignored by git (via .gitignore et al). For
-# completely ignored subtrees, only the topmost directory is listed.
-list-gitignored::
-	@sh -c 'function find_ignores_rec() {\
-	find "$$1" -mindepth 1 -maxdepth 1 -not -name .git |\
-		while read e ; do\
-			if git check-ignore --quiet "$$e"; then\
-				echo "$$e";\
-			elif [ -d "$$e" ]; then\
-				find_ignores_rec "$$e";\
-			fi;\
-		done;\
-	}; \
-	find_ignores_rec .'
-
 #############################################################################################################
-# Vendor management
+# Vendor related targets
 
-vendor:
+Gopkg.toml:
 	@dep init
 
-vendor-update:: vendor
+Gopkg.lock: Gopkg.toml
 	@dep ensure
 
-# Lists files & directories under ./vendor that are ignored by git.
-vendor-list-ignored::
-	@find vendor | git check-ignore --stdin || true
+.PHONY: vendor # Generate the vendor folder
+vendor: Gopkg.toml
+	@dep ensure
 
-# Removes files & directories under ./vendor that are ignored by git
-vendor-rm-ignored::
-	$(MAKE) vendor-list-ignored |  while read f ; do rm -vrf "$$f" ; done
+.PHONY: vendor-update # Update all dependencies in the vendor folder
+vendor-update: Gopkg.lock
+	@dep ensure -update
+
+.PHONY: vendor-clean # Removes files & directories under ./vendor that are ignored by git
+vendor-clean:
+	find vendor | git check-ignore --stdin | while read f ; do rm -vrf "$$f" ; done
 
 #############################################################################################################
-# Tests
+# Test related targets
 
-test:: vet lint fmt-check unit integration
+.PHONY: test # Run all relevant tests (no native tests)
+test: test-unit test-integration
 
-unit::
-	@echo "go tests SDK"
-	$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags="${GO_TAGS} $(UNIT_TEST_TAG)" $(UNIT_TEST_ONLY_PKGS)
+.PHONY: test-unit # Run all unit tests
+test-unit:
+	@echo "\033[0;33mRunning unit tests\033[0;0m"
+	@$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags="$(TAGS_GOLLUM) $(TAGS_UNIT)" ./...
 
-coverprofile::
-	@echo "go tests -covermode=count -coverprofile=profile.cov"
-	@$(GO_ENV) go test $(GO_FLAGS) -tags="${GO_TAGS}" -covermode=count -coverprofile=core.cov ./core
-	@$(GO_ENV) go test $(GO_FLAGS) -tags="${GO_TAGS}" -covermode=count -coverprofile=format.cov ./format
-	@$(GO_ENV) go test $(GO_FLAGS) -tags="${GO_TAGS}" -covermode=count -coverprofile=filter.cov ./filter
-	@$(GO_ENV) go test $(GO_FLAGS) -tags="${GO_TAGS}" -covermode=count -coverprofile=router.cov ./router
+.PHONY: test-native # Run all unit tests for native plugins
+test-native:
+	@echo "\033[0;33mRunning unit tests for native plugins\033[0;0m"
+	@$(GO_ENV) go test $(GO_FLAGS) -v -cover -timeout 10s -race -tags="$(TAGS_GOLLUM)" ./contrib/native/...
+
+.PHONY: test-integration # Run all integration tests
+test-integration:: build
+	@echo "\033[0;33mRunning integration tests\033[0;0m"
+	@$(GO_ENV) go test $(GO_FLAGS) -v -race -tags="$(TAGS_GOLLUM) $(TAGS_INTEGRATION)" ./testing/integration
+
+#############################################################################################################
+# Linter related targets
+
+.PHONY: lint # Run all linters
+lint: lint-fmt lint-meta
+
+.PHONY: lint-meta # Run the go meta linter
+lint-meta:
+	@echo "\033[0;33mRunning go linters\033[0;0m"
+	@gometalinter.v2 --vendor --cyclo-over=20 \
+	--disable=goconst \
+	--disable=gas \
+	--disable=maligned \
+	--disable=gocyclo \
+	--disable=errcheck \
+	--exclude="\.[cC]lose[^ ]*\(.*\) \(errcheck\)" \
+	--skip=contrib \
+	--skip=docs \
+	--skip=testing \
+	--deadline=5m \
+	 ./...
+	@echo "\033[0;32mDone\033[0;0m"
+
+.PHONY: lint-fmt # Run go fmt and see if anything would be changed
+lint-fmt:
+	@echo "\033[0;33mRunning go fmt\033[0;0m"
+ifneq ($(shell go list -f '"cd {{.Dir}}; gofmt -s -l {{join .GoFiles " "}}"' ./... | xargs sh -c), )
+	@go list -f '"cd {{.Dir}}; gofmt -s -l {{join .GoFiles " "}}"' ./... | xargs sh -c
+	@echo "\033[0;31mFAILED\033[0;0m"
+	@exit 1
+else
+	@echo "\033[0;32mOK\033[0;0m"
+endif
+
+#############################################################################################################
+# Build pipeline targets
+
+.PHONY: pipeline-tools # Go get required tools
+pipeline-tools:
+	@echo "\033[0;33mInstalling required go tools ...\033[0;0m"
+	@go get -u github.com/mattn/goveralls
+	@go get -u github.com/golang/dep/cmd/dep
+	@go get -u gopkg.in/alecthomas/gometalinter.v2
+	@gometalinter.v2 --install
+	@echo "\033[0;32mDone\033[0;0m"
+
+.PHONY: pipeline-accept # Accept runs all targets required for PR acceptance
+pipeline-accept: | lint test
+
+.PHONY: pipeline-build # Run all relevant platform builds required for PR acceptance
+pipeline-build: mac linux win freebsd
+
+.PHONY: pipeline-coverage # Generate cover profiles files required for PR acceptance
+pipeline-coverage:
+	@echo "\033[0;33mGenerating cover profiles\033[0;0m"
+	@$(GO_ENV) go test $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -covermode=count -coverprofile=core.cov ./core
+	@$(GO_ENV) go test $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -covermode=count -coverprofile=format.cov ./format
+	@$(GO_ENV) go test $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -covermode=count -coverprofile=filter.cov ./filter
+	@$(GO_ENV) go test $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -covermode=count -coverprofile=router.cov ./router
 
 	@echo "INFO: start generating profile.cov"
 	@rm -f profile.tmp profile.cov
 
 	@echo "mode: count" > profile.tmp
-	@for cov_file in  $$( $(LS_COV) ); do cat $${cov_file} | grep -v "mode: " >> profile.tmp ; done
+	@for cov_file in  $$( ls -f *.cov ); do cat $${cov_file} | grep -v "mode: " >> profile.tmp ; done
 	@mv profile.tmp profile.cov
 
 	@echo "INFO: profile.cov successfully generated"
 	@rm core.cov format.cov filter.cov router.cov
 
-integration:: current
-	@echo "go tests integration"
-	$(GO_ENV) go test $(GO_FLAGS) -v -race -tags="${GO_TAGS} $(INTEGRATION_TEST_TAG)" $(INTEGRATION_TEST_ONLY_PKGS)
+#############################################################################################################
 
-pre-commit:: vet lint fmt ineffassign
-
-vet::
-	@echo "Running go vet"
-	@go vet $(CHECK_PKGS)
-
-lint::
-	@echo "Running golint against core"
-	@golint -set_exit_status $(LINT_FILES_CORE)
-	@echo "Running golint against other packages"
-	@golint -set_exit_status $(LINT_PKGS)
-
-fmt::
-	@echo "Running go fmt"
-	@go fmt $(CHECK_PKGS)
-
-fmt-list::
-	@gofmt $(GOFMT_OPTIONS) -l $(CHECK_FILES)
-
-fmt-diff::
-	@gofmt $(GOFMT_OPTIONS) -d $(CHECK_FILES)
-
-fmt-check::
-ifneq ($(shell gofmt $(GOFMT_OPTIONS) -l $(CHECK_FILES) | wc -l | tr -d "[:blank:]"), 0)
-	$(error gofmt returns more than one line, run 'make fmt-check' or 'make fmt-diff' for details, 'make fmt' to fix)
-endif
-	@echo "gofmt check successful"
-
-ineffassign::
-	@echo "Running ineffassign"
-	@go get -u github.com/gordonklaus/ineffassign
-	@ineffassign ./
-
-# .git/hooks/pre-commit
-#
-# #!/bin/bash
-# # Run tests
-# make pre-commit
-# exit $?
-
+.PHONY: help # Print the make help screen
+help:
+	@echo "GOLLUM v$(GOLLUM_VERSION)"
+	@echo "Make targets overview"
+	@echo
+	@echo "\033[0;33mAvailable targets:"
+	@grep '^.PHONY: .* #' makefile | sed -E 's/\.PHONY: (.*) # (.*)/"\1" "\2"/g' | xargs printf "  \033[0;32m%-25s \033[0;0m%s\n"

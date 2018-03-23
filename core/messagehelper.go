@@ -33,7 +33,6 @@ func GetAppliedContentSetFunction(applyTo string) SetAppliedContent {
 			} else {
 				msg.GetMetadata().SetValue(applyTo, content)
 			}
-			return
 		}
 	}
 
@@ -43,6 +42,5 @@ func GetAppliedContentSetFunction(applyTo string) SetAppliedContent {
 		} else {
 			msg.StorePayload(content)
 		}
-		return
 	}
 }

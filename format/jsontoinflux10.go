@@ -17,11 +17,12 @@ package format
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tcontainer"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 )
 
 // JSONToInflux10 formatter
@@ -124,7 +125,7 @@ func (format *JSONToInflux10) joinMap(m map[string]interface{}) string {
 	for k, v := range m {
 		tokens = append(tokens, fmt.Sprintf(`%s=%s`, k, v))
 	}
-	return fmt.Sprintf(strings.Join(tokens, ","))
+	return fmt.Sprint(strings.Join(tokens, ","))
 }
 
 // Return the time field as a unix timestamp

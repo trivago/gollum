@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build cgo,!unit
+
 package native
 
 import (
+	"testing"
+
 	"github.com/miekg/pcap"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func newTCPPktMock(seq uint32) *pcap.Packet {

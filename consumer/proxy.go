@@ -15,22 +15,15 @@
 package consumer
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tnet"
 	"io"
 	"net"
 	"strings"
 	"sync"
-)
 
-type proxyPartitioner int
-
-const (
-	proxyPartDelimiter = proxyPartitioner(iota)
-	proxyPartBinary    = proxyPartitioner(iota)
-	proxyPartText      = proxyPartitioner(iota)
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tnet"
 )
 
 // Proxy consumer

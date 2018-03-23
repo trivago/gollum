@@ -16,11 +16,12 @@ package core
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/thealthcheck"
-	"sync"
-	"time"
 )
 
 // SimpleConsumer consumer
@@ -62,7 +63,6 @@ type SimpleConsumer struct {
 	control         chan PluginControl
 	runState        *PluginRunState
 	routers         []Router       `config:"Streams"`
-	shutdownTimeout time.Duration  `config:"ShutdownTimeoutMs" default:"1000" metric:"ms"`
 	modulators      ModulatorArray `config:"Modulators"`
 	onRoll          func()
 	onPrepareStop   func()
@@ -70,6 +70,7 @@ type SimpleConsumer struct {
 	enqueueMessage  func(*Message)
 	modulatorQueue  MessageQueue
 	Logger          logrus.FieldLogger
+	shutdownTimeout time.Duration `config:"ShutdownTimeoutMs" default:"1000" metric:"ms"`
 }
 
 // Configure initializes standard consumer values from a plugin config.
@@ -244,10 +245,10 @@ func (cons *SimpleConsumer) directEnqueue(msg *Message) {
 
 	for streamIdx := 0; streamIdx < lastStreamIdx; streamIdx++ {
 		router := cons.routers[streamIdx]
-		msg := msg.Clone()
-		msg.SetlStreamIDAsOriginal(router.GetStreamID())
+		msgClone := msg.Clone()
+		msgClone.SetlStreamIDAsOriginal(router.GetStreamID())
 
-		if err := Route(msg, router); err != nil {
+		if err := Route(msgClone, router); err != nil {
 			cons.Logger.Error(err)
 		}
 	}

@@ -1,44 +1,41 @@
 language: go
 sudo: required
 dist: trusty
+
 git:
   depth: 3
 
-go:
-  - 1.9
-  - 1.8
-  - 1.7
-env:
-  - TEST_SUITE=current      # go build
-  - TEST_SUITE=unit         # go test
-  - TEST_SUITE=integration  # go test -tags="integration"
-
 matrix:
   include:
-    - go: 1.8
-      env: TEST_SUITE="vet lint fmt-check ineffassign" # go vet, golint, gofmt -s -l, ineffassign
-    - go: 1.8
-      env: TEST_SUITE=coverprofile                     # go tests -coverprofile
-    - go: 1.9
-      env: TEST_SUITE="vet lint fmt-check ineffassign" # go vet, golint, gofmt -s -l, ineffassign
-    - go: 1.9
-      env: TEST_SUITE=coverprofile                     # go tests -coverprofile
+    - 
+      go: "1.10"
+      env: ACCEPT_TARGET=pipeline-accept
+    - 
+      go: "1.9"	
+      env: ACCEPT_TARGET=test
+    - 
+      go: "1.8"	
+      env: ACCEPT_TARGET=test-integration
+ 
+#before_install:
+#  - sudo apt-get -qq update
+#  - sudo apt-get install -qqy libpcap-dev libsystemd-journal-dev
+#  - wget http://launchpadlibrarian.net/234454186/librdkafka1_0.8.6-1.1_amd64.deb
+#  - wget http://launchpadlibrarian.net/234454185/librdkafka-dev_0.8.6-1.1_amd64.deb
+#  - sudo dpkg -i librdkafka1_0.8.6-1.1_amd64.deb
+#  - sudo dpkg -i librdkafka-dev_0.8.6-1.1_amd64.deb
 
-before_install:
-  - sudo apt-get install -y libpcap-dev
-  - wget http://launchpadlibrarian.net/234454186/librdkafka1_0.8.6-1.1_amd64.deb
-  - wget http://launchpadlibrarian.net/234454185/librdkafka-dev_0.8.6-1.1_amd64.deb
-  - sudo dpkg -i librdkafka1_0.8.6-1.1_amd64.deb
-  - sudo dpkg -i librdkafka-dev_0.8.6-1.1_amd64.deb
-  - sudo apt-get install -y libsystemd-journal-dev
 install:
-  - go get github.com/mattn/goveralls
-  - go get github.com/golang/lint/golint
+  - make pipeline-tools
+  - make vendor
 
 script:
-  - make $TEST_SUITE
+  - make pipeline-build
+  - make ${ACCEPT_TARGET}
+
 after_success:
-  - if [[ $TEST_SUITE == "coverprofile" ]]; then $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci; fi
+  - make pipeline-coverage
+  - $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
 notifications:
   slack:

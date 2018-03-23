@@ -18,9 +18,10 @@ import (
 	"errors"
 	"testing"
 
+	"io/ioutil"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
-	"io/ioutil"
 )
 
 type mockIoWrite struct {
@@ -63,10 +64,7 @@ func TestWriterAssemblySetErrorHandler(t *testing.T) {
 
 	wa := NewWriterAssembly(mockIo, mockIo.mockFlush, &mockFormatter{})
 	handler := func(e error) bool {
-		if e.Error() == "abc" {
-			return true
-		}
-		return false
+		return e.Error() == "abc"
 	}
 
 	wa.SetErrorHandler(handler)
@@ -112,19 +110,13 @@ func TestWriterAssemblyWrite(t *testing.T) {
 
 	// set errorHandler
 	handlerReturnsTrue := func(e error) bool {
-		if e.Error() == "someError" {
-			return true
-		}
-		return false
+		return e.Error() == "someError"
 	}
 	wa.SetErrorHandler(handlerReturnsTrue)
 	wa.Write([]*Message{msg1})
 
 	handlerWithoutError := func(e error) bool {
-		if e.Error() == "someError" {
-			return false
-		}
-		return true
+		return e.Error() != "someError"
 	}
 	wa.SetErrorHandler(handlerWithoutError)
 	wa.Write([]*Message{msg1})

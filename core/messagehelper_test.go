@@ -1,22 +1,18 @@
 package core
 
 import (
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/tgo/ttesting"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/tgo/ttesting"
 )
 
 type mockRouterMessageHelper struct {
 	SimpleRouter
 	messageEnqued   bool
 	lastMessageData string
-}
-
-func (router *mockRouterMessageHelper) init() {
-	router.messageEnqued = false
-	router.lastMessageData = ""
 }
 
 func (router *mockRouterMessageHelper) Enqueue(msg *Message) error {

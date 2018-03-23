@@ -13,15 +13,16 @@
 package producer
 
 import (
+	"sort"
+	"sync"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
-	"sort"
-	"sync"
-	"time"
 )
 
 // AWS CloudWatch specific constants.
@@ -32,15 +33,15 @@ const (
 	// Maximum batch size in bytes.
 	maxBatchSize = 1048576
 	// Maximum event size in bytes.
-	maxEventSize = 262144
+	//maxEventSize = 262144
 	// A batch of log events in a single PutLogEvents request cannot span more than 24 hours.
 	maxBatchTimeSpan = 24 * time.Hour
 	// How many bytes to append to each log event.
 	eventSizeOverhead = 26
 	// DescribeLogStreams transactions/second.
-	describeLogstreamsDelay = 200 * time.Millisecond
+	//describeLogstreamsDelay = 200 * time.Millisecond
 	// PutLogEvents 5 requests/second/log stream.
-	putLogEventsDelay = 200 * time.Millisecond
+	//putLogEventsDelay = 200 * time.Millisecond
 )
 
 // AwsCloudwatchLogs producer
@@ -71,7 +72,6 @@ type AwsCloudwatchLogs struct {
 	core.BatchedProducer `gollumdoc:"embed_type"`
 	stream               string `config:"LogStream" default:""`
 	group                string `config:"LogGroup" default:""`
-	config               *aws.Config
 	token                *string
 	service              *cloudwatchlogs.CloudWatchLogs
 }
@@ -273,8 +273,8 @@ func (prod *AwsCloudwatchLogs) createGroup() error {
 		LogGroupName: &prod.group,
 	}
 	_, err := prod.service.CreateLogGroup(params)
-	if err, ok := err.(awserr.Error); ok {
-		if err.Code() == "ResourceAlreadyExistsException" {
+	if awsErr, ok := err.(awserr.Error); ok {
+		if awsErr.Code() == "ResourceAlreadyExistsException" {
 			return nil
 		}
 	}
@@ -288,8 +288,8 @@ func (prod *AwsCloudwatchLogs) createStream() error {
 		LogStreamName: &prod.stream,
 	}
 	_, err := prod.service.CreateLogStream(params)
-	if err, ok := err.(awserr.Error); ok {
-		if err.Code() == "ResourceAlreadyExistsException" {
+	if awsErr, ok := err.(awserr.Error); ok {
+		if awsErr.Code() == "ResourceAlreadyExistsException" {
 			return nil
 		}
 	}

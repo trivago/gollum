@@ -17,6 +17,9 @@ package format
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
 )
@@ -38,9 +41,9 @@ import (
 // By default this parameter is set to true.
 //
 // - Precision: Defines the number of decimal places to use when converting
-// Numbers into strings. If this parameter is set to 0 no restrictions will
-// apply.
-// By default this parameter is set to 0.
+// Numbers into strings. If this parameter is set to -1 the shortest possible
+// number of decimal places will be used.
+// By default this parameter is set to -1.
 //
 // Examples
 //
@@ -54,8 +57,8 @@ import (
 type ExtractJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	field                string `config:"Field"`
+	precision            int    `config:"Precision" default:"-1"`
 	trimValues           bool   `config:"TrimValues" default:"true"`
-	numberFormat         string
 }
 
 func init() {
@@ -64,8 +67,6 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *ExtractJSON) Configure(conf core.PluginConfigReader) {
-	precision := conf.GetInt("Precision", 0)
-	format.numberFormat = fmt.Sprintf("%%.%df", precision)
 }
 
 // ApplyFormatter update message payload
@@ -90,19 +91,27 @@ func (format *ExtractJSON) extractJSON(content []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	var strValue string
+
 	if value, exists := values[format.field]; exists {
 		switch value.(type) {
 		case int64:
 			val, _ := value.(int64)
-			return []byte(fmt.Sprintf("%d", val)), nil
+			strValue = strconv.FormatInt(val, 10)
+
 		case string:
-			val, _ := value.(string)
-			return []byte(val), nil
+			strValue, _ = value.(string)
+
 		case float64:
 			val, _ := value.(float64)
-			return []byte(fmt.Sprintf(format.numberFormat, val)), nil
+			strValue = strconv.FormatFloat(val, 'f', format.precision, 64)
+
 		default:
-			return []byte(fmt.Sprintf("%v", value)), nil
+			strValue = fmt.Sprintf("%v", value)
+		}
+
+		if format.trimValues {
+			return []byte(strings.TrimSpace(strValue)), nil
 		}
 	}
 

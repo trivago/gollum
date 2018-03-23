@@ -175,7 +175,6 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 
 	if !exists {
 		streamName := core.StreamRegistry.GetStreamName(streamID)
-		spool = newSpoolFile(prod, streamName, msg.GetSource())
 
 		prod.outfileGuard.Lock()
 		// Recheck to avoid races
@@ -250,7 +249,7 @@ func (prod *Spooling) routeToOrigin(msg *core.Message) {
 	}
 	prod.outfileGuard.RUnlock()
 
-	delay := prod.readDelay - time.Now().Sub(routeStart)
+	delay := prod.readDelay - time.Since(routeStart)
 	if delay > 0 {
 		time.Sleep(delay)
 	}

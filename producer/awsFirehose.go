@@ -16,14 +16,15 @@ package producer
 
 import (
 	"fmt"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/firehose"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
 	"github.com/trivago/tgo"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 // AwsFirehose producer plugin
@@ -78,7 +79,6 @@ type AwsFirehose struct {
 	sendTimeLimit     time.Duration `config:"SendTimeframeMs" default:"1000" metric:"ms"`
 
 	client           *firehose.Firehose
-	batch            core.MessageBatch
 	streamMap        map[core.MessageStreamID]string
 	lastSendTime     time.Time
 	lastMetricUpdate time.Time

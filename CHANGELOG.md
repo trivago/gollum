@@ -8,10 +8,16 @@ This is a patch / minor features release.
 
  * The version number is now generated via make and git. This will properly identify versions between releases.
  * New producer.AwsCloudwatchLogs. Thanks to @luqasz
+ * The makefile has been cleaned up and go meta-linter support has been added
 
 ### Fixed with 0.5.2
 
  * consumer.Kafka now properly commits the consumer offsets to kafka. Thanks to @crewton
+ * producer.awsKinesis failed to produce records under certain conditions
+ * The consumer.Kafka folderPermissions property is now correctly applied
+ * formt.ExtractJSON trimValues property is now correctly applied
+ * The gollum binary inside the Dockerfile is built on the same baseimage as deployed
+ * Filter will now always filter out the MODIFIED message, not the original. This behavior is more "expected".
 
 ## 0.5.1
 
