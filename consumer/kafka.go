@@ -197,22 +197,22 @@ const (
 //      - "kafka3:9092"
 type Kafka struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	servers             []string      `config:"Servers"`
-	topic               string        `config:"Topic" default:"default"`
-	group               string        `config:"GroupId"`
-	hasToSetMetadata    bool          `config:"SetMetadata" default:"false"`
-	offsetFile          string        `config:"OffsetFile"`
-	persistTimeout      time.Duration `config:"PresistTimoutMs" default:"5000" metric:"ms"`
-	orderedRead         bool          `config:"Ordered"`
-	folderPermissions   os.FileMode   `config:"FolderPermissions" default:"0755"`
 	client              kafka.Client
+	consumer            kafka.Consumer
 	config              *kafka.Config
 	groupClient         *cluster.Client
 	groupConfig         *cluster.Config
-	consumer            kafka.Consumer
-	defaultOffset       int64
 	offsets             map[int32]*int64
+	servers             []string `config:"Servers"`
+	topic               string   `config:"Topic" default:"default"`
+	group               string   `config:"GroupId"`
+	offsetFile          string   `config:"OffsetFile"`
+	defaultOffset       int64
+	persistTimeout      time.Duration `config:"PresistTimoutMs" default:"5000" metric:"ms"`
+	folderPermissions   os.FileMode   `config:"FolderPermissions" default:"0755"`
 	MaxPartitionID      int32
+	orderedRead         bool `config:"Ordered"`
+	hasToSetMetadata    bool `config:"SetMetadata" default:"false"`
 }
 
 func init() {
@@ -599,14 +599,18 @@ func (cons *Kafka) dumpIndex() {
 
 		data, err := json.Marshal(encodedOffsets)
 		if err != nil {
-			cons.Logger.Error("Kafka index file write error - ", err)
-		} else {
-			fileDir := path.Dir(cons.offsetFile)
-			if err := os.MkdirAll(fileDir, 0755); err != nil {
-				cons.Logger.Errorf("Failed to create %s because of %s", fileDir, err.Error())
-			} else {
-				ioutil.WriteFile(cons.offsetFile, data, 0644)
-			}
+			cons.Logger.WithError(err).Error("Kafka index file write error")
+			return
+		}
+
+		fileDir := path.Dir(cons.offsetFile)
+		if err := os.MkdirAll(fileDir, cons.folderPermissions); err != nil {
+			cons.Logger.WithError(err).Errorf("Failed to create %s", fileDir)
+			return
+		}
+
+		if err := ioutil.WriteFile(cons.offsetFile, data, 0644); err != nil {
+			cons.Logger.WithError(err).Error("Failed to write offsets")
 		}
 	}
 }
@@ -616,7 +620,7 @@ func (cons *Kafka) Consume(workers *sync.WaitGroup) {
 	cons.SetWorkerWaitGroup(workers)
 
 	if err := cons.startAllConsumers(); err != nil {
-		cons.Logger.Error("Kafka client error - ", err)
+		cons.Logger.WithError(err).Error("Kafka client error")
 		time.AfterFunc(cons.config.Net.DialTimeout, func() { cons.Consume(workers) })
 		return
 	}

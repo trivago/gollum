@@ -3,63 +3,69 @@
 package integration
 
 import (
-	"github.com/trivago/tgo/ttesting"
-	"strings"
 	"testing"
+	"time"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 const (
-	TestConfigRouter = "test_router.conf"
+	testRouterConfig = "test_router.conf"
 )
 
 func TestDefaultRouter(t *testing.T) {
-	setup()
+	removeTestResultFiles()
 	expect := ttesting.NewExpect(t)
 
 	// execute gollum
-	input := []string{"abc", "123", "def"}
-	out, err := ExecuteGollum(TestConfigRouter, input, "-ll=2")
-
+	cmd, err := StartGollum(testRouterConfig, DefaultStartIndicator, "-ll=2")
 	expect.NoError(err)
-	expect.True(strings.Contains(out.String(), "(startup)"))
+
+	err = cmd.SendStdIn(time.Second, "abc", "123", "def")
+	expect.NoError(err)
+
+	err = cmd.Stop()
+	expect.NoError(err)
 
 	// get results from file target
-	ResultFile, err := getResultFile(tmpTestFilePathDefault)
+	content, lines, err := readResultFile(tmpTestFilePathDefault)
 	expect.NoError(err)
 
 	// final expectations
-	expect.True(strings.Contains(ResultFile.content, "abc"))
-	expect.True(strings.Contains(ResultFile.content, "123"))
-	expect.True(strings.Contains(ResultFile.content, "def"))
-	expect.Equal(1, ResultFile.lines)
+	expect.Contains(content, "abc")
+	expect.Contains(content, "123")
+	expect.Contains(content, "def")
+	expect.Equal(1, lines)
 }
 
 func TestDistributeRouter(t *testing.T) {
-	setup()
+	removeTestResultFiles()
 	expect := ttesting.NewExpect(t)
 
 	// execute gollum
-	input := []string{"distribute", "router", "test", "456"}
-	out, err := ExecuteGollum(TestConfigRouter, input, "-ll=2")
-
+	cmd, err := StartGollum(testRouterConfig, DefaultStartIndicator, "-ll=2")
 	expect.NoError(err)
-	expect.True(strings.Contains(out.String(), "(startup)"))
+
+	err = cmd.SendStdIn(time.Second, "distribute", "router", "test", "456")
+	expect.NoError(err)
+
+	err = cmd.Stop()
+	expect.NoError(err)
 
 	// get results from file target
-	ResultFileFoo, err := getResultFile(tmpTestFilePathFoo)
+	content, lines, err := readResultFile(tmpTestFilePathFoo)
 	expect.NoError(err)
 
-	ResultFileBar, err := getResultFile(tmpTestFilePathBar)
+	expect.Contains(content, "distribute")
+	expect.Contains(content, "routertest")
+	expect.Contains(content, "456")
+	expect.Equal(1, lines)
+
+	content, lines, err = readResultFile(tmpTestFilePathBar)
 	expect.NoError(err)
 
-	// final expectations
-	expect.True(strings.Contains(ResultFileFoo.content, "distribute"))
-	expect.True(strings.Contains(ResultFileFoo.content, "routertest"))
-	expect.True(strings.Contains(ResultFileFoo.content, "456"))
-	expect.Equal(1, ResultFileFoo.lines)
-
-	expect.True(strings.Contains(ResultFileBar.content, "distribute"))
-	expect.True(strings.Contains(ResultFileBar.content, "routertest"))
-	expect.True(strings.Contains(ResultFileBar.content, "456"))
-	expect.Equal(1, ResultFileBar.lines)
+	expect.Contains(content, "distribute")
+	expect.Contains(content, "routertest")
+	expect.Contains(content, "456")
+	expect.Equal(1, lines)
 }

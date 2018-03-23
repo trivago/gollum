@@ -99,7 +99,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 	cons.protocol, cons.address = tnet.ParseAddress(
 		conf.GetString("Address", "udp://0.0.0.0:514"), "tcp")
 
-	format := conf.GetString("Format", "RFC6587")
+	syslogFormat := conf.GetString("Format", "RFC6587")
 
 	switch cons.protocol {
 	case "udp", "tcp", "unix":
@@ -107,7 +107,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 		conf.Errors.Pushf("Unknown protocol type %s", cons.protocol) // ### return, unknown protocol ###
 	}
 
-	switch format {
+	switch syslogFormat {
 	// http://www.ietf.org/rfc/rfc3164.txt
 	case "RFC3164":
 		cons.format = syslog.RFC3164
@@ -129,7 +129,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 		cons.format = syslog.RFC6587
 
 	default:
-		conf.Errors.Pushf("Format %s is not supported", format)
+		conf.Errors.Pushf("Format %s is not supported", syslogFormat)
 	}
 }
 

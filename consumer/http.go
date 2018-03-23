@@ -17,14 +17,15 @@ package consumer
 import (
 	"bytes"
 	"crypto/tls"
-	"github.com/abbot/go-http-auth"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tnet"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/abbot/go-http-auth"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tnet"
 )
 
 // HTTP consumer plugin
@@ -116,10 +117,7 @@ func (cons *HTTP) Configure(conf core.PluginConfigReader) {
 
 func (cons *HTTP) checkAuth(r *http.Request) bool {
 	a := &auth.BasicAuth{Realm: cons.basicRealm, Secrets: cons.secrets}
-	if a.CheckAuth(r) == "" {
-		return false
-	}
-	return true
+	return a.CheckAuth(r) != ""
 }
 
 // requestHandler will handle a single web request.

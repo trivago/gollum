@@ -16,6 +16,11 @@ package format
 
 import (
 	"encoding/json"
+	"net"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/mmcloughlin/geohash"
 	"github.com/mssola/user_agent"
 	"github.com/trivago/gollum/core"
@@ -23,10 +28,6 @@ import (
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
 	"gopkg.in/oschwald/geoip2-golang.v1"
-	"net"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // ProcessJSON formatter
@@ -160,8 +161,8 @@ func (format *ProcessJSON) Configure(conf core.PluginConfigReader) {
 
 	if len(directives) > 0 {
 		format.directives = make([]transformDirective, 0, len(directives))
-		for _, directive := range directives {
-			directive := strings.Replace(directive, "\\:", "\r", -1)
+		for _, d := range directives {
+			directive := strings.Replace(d, "\\:", "\r", -1)
 			parts := strings.Split(directive, ":")
 			for i, value := range parts {
 				parts[i] = strings.Replace(value, "\r", ":", -1)
@@ -466,8 +467,7 @@ func (format *ProcessJSON) ApplyFormatter(msg *core.Message) error {
 	}
 
 	values := make(tcontainer.MarshalMap)
-	err := json.Unmarshal(format.GetAppliedContent(msg), &values)
-	if err != nil {
+	if err := json.Unmarshal(format.GetAppliedContent(msg), &values); err != nil {
 		format.Logger.Warning("ProcessJSON failed to unmarshal a message: ", err)
 		return err
 	}

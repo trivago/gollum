@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package awsS3
+package awss3
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core/components"
-	"strings"
 )
 
 const minUploadPartSize = 5 * 1024 * 1024

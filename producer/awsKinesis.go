@@ -16,14 +16,15 @@ package producer
 
 import (
 	"fmt"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
 	"github.com/trivago/tgo"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 // AwsKinesis producer plugin
@@ -197,7 +198,7 @@ func (prod *AwsKinesis) transformMessages(messages []*core.Message) {
 		recordExists := len(records.content.Records) > 0
 		if !recordExists || records.lastRecordMessages+1 > prod.recordMaxMessages {
 			// Append record to stream
-			record := &kinesis.PutRecordsRequestEntry{
+			record = &kinesis.PutRecordsRequestEntry{
 				Data:         msg.GetPayload(),
 				PartitionKey: aws.String(messageHash),
 			}

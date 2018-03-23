@@ -16,14 +16,15 @@ package producer
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tio"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tio"
 )
 
 // influxDBWriter10 implements the io.Writer interface for InfluxDB 0.9 connections
@@ -32,7 +33,6 @@ type influxDBWriter10 struct {
 	writeURL         string
 	queryURL         string
 	pingURL          string
-	messageHeader    string
 	databaseTemplate string
 	host             string
 	username         string

@@ -17,11 +17,12 @@ package file
 import (
 	"compress/gzip"
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tsync"
-	"io"
-	"os"
 )
 
 // BatchedFileWriter is the file producer core.BatchedWriter implementation for the core.BatchedWriterAssembly
@@ -64,11 +65,7 @@ func (w *BatchedFileWriter) Size() int64 {
 // IsAccessible is part of the BatchedWriter interface and check if the writer can access his file
 func (w *BatchedFileWriter) IsAccessible() bool {
 	_, err := w.getStats()
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 // Close is part of the Close interface and handle the file close or compression call

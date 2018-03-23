@@ -15,10 +15,11 @@
 package components
 
 import (
-	"github.com/trivago/gollum/core"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/trivago/gollum/core"
 )
 
 // RotateConfig defines rotation settings
@@ -52,14 +53,14 @@ import (
 // By default this parameter is set to "".
 //
 type RotateConfig struct {
-	Enabled   bool          `config:"Rotation/Enable" default:"false"`
 	Timeout   time.Duration `config:"Rotation/TimeoutMin" default:"1440" metric:"min"`
 	SizeByte  int64         `config:"Rotation/SizeMB" default:"1024" metric:"mb"`
 	Timestamp string        `config:"Rotation/Timestamp" default:"2006-01-02_15"`
 	ZeroPad   int           `config:"Rotation/ZeroPadding" default:"0"`
-	Compress  bool          `config:"Rotation/Compress" default:"false"`
 	AtHour    int           `config:"Rotation/AtHour" default:"-1"`
 	AtMinute  int           `config:"Rotation/AtMin" default:"-1"`
+	Compress  bool          `config:"Rotation/Compress" default:"false"`
+	Enabled   bool          `config:"Rotation/Enable" default:"false"`
 }
 
 // NewRotateConfig create and returns a RotateConfig with default settings
