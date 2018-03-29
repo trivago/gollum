@@ -256,7 +256,7 @@ func (prod *ElasticSearch) getClient() *elastic.Client {
 func (prod *ElasticSearch) indexExists(client *elastic.Client, indexName string) bool {
 	exists, err := client.IndexExists(indexName).Do(context.Background())
 	if err != nil {
-		prod.Logger.WithError(err).Error("Issue during checking index")
+		prod.Logger.WithError(err).Error("Error during checking index")
 		return false
 	}
 	return exists
@@ -291,7 +291,7 @@ func (prod *ElasticSearch) createIndexIfRequired(indexName string, settings *ela
 
 		_, err := mapping.Do(context.Background())
 		if err != nil {
-			prod.Logger.WithError(err).Errorf("Issue creating mapping for type %s.%s", indexName, typeName)
+			prod.Logger.WithError(err).Errorf("Error creating mapping for type %s.%s", indexName, typeName)
 		}
 	}
 
