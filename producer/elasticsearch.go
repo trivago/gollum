@@ -256,7 +256,7 @@ func (prod *ElasticSearch) getClient() *elastic.Client {
 func (prod *ElasticSearch) indexExists(client *elastic.Client, indexName string) bool {
 	exists, err := client.IndexExists(indexName).Do(context.Background())
 	if err != nil {
-		prod.Logger.WithError(err).Error("Error during checking index")
+		prod.Logger.WithError(err).Error("Error during index check")
 		return false
 	}
 	return exists
