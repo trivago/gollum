@@ -60,7 +60,7 @@ func (format *Timestamp) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
 
 	dataSize := len(timestampStr) + len(content)
-	payload := core.MessageDataPool.Get(dataSize)
+	payload := make([]byte, dataSize)
 
 	offset := copy(payload, []byte(timestampStr))
 	copy(payload[offset:], content)

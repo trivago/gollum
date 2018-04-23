@@ -63,7 +63,7 @@ func (format *StreamName) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
 
 	dataSize := len(streamName) + len(format.separator) + len(content)
-	payload := core.MessageDataPool.Get(dataSize)
+	payload := make([]byte, dataSize)
 
 	offset := copy(payload, []byte(streamName))
 	offset += copy(payload[offset:], format.separator)

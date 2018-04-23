@@ -15,9 +15,9 @@
 package core
 
 import (
-	"github.com/golang/protobuf/proto"
-	"github.com/trivago/tgo/tcontainer"
 	"time"
+
+	"github.com/golang/protobuf/proto"
 )
 
 // MessageData is a container for the message payload, streamID and an optional message key
@@ -39,13 +39,6 @@ type Message struct {
 	timestamp    time.Time
 }
 
-var (
-	// MessageDataPool is the pool used for message payloads.
-	// This pool should be used to allocate temporary buffers for e.g.
-	// formatters.
-	MessageDataPool = tcontainer.NewBytePoolWithSize(2)
-)
-
 // NewMessage creates a new message from a given data stream by copying data.
 func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID MessageStreamID) *Message {
 	msg := &Message{
@@ -65,7 +58,7 @@ func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID M
 
 // getPayloadCopy return a copy of the data byte array
 func getPayloadCopy(data []byte) (buffer []byte) {
-	buffer = MessageDataPool.Get(len(data))
+	buffer = make([]byte, len(data))
 	copy(buffer, data)
 	return
 }
@@ -164,7 +157,7 @@ func (msg *Message) ResizePayload(size int) []byte {
 	case size <= cap(msg.data.payload):
 		msg.data.payload = msg.data.payload[:size]
 	default:
-		msg.data.payload = MessageDataPool.Get(size)
+		msg.data.payload = make([]byte, size)
 	}
 
 	return msg.data.payload
@@ -179,7 +172,7 @@ func (msg *Message) ExtendPayload(size int) []byte {
 		msg.data.payload = msg.data.payload[:size]
 	default:
 		old := msg.data.payload
-		msg.data.payload = MessageDataPool.Get(size)
+		msg.data.payload = make([]byte, size)
 		copy(msg.data.payload, old)
 	}
 
@@ -191,7 +184,7 @@ func (msg *Message) ExtendPayload(size int) []byte {
 func (msg *Message) Clone() *Message {
 	clone := *msg
 
-	clone.data.payload = MessageDataPool.Get(len(msg.data.payload))
+	clone.data.payload = make([]byte, len(msg.data.payload))
 	copy(clone.data.payload, msg.data.payload)
 
 	return &clone
@@ -206,7 +199,7 @@ func (msg *Message) CloneOriginal() *Message {
 	}
 
 	clone := *msg
-	clone.data.payload = MessageDataPool.Get(len(msg.orig.payload))
+	clone.data.payload = make([]byte, len(msg.orig.payload))
 	copy(clone.data.payload, msg.orig.payload)
 
 	if msg.orig.metadata == nil {

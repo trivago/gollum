@@ -74,7 +74,7 @@ func (format *Runlength) ApplyFormatter(msg *core.Message) error {
 	var payload []byte
 	if !format.storeRunlengthOnly {
 		dataSize := len(lengthStr) + len(format.separator) + contentLen
-		payload = core.MessageDataPool.Get(dataSize)
+		payload = make([]byte, dataSize)
 
 		offset := copy(payload, []byte(lengthStr))
 		offset += copy(payload[offset:], format.separator)

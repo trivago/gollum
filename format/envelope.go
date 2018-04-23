@@ -64,7 +64,7 @@ func (format *Envelope) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
 	offset := 0
 
-	payload := core.MessageDataPool.Get(prefixLen + len(content) + postfixLen)
+	payload := make([]byte, prefixLen+len(content)+postfixLen)
 
 	if prefixLen > 0 {
 		offset = copy(payload, format.prefix)

@@ -103,7 +103,7 @@ func (format *Trim) extendContent(content *[]byte, size int) {
 		*content = (*content)[:size]
 	default:
 		old := *content
-		*content = core.MessageDataPool.Get(size)
+		*content = make([]byte, size)
 		copy(*content, old)
 	}
 }

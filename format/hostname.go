@@ -15,8 +15,9 @@
 package format
 
 import (
-	"github.com/trivago/gollum/core"
 	"os"
+
+	"github.com/trivago/gollum/core"
 )
 
 // Hostname formatter
@@ -74,7 +75,7 @@ func (format *Hostname) getFinalContent(content []byte) []byte {
 	}
 
 	dataSize := len(hostname) + len(format.separator) + len(content)
-	payload := core.MessageDataPool.Get(dataSize)
+	payload := make([]byte, dataSize)
 
 	offset := copy(payload, []byte(hostname))
 	offset += copy(payload[offset:], format.separator)

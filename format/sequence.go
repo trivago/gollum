@@ -15,9 +15,10 @@
 package format
 
 import (
-	"github.com/trivago/gollum/core"
 	"strconv"
 	"sync/atomic"
+
+	"github.com/trivago/gollum/core"
 )
 
 // Sequence formatter
@@ -70,7 +71,7 @@ func (format *Sequence) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContent(msg)
 
 	dataSize := len(sequenceStr) + len(format.separator) + len(content)
-	payload := core.MessageDataPool.Get(dataSize)
+	payload := make([]byte, dataSize)
 
 	offset := copy(payload, []byte(sequenceStr))
 	offset += copy(payload[offset:], format.separator)

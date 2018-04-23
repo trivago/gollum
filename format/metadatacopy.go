@@ -103,10 +103,9 @@ func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 		// This codepath will be removed in 0.6
 		meta := msg.GetMetadata()
 		data := format.GetAppliedContent(msg)
-		pool := core.MessageDataPool
 
 		for _, key := range format.metaDataKeys {
-			bufferCopy := pool.Get(len(data))
+			bufferCopy := make([]byte, len(data))
 			copy(bufferCopy, data)
 			meta.SetValue(key, bufferCopy)
 		}
