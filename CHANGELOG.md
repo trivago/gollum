@@ -1,5 +1,13 @@
 # Gollum changelog
 
+## 0.5.3
+
+This is a patch / minor features release.
+
+### Fixed with 0.5.3
+
+ * Fixed a GC panic/crash caused by tgo.ByteBuffer.
+
 ## 0.5.2
 
 This is a patch / minor features release.
