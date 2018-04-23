@@ -74,7 +74,7 @@ func (format *Base64Encode) ApplyFormatter(msg *core.Message) error {
 
 func (format *Base64Encode) getEncodedContent(content []byte) []byte {
 	encodedLen := format.dictionary.EncodedLen(len(content))
-	encoded := core.MessageDataPool.Get(encodedLen)
+	encoded := make([]byte, encodedLen)
 
 	format.dictionary.Encode(encoded, content)
 	return encoded

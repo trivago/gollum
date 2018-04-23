@@ -16,6 +16,7 @@ package format
 
 import (
 	"encoding/base64"
+
 	"github.com/trivago/gollum/core"
 )
 
@@ -78,7 +79,7 @@ func (format *Base64Decode) ApplyFormatter(msg *core.Message) error {
 
 func (format *Base64Decode) getDecodedContent(content []byte) ([]byte, error) {
 	decodedLen := format.dictionary.DecodedLen(len(content))
-	decoded := core.MessageDataPool.Get(decodedLen)
+	decoded := make([]byte, decodedLen)
 
 	size, err := format.dictionary.Decode(decoded, content)
 	if err != nil {
