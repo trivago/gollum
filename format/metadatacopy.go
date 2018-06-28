@@ -115,23 +115,26 @@ func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 	getSourceData := core.GetAppliedContentGetFunction(format.key)
 	srcData := getSourceData(msg)
 
+	cloneSrcData := make([]byte, len(srcData))
+	copy(cloneSrcData, srcData)
+
 	switch format.mode {
 	case metadataCopyModeReplace:
-		format.SetAppliedContent(msg, srcData)
+		format.SetAppliedContent(msg, cloneSrcData)
 
 	case metadataCopyModePrepend:
 		dstData := format.GetAppliedContent(msg)
 		if len(format.separator) != 0 {
-			srcData = append(srcData, format.separator...)
+			cloneSrcData = append(cloneSrcData, format.separator...)
 		}
-		format.SetAppliedContent(msg, append(srcData, dstData...))
+		format.SetAppliedContent(msg, append(cloneSrcData, dstData...))
 
 	case metadataCopyModeAppend:
 		dstData := format.GetAppliedContent(msg)
 		if len(format.separator) != 0 {
 			dstData = append(dstData, format.separator...)
 		}
-		format.SetAppliedContent(msg, append(dstData, srcData...))
+		format.SetAppliedContent(msg, append(dstData, cloneSrcData...))
 	}
 
 	return nil
