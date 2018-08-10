@@ -35,8 +35,8 @@ import (
 // By default this parameter is set to false
 type SimpleFormatter struct {
 	Logger            logrus.FieldLogger
-	GetAppliedContent GetAppliedContent
-	SetAppliedContent SetAppliedContent
+	GetAppliedContent GetAppliedContentFunc
+	SetAppliedContent SetAppliedContentFunc
 	SkipIfEmpty       bool `config:"SkipIfEmpty"`
 }
 
@@ -52,7 +52,7 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 // CanBeApplied returns true if the formatter can be applied to this message
 func (format *SimpleFormatter) CanBeApplied(msg *Message) bool {
 	if format.SkipIfEmpty {
-		return len(format.GetAppliedContent(msg)) > 0
+		return format.GetAppliedContent(msg) != nil
 	}
 	return true
 }

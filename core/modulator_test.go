@@ -15,9 +15,10 @@
 package core
 
 import (
+	"testing"
+
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestModulate(t *testing.T) {

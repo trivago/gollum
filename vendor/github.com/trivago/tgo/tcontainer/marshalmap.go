@@ -428,8 +428,30 @@ func (mmap MarshalMap) MarshalMap(key string) (MarshalMap, error) {
 // "key1/key2"   -> mmap["key1"]["key2"]     nested map
 // "key1[0]"     -> mmap["key1"][0]          nested array
 // "key1[0]key2" -> mmap["key1"][0]["key2"]  nested array, nested map
-func (mmap MarshalMap) Value(key string) (interface{}, bool) {
-	return mmap.resolvePath(key, mmap)
+func (mmap MarshalMap) Value(key string) (val interface{}, exists bool) {
+	exists = mmap.resolvePath(key, mmap, func(p, k reflect.Value, v interface{}) {
+		val = v
+	})
+	return val, exists
+}
+
+// Delete a value from a given path.
+// The path must point to a map key. Deleting from arrays is not supported.
+func (mmap MarshalMap) Delete(key string) {
+	mmap.resolvePath(key, mmap, func(p, k reflect.Value, v interface{}) {
+		if v != nil {
+			println(key, "deleted")
+			p.SetMapIndex(k, reflect.Value{})
+		}
+	})
+}
+
+// Set a value for a given path.
+// The path must point to a map key. Setting array elements is not supported.
+func (mmap MarshalMap) Set(key string, val interface{}) {
+	mmap.resolvePath(key, mmap, func(p, k reflect.Value, v interface{}) {
+		p.SetMapIndex(k, reflect.ValueOf(val))
+	})
 }
 
 func (mmap MarshalMap) resolvePathKey(key string) (int, int) {
@@ -454,50 +476,57 @@ func (mmap MarshalMap) resolvePathKey(key string) (int, int) {
 	return keyEnd, nextKeyStart
 }
 
-func (mmap MarshalMap) resolvePath(key string, value interface{}) (interface{}, bool) {
-	if len(key) == 0 {
-		return value, true // ### return, found requested value ###
+func (mmap MarshalMap) resolvePath(k string, v interface{}, action func(p, k reflect.Value, v interface{})) bool {
+	if len(k) == 0 {
+		action(reflect.Value{}, reflect.ValueOf(k), v) // ### return, found requested value ###
+		return true
 	}
 
-	valueMeta := reflect.ValueOf(value)
-	switch valueMeta.Kind() {
+	vValue := reflect.ValueOf(v)
+	switch vValue.Kind() {
 	case reflect.Array, reflect.Slice:
-		startIdx := strings.IndexRune(key, MarshalMapArrayBegin) // Must be first char, otherwise malformed
-		endIdx := strings.IndexRune(key, MarshalMapArrayEnd)     // Must be > startIdx, otherwise malformed
+		startIdx := strings.IndexRune(k, MarshalMapArrayBegin) // Must be first char, otherwise malformed
+		endIdx := strings.IndexRune(k, MarshalMapArrayEnd)     // Must be > startIdx, otherwise malformed
 
 		if startIdx == -1 || endIdx == -1 {
-			return nil, false
+			return false
 		}
 
 		if startIdx == 0 && endIdx > startIdx {
-			index, err := strconv.Atoi(key[startIdx+1 : endIdx])
+			index, err := strconv.Atoi(k[startIdx+1 : endIdx])
 
 			// [1]    -> index: "1", remain: ""    -- value
 			// [1]a/b -> index: "1", remain: "a/b" -- nested map
 			// [1][2] -> index: "1", remain: "[2]" -- nested array
 
-			if err == nil && index < valueMeta.Len() {
-				item := valueMeta.Index(index).Interface()
-				key := key[endIdx+1:]
-				return mmap.resolvePath(key, item) // ### return, nested array ###
+			if err == nil && index < vValue.Len() {
+				item := vValue.Index(index).Interface()
+				key := k[endIdx+1:]
+				return mmap.resolvePath(key, item, action) // ### return, nested array ###
 			}
 		}
 
 	case reflect.Map:
-		keyMeta := reflect.ValueOf(key)
-		if storedValue := valueMeta.MapIndex(keyMeta); storedValue.IsValid() {
-			return storedValue.Interface(), true
+		kValue := reflect.ValueOf(k)
+		if storedValue := vValue.MapIndex(kValue); storedValue.IsValid() {
+			action(vValue, kValue, storedValue.Interface())
+			return true
 		}
 
-		keyEnd, nextKeyStart := mmap.resolvePathKey(key)
-		pathKey := key[:keyEnd]
-		keyMeta = reflect.ValueOf(pathKey)
+		keyEnd, nextKeyStart := mmap.resolvePathKey(k)
+		if keyEnd == len(k) {
+			action(vValue, kValue, nil) // call action to support setting non-existing keys
+			return false                // ### return, key not found ###
+		}
 
-		if storedValue := valueMeta.MapIndex(keyMeta); storedValue.IsValid() {
-			remain := key[nextKeyStart:]
-			return mmap.resolvePath(remain, storedValue.Interface()) // ### return, nested map ###
+		nextKey := k[:keyEnd]
+		nkValue := reflect.ValueOf(nextKey)
+
+		if storedValue := vValue.MapIndex(nkValue); storedValue.IsValid() {
+			remain := k[nextKeyStart:]
+			return mmap.resolvePath(remain, storedValue.Interface(), action) // ### return, nested map ###
 		}
 	}
 
-	return nil, false
+	return false
 }

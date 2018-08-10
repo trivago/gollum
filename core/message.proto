@@ -3,7 +3,7 @@ option go_package = "core";
 
 message serializedMessageData {
         required bytes Data = 1;
-        map<string, bytes> Metadata = 2;
+        optional bytes Metadata = 2;
 }
 
 message serializedMessage {

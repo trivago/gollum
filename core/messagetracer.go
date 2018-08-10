@@ -17,9 +17,10 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"hash/fnv"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type messageTracer struct {
@@ -36,7 +37,7 @@ type messageDump struct {
 	Stream          string
 	PrevStream      string
 	OrigStream      string
-	Metadata        map[string]string
+	Metadata        Metadata
 	Source          string
 	Timestamp       time.Time
 	FingerprintID   uint32
@@ -144,10 +145,7 @@ func (mt *messageTracer) newMessageDump(msg *Message, comment string) messageDum
 
 	// prepare meta data
 	if metadata := msg.TryGetMetadata(); metadata != nil {
-		dump.Metadata = map[string]string{}
-		for k, v := range metadata {
-			dump.Metadata[k] = string(v)
-		}
+		dump.Metadata = metadata.Clone()
 	}
 
 	// set source data

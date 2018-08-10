@@ -15,7 +15,11 @@
 package core
 
 import (
+	"bytes"
+	"encoding/gob"
 	"time"
+
+	"github.com/trivago/tgo/tcontainer"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -239,6 +243,15 @@ func (msg *Message) FreezeOriginal() {
 // serialized data is based on the current message state and does not preserve
 // the original data created by FreezeOriginal.
 func (msg *Message) Serialize() ([]byte, error) {
+
+	// using gob for metadata as it's the easiest way to store
+	// arbitrary key/value maps in protobuf.
+	metaBuffer := bytes.NewBuffer([]byte{})
+	if len(msg.data.metadata) > 0 {
+		encoder := gob.NewEncoder(metaBuffer)
+		encoder.Encode(msg.data.metadata)
+	}
+
 	serializable := &SerializedMessage{
 		StreamID:     proto.Uint64(uint64(msg.GetStreamID())),
 		PrevStreamID: proto.Uint64(uint64(msg.GetPrevStreamID())),
@@ -246,14 +259,20 @@ func (msg *Message) Serialize() ([]byte, error) {
 		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
 		Data: &SerializedMessageData{
 			Data:     msg.data.payload,
-			Metadata: msg.data.metadata,
+			Metadata: metaBuffer.Bytes(),
 		},
 	}
 
 	if msg.orig != nil {
+		origMetaBuffer := bytes.NewBuffer([]byte{})
+		if len(msg.orig.metadata) > 0 {
+			origEncoder := gob.NewEncoder(origMetaBuffer)
+			origEncoder.Encode(msg.orig.metadata)
+		}
+
 		serializable.Original = &SerializedMessageData{
 			Data:     msg.orig.payload,
-			Metadata: msg.orig.metadata,
+			Metadata: origMetaBuffer.Bytes(),
 		}
 	}
 
@@ -282,13 +301,31 @@ func DeserializeMessage(data []byte) (*Message, error) {
 
 	if msgData := serializable.GetData(); msgData != nil {
 		msg.data.payload = msgData.GetData()
-		msg.data.metadata = msgData.GetMetadata()
+		metaGob := msgData.GetMetadata()
+
+		if len(metaGob) > 0 {
+			meta := tcontainer.NewMarshalMap()
+			decoder := gob.NewDecoder(bytes.NewReader(metaGob))
+			if err := decoder.Decode(&meta); err != nil {
+				return nil, err
+			}
+			msg.data.metadata = meta
+		}
 	}
 
 	if msgOrigData := serializable.GetOriginal(); msgOrigData != nil {
 		msg.orig = new(MessageData)
 		msg.orig.payload = msgOrigData.GetData()
-		msg.orig.metadata = msgOrigData.GetMetadata()
+		metaGob := msgOrigData.GetMetadata()
+
+		if len(metaGob) > 0 {
+			meta := tcontainer.NewMarshalMap()
+			decoder := gob.NewDecoder(bytes.NewReader(metaGob))
+			if err := decoder.Decode(&meta); err != nil {
+				return nil, err
+			}
+			msg.orig.metadata = meta
+		}
 	}
 
 	return msg, nil

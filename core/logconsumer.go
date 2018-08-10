@@ -136,11 +136,11 @@ func (cons *LogConsumer) Fire(logrusEntry *logrus.Entry) error {
 	// Set message metadata: level, time and logrus's ad-hoc fields. The fields
 	// also contain the plugin-specific log scope.
 	metadata := Metadata{}
-	metadata.SetValue("Level", []byte(logrusEntry.Level.String()))
-	metadata.SetValue("Time", []byte(logrusEntry.Time.String()))
+	metadata.Set("Level", logrusEntry.Level.String())
+	metadata.Set("Time", logrusEntry.Time.String())
 	//  string,    interface{}
 	for fieldName, fieldValue := range logrusEntry.Data {
-		metadata.SetValue(fieldName, []byte(fmt.Sprintf("%v", fieldValue)))
+		metadata.Set(fieldName, []byte(fmt.Sprintf("%v", fieldValue)))
 	}
 
 	// Wrap it in a Gollum message
