@@ -16,11 +16,12 @@ package tcontainer
 
 import (
 	"fmt"
-	"github.com/trivago/tgo/treflect"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/trivago/tgo/treflect"
 )
 
 // MarshalMap is a wrapper type to attach converter methods to maps normally
@@ -90,6 +91,44 @@ func ConvertToMarshalMap(value interface{}, formatKey func(string) string) (Mars
 		return result, nil
 	}
 	return nil, fmt.Errorf("Root value cannot be converted to MarshalMap")
+}
+
+// Clone creates a copy of the given MarshalMap.
+func (mmap MarshalMap) Clone() MarshalMap {
+	clone := cloneMap(reflect.ValueOf(mmap))
+	return clone.Interface().(MarshalMap)
+}
+
+func cloneMap(mapValue reflect.Value) reflect.Value {
+	clone := reflect.MakeMap(mapValue.Type())
+	keys := mapValue.MapKeys()
+
+	for _, k := range keys {
+		v := mapValue.MapIndex(k)
+		switch k.Kind() {
+		default:
+			clone.SetMapIndex(k, v)
+
+		case reflect.Array, reflect.Slice:
+			if v.Type().Elem().Kind() == reflect.Map {
+				sliceCopy := reflect.MakeSlice(v.Type(), v.Len(), v.Len())
+				for i := 0; i < v.Len(); i++ {
+					element := v.Index(i)
+					sliceCopy.Index(i).Set(cloneMap(element))
+				}
+			} else {
+				sliceCopy := reflect.MakeSlice(v.Type(), 0, v.Len())
+				reflect.Copy(sliceCopy, v)
+				clone.SetMapIndex(k, sliceCopy)
+			}
+
+		case reflect.Map:
+			vClone := cloneMap(v)
+			clone.SetMapIndex(k, vClone)
+		}
+	}
+
+	return clone
 }
 
 // Bool returns a value at key that is expected to be a boolean
