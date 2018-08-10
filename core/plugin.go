@@ -16,9 +16,11 @@ package core
 
 import (
 	"fmt"
-	"github.com/trivago/tgo/treflect"
 	"sync"
 	"sync/atomic"
+
+	metrics "github.com/rcrowley/go-metrics"
+	"github.com/trivago/tgo/treflect"
 )
 
 // TypeRegistry is the global typeRegistry instance.
@@ -58,18 +60,13 @@ const (
 	PluginStateStopping = PluginState(iota)
 	// PluginStateDead is set when a plugin is unable to process any data
 	PluginStateDead = PluginState(iota)
+	numStates       = iota
 )
 
 var (
 	// Has to be index parallel to PluginState*
-	stateToMetric = []string{
-		MetricPluginsInit,
-		MetricPluginsWaiting,
-		MetricPluginsActive,
-		MetricPluginsPrepareStop,
-		MetricPluginsStopping,
-		MetricPluginsDead,
-	}
+	// This is filled by the metrics initialization function
+	stateToMetric = make([]metrics.Counter, numStates)
 
 	// Has to be index parallel to PluginState*
 	stateToDescription = []string{
@@ -89,7 +86,6 @@ var (
 type PluginRunState struct {
 	workers *sync.WaitGroup
 	state   int32 // Pluginstate
-	metric  PluginMetric
 }
 
 // Plugin is the base class for any runtime class that can be configured and
@@ -105,16 +101,19 @@ type PluginWithState interface {
 	GetState() PluginState
 }
 
+// PluginWithID filters plugins that have a string ID
+type PluginWithID interface {
+	Plugin
+	GetID() string
+}
+
 // NewPluginRunState creates a new plugin state helper
 func NewPluginRunState() *PluginRunState {
-	plugin := &PluginRunState{
+	stateToMetric[PluginStateInitializing].Inc(1)
+	return &PluginRunState{
 		workers: nil,
 		state:   int32(PluginStateInitializing),
-		metric:  PluginMetric{},
 	}
-
-	plugin.metric.Init()
-	return plugin
 }
 
 // GetState returns the current plugin state casted to the correct type
@@ -132,7 +131,8 @@ func (state *PluginRunState) SetState(nextState PluginState) {
 	prevState := PluginState(atomic.SwapInt32(&state.state, int32(nextState)))
 
 	if nextState != prevState {
-		state.metric.UpdateStateMetric(stateToMetric[prevState], stateToMetric[nextState])
+		stateToMetric[prevState].Dec(1)
+		stateToMetric[nextState].Inc(1)
 	}
 }
 
@@ -144,14 +144,14 @@ func (state *PluginRunState) SetWorkerWaitGroup(workers *sync.WaitGroup) {
 // AddWorker adds a worker to the waitgroup configured by SetWorkerWaitGroup.
 func (state *PluginRunState) AddWorker() {
 	state.workers.Add(1)
-	state.metric.IncWorker()
+	MetricActiveWorkers.Inc(1)
 }
 
 // WorkerDone removes a worker from the waitgroup configured by
 // SetWorkerWaitGroup.
 func (state *PluginRunState) WorkerDone() {
 	state.workers.Done()
-	state.metric.DecWorker()
+	MetricActiveWorkers.Dec(1)
 }
 
 // NewPluginWithConfig creates a new plugin from the type information stored in its

@@ -25,8 +25,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/rcrowley/go-metrics"
+
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
@@ -46,6 +47,8 @@ type spoolFile struct {
 	readWorker  *sync.WaitGroup
 	roll        chan struct{}
 	reader      *tio.BufferedReader
+	metricWrite metrics.Counter
+	metricRead  metrics.Counter
 }
 
 const maxSpoolFileNumber = 99999999 // maximum file number defined by %08d -> 8 digits
@@ -64,15 +67,13 @@ func newSpoolFile(prod *Spooling, streamName string, source core.MessageSource) 
 		readWorker:  &sync.WaitGroup{},
 		reader:      tio.NewBufferedReader(prod.bufferSizeByte, tio.BufferedReaderFlagDelimiter, 0, "\n"),
 		roll:        make(chan struct{}, 1),
+		metricRead:  metrics.NewCounter(),
+		metricWrite: metrics.NewCounter(),
 	}
 
-	writeMetric := spoolingMetricWrite + streamName
-	tgo.Metric.New(writeMetric)
-	tgo.Metric.NewRate(writeMetric, spoolingMetricWriteSec+streamName, time.Second, 10, 3, true)
+	prod.metricsRegistry.Register("read", spool.metricRead)
+	prod.metricsRegistry.Register("write", spool.metricWrite)
 
-	readMetric := spoolingMetricRead + streamName
-	tgo.Metric.New(readMetric)
-	tgo.Metric.NewRate(readMetric, spoolingMetricReadSec+streamName, time.Second, 10, 3, true)
 	go spool.read()
 	return spool
 }
@@ -98,11 +99,11 @@ func (spool *spoolFile) getAndResetCounts() (read int64, write int64) {
 }
 
 func (spool *spoolFile) countRead() {
-	atomic.AddInt64(&spool.readCount, 1)
+	spool.metricRead.Inc(1)
 }
 
 func (spool *spoolFile) countWrite() {
-	atomic.AddInt64(&spool.writeCount, 1)
+	spool.metricWrite.Inc(1)
 }
 
 func (spool *spoolFile) getFileNumbering() (min int, max int) {

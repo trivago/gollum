@@ -21,9 +21,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rcrowley/go-metrics"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/tgo"
 )
 
 // Spooling producer
@@ -107,14 +108,8 @@ type Spooling struct {
 	readDelay             time.Duration
 	spoolCheck            *time.Timer
 	serialze              core.Formatter
+	metricsRegistry       metrics.Registry
 }
-
-const (
-	spoolingMetricWrite    = "Spooling:Write-"
-	spoolingMetricRead     = "Spooling:Read-"
-	spoolingMetricWriteSec = "Spooling:WriteSec-"
-	spoolingMetricReadSec  = "Spooling:ReadSec-"
-)
 
 func init() {
 	core.TypeRegistry.Register(Spooling{})
@@ -125,6 +120,7 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) {
 	prod.SetPrepareStopCallback(prod.waitForReader)
 	prod.SetStopCallback(prod.close)
 	prod.SetRollCallback(prod.onRoll)
+	prod.metricsRegistry = core.NewMetricsRegistryForPlugin(prod)
 
 	serializePlugin, err := core.NewPluginWithConfig(core.NewPluginConfig("", "format.Serialize"))
 	conf.Errors.Push(err)
@@ -208,11 +204,7 @@ func (prod *Spooling) flush(force bool) {
 	prod.outfileGuard.RUnlock()
 
 	for _, spool := range outfiles {
-		read, write := spool.getAndResetCounts()
-
-		tgo.Metric.Add(spoolingMetricRead+spool.streamName, read)
-		tgo.Metric.Add(spoolingMetricWrite+spool.streamName, write)
-
+		spool.getAndResetCounts()
 		if force || spool.batch.ReachedSizeThreshold(prod.batchMaxCount/2) || spool.batch.ReachedTimeThreshold(prod.batchTimeout) {
 			spool.flush()
 		}

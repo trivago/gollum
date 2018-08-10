@@ -16,14 +16,6 @@ package deprecated
 
 import (
 	"encoding/json"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo"
-	"github.com/trivago/tgo/tcontainer"
 	"io/ioutil"
 	"os"
 	"path"
@@ -32,6 +24,15 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	metrics "github.com/rcrowley/go-metrics"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 )
 
 const (
@@ -157,21 +158,16 @@ type S3 struct {
 	localPath             string        `config:"LocalPath"`
 	uploadOnShutdown      bool          `config:"UploadOnShutdown"`
 	assumeRole            string        `config:"Credential/AssumeRole"`
-	counters              map[string]*int64
 	lastSendTime          time.Time
-	lastMetricUpdate      time.Time
 	closing               bool
 	nextFile              int64
 	objects               map[string]*objectData
 	objectsLock           *sync.Mutex
 	stateFile             string
 	useFiles              bool
+	metricsRegistry       metrics.Registry
+	counters              map[string]metrics.Counter
 }
-
-const (
-	s3MetricMessages    = "S3:Messages-"
-	s3MetricMessagesSec = "S3:MessagesSec-"
-)
 
 type objectData struct {
 	Compressed bool
@@ -196,17 +192,17 @@ func (prod *S3) Configure(conf core.PluginConfigReader) {
 	prod.batch = core.NewMessageBatch(int(conf.GetInt("BatchMaxMessages", 5000)))
 
 	prod.lastSendTime = time.Now()
-	prod.counters = make(map[string]*int64)
-	prod.lastMetricUpdate = time.Now()
 	prod.closing = false
 	prod.objects = make(map[string]*objectData)
 	prod.objectsLock = new(sync.Mutex)
 
+	prod.metricsRegistry = core.NewMetricsRegistry(prod.GetID())
+	prod.counters = make(map[string]metrics.Counter)
+
 	for _, s3Path := range prod.streamMap {
-		metricName := s3MetricMessages + s3Path
-		tgo.Metric.New(metricName)
-		tgo.Metric.NewRate(metricName, s3MetricMessagesSec+s3Path, time.Second, 10, 3, true)
-		prod.counters[s3Path] = new(int64)
+		counter := metrics.NewCounter()
+		prod.counters[s3Path] = counter
+		prod.metricsRegistry.Register(s3Path, counter)
 	}
 
 	prod.useFiles = prod.localPath != ""
@@ -242,9 +238,9 @@ func (prod *S3) Configure(conf core.PluginConfigReader) {
 				object.lock = new(sync.Mutex)
 				// add missing metrics
 				if _, exists := prod.counters[s3Path]; !exists {
-					metricName := s3MetricMessages + s3Path
-					tgo.Metric.New(metricName)
-					tgo.Metric.NewRate(metricName, s3MetricMessagesSec+s3Path, time.Second, 10, 3, true)
+					counter := metrics.NewCounter()
+					prod.counters[s3Path] = counter
+					prod.metricsRegistry.GetOrRegister(s3Path, counter)
 				}
 			}
 		}
@@ -340,12 +336,6 @@ func (prod *S3) sendBatchOnTimeOut() {
 	}
 	prod.uploadAllOnTimeout()
 	prod.storeState()
-
-	prod.lastMetricUpdate = time.Now()
-	for s3Path, counter := range prod.counters {
-		count := atomic.SwapInt64(counter, 0)
-		tgo.Metric.Add(s3MetricMessages+s3Path, count)
-	}
 }
 
 func (prod *S3) sendBatch() {
@@ -423,7 +413,7 @@ func (prod *S3) upload(object *objectData, needLock bool) error {
 		return err
 	}
 
-	atomic.AddInt64(prod.counters[object.S3Path], int64(1))
+	prod.counters[object.S3Path].Inc(1)
 
 	// mark this object complete
 	object.Uploaded = true
@@ -529,10 +519,10 @@ func (prod *S3) transformMessages(messages []*core.Message) {
 			if !streamMapped {
 				s3Path = core.StreamRegistry.GetStreamName(msg.GetStreamID())
 				prod.streamMap[msg.GetStreamID()] = s3Path
-				metricName := s3MetricMessages + s3Path
-				tgo.Metric.New(metricName)
-				tgo.Metric.NewRate(metricName, s3MetricMessagesSec+s3Path, time.Second, 10, 3, true)
-				prod.counters[s3Path] = new(int64)
+
+				counter := metrics.NewCounter()
+				prod.counters[s3Path] = counter
+				prod.metricsRegistry.GetOrRegister(s3Path, counter)
 			}
 		}
 

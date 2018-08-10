@@ -193,7 +193,7 @@ func (registry *streamRegistry) Register(router Router, streamID MessageStreamID
 	// Test again inside critical section to avoid races
 	if _, exists := registry.routers[streamID]; !exists {
 		registry.routers[streamID] = router
-		CountRouters()
+		MetricRouters.Inc(1)
 	}
 }
 
@@ -225,8 +225,8 @@ func (registry *streamRegistry) GetRouterOrFallback(streamID MessageStreamID) Ro
 	registry.AddWildcardProducersToRouter(defaultRouter)
 	registry.routers[streamID] = defaultRouter
 
-	CountRouters()
-	CountFallbackRouters()
+	MetricRouters.Inc(1)
+	MetricFallbackRouters.Inc(1)
 
 	return defaultRouter
 }
