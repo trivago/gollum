@@ -14,6 +14,14 @@ Please read the release notes carefully
  * Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
    Old-style metrics have been removed and many metrics names have changed.
 
+## 0.5.3
+
+This is a patch / minor features release.
+
+### Fixed with 0.5.3
+
+ * Fixed a GC panic/crash caused by tgo.ByteBuffer.
+
 ## 0.5.2
 
 This is a patch / minor features release.
