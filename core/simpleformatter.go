@@ -34,10 +34,12 @@ import (
 // that is empty or - in case of metadata - not existing.
 // By default this parameter is set to false
 type SimpleFormatter struct {
-	Logger            logrus.FieldLogger
-	GetAppliedContent GetAppliedContentFunc
-	SetAppliedContent SetAppliedContentFunc
-	SkipIfEmpty       bool `config:"SkipIfEmpty"`
+	Logger                    logrus.FieldLogger
+	GetAppliedContent         GetAppliedContentFunc
+	GetAppliedContentAsBytes  GetAppliedContentAsBytesFunc
+	GetAppliedContentAsString GetAppliedContentAsStringFunc
+	SetAppliedContent         SetAppliedContentFunc
+	SkipIfEmpty               bool `config:"SkipIfEmpty"`
 }
 
 // Configure sets up all values required by SimpleFormatter.
@@ -45,8 +47,10 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.Logger = conf.GetSubLogger("Formatter")
 
 	applyTo := conf.GetString("ApplyTo", "")
-	format.GetAppliedContent = GetAppliedContentGetFunction(applyTo)
-	format.SetAppliedContent = GetAppliedContentSetFunction(applyTo)
+	format.GetAppliedContent = NewGetAppliedContentFunc(applyTo)
+	format.GetAppliedContentAsBytes = NewGetAppliedContentAsBytesFunc(applyTo)
+	format.GetAppliedContentAsString = NewGetAppliedContentAsStringFunc(applyTo)
+	format.SetAppliedContent = NewSetAppliedContentFunc(applyTo)
 }
 
 // CanBeApplied returns true if the formatter can be applied to this message

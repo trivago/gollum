@@ -17,6 +17,7 @@ package format
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
 )
@@ -67,7 +68,7 @@ func (format *JSONToArray) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *JSONToArray) ApplyFormatter(msg *core.Message) error {
-	content, err := format.getCsvContent(format.GetAppliedContent(msg))
+	content, err := format.getCsvContent(format.GetAppliedContentAsBytes(msg))
 	if err != nil {
 		return err
 	}

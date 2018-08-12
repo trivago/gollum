@@ -15,8 +15,9 @@
 package filter
 
 import (
-	"github.com/trivago/gollum/core"
 	"regexp"
+
+	"github.com/trivago/gollum/core"
 )
 
 // RegExp filter
@@ -56,7 +57,7 @@ type RegExp struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	exp               *regexp.Regexp
 	expNot            *regexp.Regexp
-	getAppliedContent core.GetAppliedContent
+	getAppliedContent core.GetAppliedContentAsStringFunc
 }
 
 func init() {
@@ -78,16 +79,16 @@ func (filter *RegExp) Configure(conf core.PluginConfigReader) {
 		conf.Errors.Push(err)
 	}
 
-	filter.getAppliedContent = core.GetAppliedContentGetFunction(conf.GetString("ApplyTo", ""))
+	filter.getAppliedContent = core.NewGetAppliedContentAsStringFunc(conf.GetString("ApplyTo", ""))
 }
 
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *RegExp) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
-	if filter.expNot != nil && filter.expNot.MatchString(string(filter.getAppliedContent(msg))) {
+	if filter.expNot != nil && filter.expNot.MatchString(filter.getAppliedContent(msg)) {
 		return filter.GetFilterResultMessageReject(), nil
 	}
 
-	if filter.exp != nil && !filter.exp.MatchString(string(filter.getAppliedContent(msg))) {
+	if filter.exp != nil && !filter.exp.MatchString(filter.getAppliedContent(msg)) {
 		return filter.GetFilterResultMessageReject(), nil
 	}
 

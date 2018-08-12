@@ -15,6 +15,7 @@
 package format
 
 import (
+	"reflect"
 	"strings"
 
 	"github.com/trivago/gollum/core"
@@ -97,44 +98,53 @@ func (format *MetadataCopy) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
-
-	if len(format.metaDataKeys) > 0 {
-		// DEPRECATED
-		// This codepath will be removed in 0.6
-		meta := msg.GetMetadata()
-		data := format.GetAppliedContent(msg)
-
-		for _, key := range format.metaDataKeys {
-			bufferCopy := make([]byte, len(data))
-			copy(bufferCopy, data)
-			meta.SetValue(key, bufferCopy)
-		}
-		return nil
-	}
-
-	getSourceData := core.GetAppliedContentGetFunction(format.key)
-	srcData := getSourceData(msg)
-
-	cloneSrcData := make([]byte, len(srcData))
-	copy(cloneSrcData, srcData)
-
 	switch format.mode {
 	case metadataCopyModeReplace:
-		format.SetAppliedContent(msg, cloneSrcData)
+		getSourceData := core.NewGetAppliedContentFunc(format.key)
+		srcData := getSourceData(msg)
+		srcValue := reflect.ValueOf(srcData)
+
+		switch srcValue.Kind() {
+		// TODO: slices in structs / map need a copy, too.
+		case reflect.Slice:
+			copyValue := reflect.MakeSlice(srcValue.Type(), srcValue.Len(), srcValue.Len())
+			reflect.Copy(copyValue, srcValue)
+			srcData = copyValue.Interface()
+		default:
+			format.SetAppliedContent(msg, srcData)
+		}
 
 	case metadataCopyModePrepend:
-		dstData := format.GetAppliedContent(msg)
+		getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
+		getDstData := core.NewGetAppliedContentAsBytesFunc(format.key)
+		srcData := getSrcData(msg)
+		dstData := getDstData(msg)
+
+		newLen := len(srcData) + len(dstData) + len(format.separator)
+		cloneData := make([]byte, len(srcData), newLen)
+		copy(cloneData, srcData)
+		srcData = cloneData
+
 		if len(format.separator) != 0 {
-			cloneSrcData = append(cloneSrcData, format.separator...)
+			srcData = append(srcData, format.separator...)
 		}
-		format.SetAppliedContent(msg, append(cloneSrcData, dstData...))
+		format.SetAppliedContent(msg, append(srcData, dstData...))
 
 	case metadataCopyModeAppend:
-		dstData := format.GetAppliedContent(msg)
+		getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
+		getDstData := core.NewGetAppliedContentAsBytesFunc(format.key)
+		srcData := getSrcData(msg)
+		dstData := getDstData(msg)
+
+		newLen := len(srcData) + len(dstData) + len(format.separator)
+		cloneData := make([]byte, len(dstData), newLen)
+		copy(cloneData, dstData)
+		dstData = cloneData
+
 		if len(format.separator) != 0 {
 			dstData = append(dstData, format.separator...)
 		}
-		format.SetAppliedContent(msg, append(dstData, cloneSrcData...))
+		format.SetAppliedContent(msg, append(dstData, srcData...))
 	}
 
 	return nil

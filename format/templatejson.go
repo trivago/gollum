@@ -17,9 +17,10 @@ package format
 import (
 	"bytes"
 	"encoding/json"
+	"text/template"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
-	"text/template"
 )
 
 // TemplateJSON formatter
@@ -67,7 +68,7 @@ func (format *TemplateJSON) Configure(conf core.PluginConfigReader) {
 // ApplyFormatter update message payload
 func (format *TemplateJSON) ApplyFormatter(msg *core.Message) error {
 	values := tcontainer.NewMarshalMap()
-	err := json.Unmarshal(format.GetAppliedContent(msg), &values)
+	err := json.Unmarshal(format.GetAppliedContentAsBytes(msg), &values)
 	if err != nil {
 		format.Logger.Warning("TemplateJSON failed to unmarshal a message: ", err)
 		return err

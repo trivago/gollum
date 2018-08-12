@@ -16,7 +16,6 @@ package consumer
 
 import (
 	"os"
-	"strconv"
 	"sync"
 	"time"
 
@@ -151,13 +150,13 @@ func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 			severity, _ := parts["severity"].(int)
 			timestamp, _ := parts["timestamp"].(time.Time)
 
-			metaData.SetValue("tag", []byte(tag))
-			metaData.SetValue("timestamp", []byte(timestamp.Format(cons.timestampFormat)))
+			metaData.Set("tag", tag)
+			metaData.Set("timestamp", timestamp.Format(cons.timestampFormat))
 
-			metaData.SetValue("hostname", []byte(hostname))
-			metaData.SetValue("priority", []byte(strconv.Itoa(priority)))
-			metaData.SetValue("facility", []byte(strconv.Itoa(facility)))
-			metaData.SetValue("severity", []byte(strconv.Itoa(severity)))
+			metaData.Set("hostname", hostname)
+			metaData.Set("priority", priority)
+			metaData.Set("facility", facility)
+			metaData.Set("severity", severity)
 		}
 
 	case syslog.RFC5424, syslog.RFC6587:
@@ -174,16 +173,16 @@ func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 			severity, _ := parts["severity"].(int)
 			timestamp, _ := parts["timestamp"].(time.Time)
 
-			metaData.SetValue("app_name", []byte(app))
-			metaData.SetValue("version", []byte(version))
-			metaData.SetValue("proc_id", []byte(procID))
-			metaData.SetValue("msg_id", []byte(msgID))
-			metaData.SetValue("timestamp", []byte(timestamp.Format(cons.timestampFormat)))
+			metaData.Set("app_name", app)
+			metaData.Set("version", version)
+			metaData.Set("proc_id", procID)
+			metaData.Set("msg_id", msgID)
+			metaData.Set("timestamp", timestamp.Format(cons.timestampFormat))
 
-			metaData.SetValue("hostname", []byte(hostname))
-			metaData.SetValue("priority", []byte(strconv.Itoa(priority)))
-			metaData.SetValue("facility", []byte(strconv.Itoa(facility)))
-			metaData.SetValue("severity", []byte(strconv.Itoa(severity)))
+			metaData.Set("hostname", hostname)
+			metaData.Set("priority", priority)
+			metaData.Set("facility", facility)
+			metaData.Set("severity", severity)
 		}
 
 	default:

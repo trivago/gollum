@@ -109,9 +109,9 @@ func (format *GrokToJSON) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *GrokToJSON) ApplyFormatter(msg *core.Message) error {
-	content := format.GetAppliedContent(msg)
+	content := format.GetAppliedContentAsString(msg)
 
-	values, err := format.applyGrok(string(content[:]))
+	values, err := format.applyGrok(content[:])
 	if err != nil {
 		return err
 	}

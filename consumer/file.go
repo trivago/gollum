@@ -161,8 +161,8 @@ func (cons *File) Enqueue(data []byte) {
 		metaData := core.Metadata{}
 
 		dir, file := filepath.Split(cons.source.realFileName)
-		metaData.SetValue("file", []byte(file))
-		metaData.SetValue("dir", []byte(dir))
+		metaData.Set("file", file)
+		metaData.Set("dir", dir)
 
 		cons.EnqueueWithMetadata(data, metaData)
 	} else {

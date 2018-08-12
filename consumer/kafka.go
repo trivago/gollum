@@ -524,8 +524,8 @@ func (cons *Kafka) enqueueEvent(event *kafka.ConsumerMessage) {
 	if cons.hasToSetMetadata {
 		metaData := core.Metadata{}
 
-		metaData.SetValue("topic", []byte(event.Topic))
-		metaData.SetValue("key", event.Key)
+		metaData.Set("topic", event.Topic)
+		metaData.Set("key", event.Key)
 
 		cons.EnqueueWithMetadata(event.Value, metaData)
 	} else {

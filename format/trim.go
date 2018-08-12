@@ -71,7 +71,7 @@ func (format *Trim) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Trim) ApplyFormatter(msg *core.Message) error {
-	content := format.GetAppliedContent(msg)
+	content := format.GetAppliedContentAsBytes(msg)
 	offset := len(content)
 
 	if len(format.rightSeparator) > 0 {

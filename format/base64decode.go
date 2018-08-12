@@ -68,7 +68,7 @@ func (format *Base64Decode) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter execute the formatter
 func (format *Base64Decode) ApplyFormatter(msg *core.Message) error {
-	decoded, err := format.getDecodedContent(format.GetAppliedContent(msg))
+	decoded, err := format.getDecodedContent(format.GetAppliedContentAsBytes(msg))
 	if err != nil {
 		return err
 	}

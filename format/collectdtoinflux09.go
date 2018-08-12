@@ -16,6 +16,7 @@ package format
 
 import (
 	"fmt"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tmath"
@@ -47,7 +48,7 @@ func (format *CollectdToInflux09) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *CollectdToInflux09) ApplyFormatter(msg *core.Message) error {
-	contentData := format.GetAppliedContent(msg)
+	contentData := format.GetAppliedContentAsBytes(msg)
 
 	collectdData, err := parseCollectdPacket(contentData)
 	if err != nil {

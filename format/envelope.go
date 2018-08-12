@@ -61,7 +61,7 @@ func (format *Envelope) Configure(conf core.PluginConfigReader) {
 func (format *Envelope) ApplyFormatter(msg *core.Message) error {
 	prefixLen := len(format.prefix)
 	postfixLen := len(format.postfix)
-	content := format.GetAppliedContent(msg)
+	content := format.GetAppliedContentAsBytes(msg)
 	offset := 0
 
 	payload := make([]byte, prefixLen+len(content)+postfixLen)
