@@ -81,30 +81,28 @@ func NewSetAppliedContentFunc(applyTo string) SetAppliedContentFunc {
 // String and []byte types will be converted directly, all other types
 // are converted via Sprintf("%v").
 func ConvertToBytes(val interface{}) []byte {
-	switch val.(type) {
-	case string:
-		return []byte(val.(string))
-
-	case []byte:
-		return val.([]byte)
-
-	default:
-		return []byte(fmt.Sprintf("%v", val))
+	if bytes, isBytes := val.([]byte); isBytes {
+		return bytes
 	}
+
+	if str, isString := val.(string); isString {
+		return []byte(str)
+	}
+
+	return []byte(fmt.Sprintf("%v", val))
 }
 
 // ConvertToString tries to covert data into a string.
 // String and []byte types will be converted directly, all other types
 // are converted via Sprintf("%v").
 func ConvertToString(val interface{}) string {
-	switch val.(type) {
-	case string:
-		return val.(string)
-
-	case []byte:
-		return string(val.([]byte))
-
-	default:
-		return fmt.Sprintf("%v", val)
+	if bytes, isBytes := val.([]byte); isBytes {
+		return string(bytes)
 	}
+
+	if str, isString := val.(string); isString {
+		return str
+	}
+
+	return fmt.Sprintf("%v", val)
 }
