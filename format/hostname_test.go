@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"fmt"
+	"os"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"os"
 )
 
 func TestFormatterHostname(t *testing.T) {
@@ -84,5 +85,7 @@ func TestFormatterHostnameApplyTo(t *testing.T) {
 	expect.NoError(err)
 
 	hostname, _ := os.Hostname()
-	expect.Equal(hostname, msg.GetMetadata().GetValueString("foo"))
+	val, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
+	expect.Equal(hostname, val)
 }

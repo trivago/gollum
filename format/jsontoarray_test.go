@@ -48,11 +48,13 @@ func TestJSONToArrayApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("{\"test\":\"value\"}"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("{\"foo\":\"value1\",\"bar\":\"value2\"}"))
+	msg.GetMetadata().Set("foo", []byte("{\"foo\":\"value1\",\"bar\":\"value2\"}"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("value1,value2", msg.GetMetadata().GetValueString("foo"))
+	val, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
+	expect.Equal("value1,value2", val)
 	expect.Equal("{\"test\":\"value\"}", msg.String())
 }

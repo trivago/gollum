@@ -50,12 +50,14 @@ func TestRunlengthApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("test"))
+	msg.GetMetadata().Set("foo", []byte("test"))
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("4:test", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("4:test", foo)
 }
 
 func TestRunlengthApplyToAndStoreRunlengthOnly(t *testing.T) {
@@ -72,11 +74,13 @@ func TestRunlengthApplyToAndStoreRunlengthOnly(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("test"))
+	msg.GetMetadata().Set("foo", []byte("test"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("4", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("4", foo)
 }

@@ -3,9 +3,10 @@ package format
 import (
 	"testing"
 
+	"strings"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"strings"
 )
 
 func TestProcessJSONRename(t *testing.T) {
@@ -125,12 +126,14 @@ func TestProcessJSONApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("TEST PAYLOAD"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("{\"test\":\"foobar\"}"))
+	msg.GetMetadata().Set("foo", []byte("{\"test\":\"foobar\"}"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
 	msgData := string(msg.GetPayload())
 	expect.Equal(msgData, "TEST PAYLOAD")
-	expect.True(strings.Contains(msg.GetMetadata().GetValueString("foo"), "\"foo\":\"foobar\""))
+	expect.True(strings.Contains(foo, "\"foo\":\"foobar\""))
 }

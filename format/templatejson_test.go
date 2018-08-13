@@ -15,8 +15,9 @@
 package format
 
 import (
-	"github.com/trivago/gollum/core"
 	"testing"
+
+	"github.com/trivago/gollum/core"
 
 	"github.com/trivago/tgo/ttesting"
 )
@@ -55,11 +56,13 @@ func TestTemplateJSONApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("payload"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"))
+	msg.GetMetadata().Set("foo", []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
 	expect.Equal("payload", msg.String())
-	expect.Equal("bar valid", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("bar valid", foo)
 }

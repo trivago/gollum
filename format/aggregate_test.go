@@ -29,7 +29,7 @@ type applyFormatterMockA struct {
 func (formatter *applyFormatterMockA) ApplyFormatter(msg *core.Message) error {
 	c := formatter.GetAppliedContent(msg)
 	new := []byte("A")
-	c = append(c, new...)
+	c = append(c.([]byte), new...)
 
 	formatter.SetAppliedContent(msg, c)
 
@@ -51,7 +51,7 @@ func (formatter *applyFormatterMockB) Configure(conf core.PluginConfigReader) {
 func (formatter *applyFormatterMockB) ApplyFormatter(msg *core.Message) error {
 	c := formatter.GetAppliedContent(msg)
 	new := []byte("B")
-	c = append(c, new...)
+	c = append(c.([]byte), new...)
 
 	formatter.SetAppliedContent(msg, c)
 
@@ -115,7 +115,7 @@ func TestAggregate_ApplyFormatterWithApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	metadata := core.Metadata{}
-	metadata.SetValue("foo", []byte("value"))
+	metadata.Set("foo", []byte("value"))
 	msg := core.NewMessage(nil, []byte("payload"), metadata, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
@@ -123,5 +123,7 @@ func TestAggregate_ApplyFormatterWithApplyTo(t *testing.T) {
 
 	expect.Equal("payload", string(msg.GetPayload()))
 	expect.Equal("", configInjection)
-	expect.Equal("valueAB", msg.GetMetadata().GetValueString("foo"))
+	val, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
+	expect.Equal("valueAB", val)
 }

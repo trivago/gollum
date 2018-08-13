@@ -56,10 +56,12 @@ func TestEnvelopeApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("bar"))
+	msg.GetMetadata().Set("foo", []byte("bar"))
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	val, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
 	expect.Equal("test", msg.String())
-	expect.Equal("start bar end", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("start bar end", val)
 }
