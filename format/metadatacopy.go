@@ -105,20 +105,22 @@ func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 		srcValue := reflect.ValueOf(srcData)
 
 		switch srcValue.Kind() {
-		// TODO: slices in structs / map need a copy, too.
+		// TODO: Slices in structs / map need a copy, too.
+		//       Reason: slices are referenced, i.e. a change to a copied, nested slice
+		//       can also change the original or any other copy.
+
 		case reflect.Slice:
 			copyValue := reflect.MakeSlice(srcValue.Type(), srcValue.Len(), srcValue.Len())
 			reflect.Copy(copyValue, srcValue)
 			srcData = copyValue.Interface()
-		default:
-			format.SetAppliedContent(msg, srcData)
 		}
+
+		format.SetAppliedContent(msg, srcData)
 
 	case metadataCopyModePrepend:
 		getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
-		getDstData := core.NewGetAppliedContentAsBytesFunc(format.key)
 		srcData := getSrcData(msg)
-		dstData := getDstData(msg)
+		dstData := core.ConvertToBytes(format.GetAppliedContent(msg))
 
 		newLen := len(srcData) + len(dstData) + len(format.separator)
 		cloneData := make([]byte, len(srcData), newLen)
@@ -132,9 +134,8 @@ func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 
 	case metadataCopyModeAppend:
 		getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
-		getDstData := core.NewGetAppliedContentAsBytesFunc(format.key)
 		srcData := getSrcData(msg)
-		dstData := getDstData(msg)
+		dstData := core.ConvertToBytes(format.GetAppliedContent(msg))
 
 		newLen := len(srcData) + len(dstData) + len(format.separator)
 		cloneData := make([]byte, len(dstData), newLen)
