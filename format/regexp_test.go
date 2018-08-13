@@ -48,8 +48,8 @@ func TestFormatterRegExpApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("test", foo)
+	expect.Equal("test", string(foo))
 }

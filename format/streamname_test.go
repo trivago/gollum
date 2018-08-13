@@ -79,10 +79,10 @@ func TestStreamNameApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("payload", msg.String())
-	expect.Equal(core.LogInternalStream+":test", foo)
+	expect.Equal(core.LogInternalStream+":test", string(foo))
 }
 
 func TestStreamNameApplyToNoSeparator(t *testing.T) {
@@ -103,8 +103,8 @@ func TestStreamNameApplyToNoSeparator(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("payload", msg.String())
-	expect.Equal(core.LogInternalStream, foo)
+	expect.Equal(core.LogInternalStream, string(foo))
 }

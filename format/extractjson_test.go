@@ -80,8 +80,8 @@ func TestExtractJSONApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	val, err := msg.GetMetadata().String("foo")
+	val, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
-	expect.Equal("valid", val)
+	expect.Equal("valid", string(val))
 	expect.Equal("{\"foo\":\"bar\"}", msg.String())
 }

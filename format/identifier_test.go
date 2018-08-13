@@ -42,8 +42,8 @@ func TestFormatterIdentifierApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	val, err := msg.GetMetadata().String("foo")
+	val, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
-	expect.Equal("f9e6e6ef197c2b25", val)
+	expect.Equal("f9e6e6ef197c2b25", string(val))
 	expect.Equal("test", msg.String())
 }

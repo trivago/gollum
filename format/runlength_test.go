@@ -54,10 +54,10 @@ func TestRunlengthApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("4:test", foo)
+	expect.Equal("4:test", string(foo))
 }
 
 func TestRunlengthApplyToAndStoreRunlengthOnly(t *testing.T) {
@@ -79,8 +79,8 @@ func TestRunlengthApplyToAndStoreRunlengthOnly(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("4", foo)
+	expect.Equal("4", string(foo))
 }

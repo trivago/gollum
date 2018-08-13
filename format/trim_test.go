@@ -69,8 +69,8 @@ func TestFormatterTrimApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("|foo bar foobar|", msg.String())
-	expect.Equal("foo bar foobar|second foo bar", foo)
+	expect.Equal("foo bar foobar|second foo bar", string(foo))
 }

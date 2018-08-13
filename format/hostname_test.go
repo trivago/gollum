@@ -85,7 +85,7 @@ func TestFormatterHostnameApplyTo(t *testing.T) {
 	expect.NoError(err)
 
 	hostname, _ := os.Hostname()
-	val, err := msg.GetMetadata().String("foo")
+	val, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
-	expect.Equal(hostname, val)
+	expect.Equal(hostname, string(val))
 }

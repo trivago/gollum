@@ -61,8 +61,8 @@ func TestTemplateJSONApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("payload", msg.String())
-	expect.Equal("bar valid", foo)
+	expect.Equal("bar valid", string(foo))
 }

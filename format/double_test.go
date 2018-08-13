@@ -73,8 +73,8 @@ func TestDoubleFormatterApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	val, err := msg.GetMetadata().String("foo")
+	val, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
-	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", val)
+	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", string(val))
 	expect.Equal("SOME_PAYLOAD_DATA", msg.String())
 }

@@ -107,9 +107,9 @@ func TestStreamApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("payload", msg.String())
-	expect.Equal("test", foo)
+	expect.Equal("test", string(foo))
 	expect.Equal(core.LogInternalStreamID, msg.GetStreamID())
 }

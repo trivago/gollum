@@ -197,15 +197,15 @@ func TestMetadataCopyPayloadIntegrity(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("metadata", msg.String())
-	expect.Equal("metadata", foo)
+	expect.Equal("metadata", string(foo))
 
 	msg.GetMetadata().Set("foo", []byte("xxx"))
 
-	foo, err = msg.GetMetadata().String("foo")
+	foo, err = msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("metadata", msg.String())
-	expect.Equal("xxx", foo)
+	expect.Equal("xxx", string(foo))
 }

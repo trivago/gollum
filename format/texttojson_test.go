@@ -134,8 +134,8 @@ func TestTextToJSONFormatterApplyTo(t *testing.T) {
 	err := format.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("payload", msg.String())
-	expect.Equal(testString, foo)
+	expect.Equal(testString, string(foo))
 }

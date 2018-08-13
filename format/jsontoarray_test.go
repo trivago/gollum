@@ -53,8 +53,8 @@ func TestJSONToArrayApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	val, err := msg.GetMetadata().String("foo")
+	val, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
-	expect.Equal("value1,value2", val)
+	expect.Equal("value1,value2", string(val))
 	expect.Equal("{\"test\":\"value\"}", msg.String())
 }

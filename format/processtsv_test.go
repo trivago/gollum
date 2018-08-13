@@ -342,8 +342,8 @@ func TestProcessTSVApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("PAYLOAD", msg.String())
-	expect.Equal("foo\tbaz", foo)
+	expect.Equal("foo\tbaz", string(foo))
 }

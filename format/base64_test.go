@@ -65,9 +65,9 @@ func TestBase64DecodeApplyHandling(t *testing.T) {
 	err = decoder.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	val, err := msg.GetMetadata().String("foo")
+	val, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
-	expect.Equal("test", val)
+	expect.Equal("test", string(val))
 }
 
 func TestBase64EncodeApplyHandling(t *testing.T) {
@@ -87,7 +87,7 @@ func TestBase64EncodeApplyHandling(t *testing.T) {
 	err = encoder.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	val, err := msg.GetMetadata().String("foo")
+	val, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
-	expect.Equal("dGVzdA==", val)
+	expect.Equal("dGVzdA==", string(val))
 }

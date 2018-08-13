@@ -65,8 +65,8 @@ func TestSplitPickApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("PAYLOAD", msg.String())
-	expect.Equal("MTIzNDU2", foo)
+	expect.Equal("MTIzNDU2", string(foo))
 }

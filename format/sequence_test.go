@@ -61,10 +61,10 @@ func TestSequenceApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("1:test", foo)
+	expect.Equal("1:test", string(foo))
 }
 
 func TestSequenceApplyToNoSeparator(t *testing.T) {
@@ -84,8 +84,8 @@ func TestSequenceApplyToNoSeparator(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().String("foo")
+	foo, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("1", foo)
+	expect.Equal("1", string(foo))
 }

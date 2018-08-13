@@ -123,7 +123,7 @@ func TestAggregate_ApplyFormatterWithApplyTo(t *testing.T) {
 
 	expect.Equal("payload", string(msg.GetPayload()))
 	expect.Equal("", configInjection)
-	val, err := msg.GetMetadata().String("foo")
+	val, err := msg.GetMetadata().Bytes("foo")
 	expect.NoError(err)
-	expect.Equal("valueAB", val)
+	expect.Equal("valueAB", string(val))
 }

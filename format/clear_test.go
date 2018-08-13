@@ -56,7 +56,7 @@ func TestClearFormatterApplyHandling(t *testing.T) {
 	expect.NoError(err)
 
 	val, err := msg.GetMetadata().String("foo")
-	expect.NoError(err)
+	expect.NotNil(err)
 	expect.Equal("", val)
 	expect.Equal("test", msg.String())
 }
