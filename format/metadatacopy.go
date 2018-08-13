@@ -63,9 +63,8 @@ import (
 //
 type MetadataCopy struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	key                  string   `config:"Key"`
-	separator            []byte   `config:"Separator"`
-	metaDataKeys         []string `config:"CopyToKeys"` // deprecated
+	key                  string `config:"Key"`
+	separator            []byte `config:"Separator"`
 	mode                 metadataCopyMode
 }
 
