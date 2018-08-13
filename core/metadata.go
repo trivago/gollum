@@ -16,5 +16,7 @@ package core
 
 import "github.com/trivago/tgo/tcontainer"
 
-// Metadata is a map for optional meta data which can set by consumers and modulators
-type Metadata = tcontainer.MarshalMap
+// NewMetadata returns an empty metadata container
+func NewMetadata() tcontainer.MarshalMap {
+	return tcontainer.NewMarshalMap()
+}

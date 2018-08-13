@@ -136,7 +136,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 	content := ""
 	isString := false
-	metaData := core.Metadata{}
+	metaData := core.NewMetadata()
 
 	switch cons.format {
 	case syslog.RFC3164:

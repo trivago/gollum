@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -19,7 +20,7 @@ func TestMetadataCopyReplace(t *testing.T) {
 	formatter, casted := plugin.(*MetadataCopy)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("not applied"), core.Metadata{"foo": []byte("foo")}, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("not applied"), tcontainer.MarshalMap{"foo": []byte("foo")}, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -64,7 +65,7 @@ func TestMetadataCopyAppend(t *testing.T) {
 	formatter, casted := plugin.(*MetadataCopy)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.Metadata{"foo": []byte("foo")}, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), tcontainer.MarshalMap{"foo": []byte("foo")}, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -85,7 +86,7 @@ func TestMetadataCopyPrepend(t *testing.T) {
 	formatter, casted := plugin.(*MetadataCopy)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.Metadata{"foo": []byte("foo")}, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), tcontainer.MarshalMap{"foo": []byte("foo")}, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)

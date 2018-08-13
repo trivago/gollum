@@ -23,7 +23,7 @@ import (
 func TestMetadataSetGet(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	meta := make(Metadata)
+	meta := NewMetadata()
 
 	meta.Set("foo", "foo_value")
 

@@ -95,7 +95,7 @@ func (cons *Console) Configure(conf core.PluginConfigReader) {
 // Enqueue creates a new message
 func (cons *Console) Enqueue(data []byte) {
 	if cons.hasToSetMetadata {
-		metaData := core.Metadata{}
+		metaData := core.NewMetadata()
 		metaData.Set("pipe", cons.pipeName)
 
 		cons.EnqueueWithMetadata(data, metaData)

@@ -114,7 +114,7 @@ func TestAggregate_ApplyFormatterWithApplyTo(t *testing.T) {
 	formatter, casted := plugin.(*Aggregate)
 	expect.True(casted)
 
-	metadata := core.Metadata{}
+	metadata := core.NewMetadata()
 	metadata.Set("foo", []byte("value"))
 	msg := core.NewMessage(nil, []byte("payload"), metadata, core.InvalidStreamID)
 

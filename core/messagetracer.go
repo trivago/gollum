@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/trivago/tgo/tcontainer"
 )
 
 type messageTracer struct {
@@ -37,7 +38,7 @@ type messageDump struct {
 	Stream          string
 	PrevStream      string
 	OrigStream      string
-	Metadata        Metadata
+	Metadata        tcontainer.MarshalMap
 	Source          string
 	Timestamp       time.Time
 	FingerprintID   uint32

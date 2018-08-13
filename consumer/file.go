@@ -158,7 +158,7 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 // Enqueue creates a new message
 func (cons *File) Enqueue(data []byte) {
 	if cons.hasToSetMetadata {
-		metaData := core.Metadata{}
+		metaData := core.NewMetadata()
 
 		dir, file := filepath.Split(cons.source.realFileName)
 		metaData.Set("file", file)

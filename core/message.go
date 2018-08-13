@@ -28,7 +28,7 @@ import (
 // The struct is used by Message.data for the current message data and orig for the original message data
 type MessageData struct {
 	payload  []byte
-	metadata Metadata
+	metadata tcontainer.MarshalMap
 }
 
 // Message is a container used for storing the internal state of messages.
@@ -44,7 +44,7 @@ type Message struct {
 }
 
 // NewMessage creates a new message from a given data stream by copying data.
-func NewMessage(source MessageSource, data []byte, metadata Metadata, streamID MessageStreamID) *Message {
+func NewMessage(source MessageSource, data []byte, metadata tcontainer.MarshalMap, streamID MessageStreamID) *Message {
 	msg := &Message{
 		source:       source,
 		streamID:     streamID,
@@ -134,16 +134,16 @@ func (msg *Message) GetPayload() []byte {
 
 // GetMetadata returns the current Metadata. If no metadata is present, the
 // metadata map will be created by this call.
-func (msg *Message) GetMetadata() Metadata {
+func (msg *Message) GetMetadata() tcontainer.MarshalMap {
 	if msg.data.metadata == nil {
-		msg.data.metadata = make(Metadata)
+		msg.data.metadata = NewMetadata()
 	}
 	return msg.data.metadata
 }
 
 // TryGetMetadata returns the current Metadata. If no metadata is present, nil
 // will be returned.
-func (msg *Message) TryGetMetadata() Metadata {
+func (msg *Message) TryGetMetadata() tcontainer.MarshalMap {
 	return msg.data.metadata
 }
 
@@ -227,7 +227,7 @@ func (msg *Message) FreezeOriginal() {
 		return
 	}
 
-	var metadata Metadata
+	var metadata tcontainer.MarshalMap
 	if msg.data.metadata != nil {
 		metadata = msg.data.metadata.Clone()
 	}
@@ -304,7 +304,7 @@ func DeserializeMessage(data []byte) (*Message, error) {
 		metaGob := msgData.GetMetadata()
 
 		if len(metaGob) > 0 {
-			meta := tcontainer.NewMarshalMap()
+			meta := NewMetadata()
 			decoder := gob.NewDecoder(bytes.NewReader(metaGob))
 			if err := decoder.Decode(&meta); err != nil {
 				return nil, err
@@ -319,7 +319,7 @@ func DeserializeMessage(data []byte) (*Message, error) {
 		metaGob := msgOrigData.GetMetadata()
 
 		if len(metaGob) > 0 {
-			meta := tcontainer.NewMarshalMap()
+			meta := NewMetadata()
 			decoder := gob.NewDecoder(bytes.NewReader(metaGob))
 			if err := decoder.Decode(&meta); err != nil {
 				return nil, err
