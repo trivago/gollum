@@ -15,6 +15,8 @@
 package core
 
 import (
+	"reflect"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -55,8 +57,30 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 
 // CanBeApplied returns true if the formatter can be applied to this message
 func (format *SimpleFormatter) CanBeApplied(msg *Message) bool {
-	if format.SkipIfEmpty {
-		return format.GetAppliedContent(msg) != nil
+	if !format.SkipIfEmpty {
+		return true
+	}
+
+	data := format.GetAppliedContent(msg)
+	if data == nil {
+		return false
+	}
+
+	// payload fast path
+	if bytes, isBytes := data.([]byte); isBytes {
+		return len(bytes) > 0
+	}
+
+	// metadata string fast path
+	if str, isString := data.(string); isString {
+		return len(str) > 0
+	}
+
+	// arbitrary, len-able metadata path
+	value := reflect.ValueOf(data)
+	switch value.Kind() {
+	case reflect.Slice, reflect.Array, reflect.Map:
+		return value.Len() > 0
 	}
 	return true
 }
