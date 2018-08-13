@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/treflect"
 )
 
 // MetadataCopy formatter plugin
@@ -104,9 +105,8 @@ func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 		srcValue := reflect.ValueOf(srcData)
 
 		switch srcValue.Kind() {
-		// TODO: Slices in structs / map need a copy, too.
-		//       Reason: slices are referenced, i.e. a change to a copied, nested slice
-		//       can also change the original or any other copy.
+		case reflect.Map, reflect.Struct:
+			srcData = treflect.Clone(srcValue)
 
 		case reflect.Slice:
 			copyValue := reflect.MakeSlice(srcValue.Type(), srcValue.Len(), srcValue.Len())
