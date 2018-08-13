@@ -7,12 +7,15 @@ Please read the release notes carefully
 
 ### New with 0.6.0
 
- * Added a new flag "-mt" to choose the metrics provider (currently only prometheus)
+* Added a new flag "-mt" to choose the metrics provider (currently only prometheus)
+* Message metadata can now store arbitrary data
 
 ### Breaking changes with 0.6.0
 
- * Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
-   Old-style metrics have been removed and many metrics names have changed.
+* Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
+  Old-style metrics have been removed and many metrics names have changed.
+* Metadata type has changed from `map[string][]byte` to `tgo.MarshalMap`.
+* Deserializing messages written by v0.5.x will lead to metadata of those message to be discarded.
 
 ## 0.5.3
 
@@ -20,7 +23,7 @@ This is a patch / minor features release.
 
 ### Fixed with 0.5.3
 
- * Fixed a GC panic/crash caused by tgo.ByteBuffer.
+* Fixed a GC panic/crash caused by tgo.ByteBuffer.
 
 ## 0.5.2
 
@@ -28,18 +31,18 @@ This is a patch / minor features release.
 
 ### New with 0.5.2
 
- * The version number is now generated via make and git. This will properly identify versions between releases.
- * New producer.AwsCloudwatchLogs. Thanks to @luqasz
- * The makefile has been cleaned up and go meta-linter support has been added
+* The version number is now generated via make and git. This will properly identify versions between releases.
+* New producer.AwsCloudwatchLogs. Thanks to @luqasz
+* The makefile has been cleaned up and go meta-linter support has been added
 
 ### Fixed with 0.5.2
 
- * consumer.Kafka now properly commits the consumer offsets to kafka. Thanks to @crewton
- * producer.awsKinesis failed to produce records under certain conditions
- * The consumer.Kafka folderPermissions property is now correctly applied
- * formt.ExtractJSON trimValues property is now correctly applied
- * The gollum binary inside the Dockerfile is built on the same baseimage as deployed
- * Filter will now always filter out the MODIFIED message, not the original. This behavior is more "expected".
+* consumer.Kafka now properly commits the consumer offsets to kafka. Thanks to @crewton
+* producer.awsKinesis failed to produce records under certain conditions
+* The consumer.Kafka folderPermissions property is now correctly applied
+* formt.ExtractJSON trimValues property is now correctly applied
+* The gollum binary inside the Dockerfile is built on the same baseimage as deployed
+* Filter will now always filter out the MODIFIED message, not the original. This behavior is more "expected".
 
 ## 0.5.1
 
@@ -47,19 +50,18 @@ This is a patch / minor features release.
 
 ### New with 0.5.1
 
- * format.MetadataCopy has been updated to support free copying between metadata and payload
- * producer.ElasticSearch alles setting the format of timeBasedIndex
- * format.GrokToJSON has new options: RemoveEmptyValues, NamedCapturesOnly and SkipDefaultPatterns
- * Using dep for dependencies instead of glide
+* format.MetadataCopy has been updated to support free copying between metadata and payload
+* producer.ElasticSearch alles setting the format of timeBasedIndex
+* format.GrokToJSON has new options: RemoveEmptyValues, NamedCapturesOnly and SkipDefaultPatterns
+* Using dep for dependencies instead of glide
 
 ### Fixed with 0.5.1
 
- * Fixed inversion of -lc always
- * Fixed a nil pointer panic with producer.elasticsearch when receiving messages with unassigned streams
- * producer.ElasticSearch settings are now named according to config
- * producer.ElasticSearch dayBasedIndex renamed to timeBasedIndex and it's now working as expected
- * Updated dependencies to latest version (brings support for kafka 1.0, fixes user agent parsing for format.processTSV)
-
+* Fixed inversion of -lc always
+* Fixed a nil pointer panic with producer.elasticsearch when receiving messages with unassigned streams
+* producer.ElasticSearch settings are now named according to config
+* producer.ElasticSearch dayBasedIndex renamed to timeBasedIndex and it's now working as expected
+* Updated dependencies to latest version (brings support for kafka 1.0, fixes user agent parsing for format.processTSV)
 
 ## 0.5.0
 
