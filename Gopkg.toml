@@ -103,7 +103,7 @@
 
 [[constraint]]
   name = "github.com/trivago/tgo"
-  version = "1.0.3"
+  version = "1.0.4"
 
 [[constraint]]
   name = "github.com/x-cray/logrus-prefixed-formatter"

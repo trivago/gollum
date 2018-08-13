@@ -221,6 +221,25 @@ func (mmap MarshalMap) String(key string) (string, error) {
 	return strValue, nil
 }
 
+// Bytes returns a value at key that is expected to be a []byte
+func (mmap MarshalMap) Bytes(key string) ([]byte, error) {
+	val, exists := mmap.Value(key)
+	if !exists {
+		return []byte{}, fmt.Errorf(`"%s" is not set`, key)
+	}
+
+	bytesValue, isBytes := val.([]byte)
+	if !isBytes {
+		return []byte{}, fmt.Errorf(`"%s" is expected to be a []byte`, key)
+	}
+	return bytesValue, nil
+}
+
+// Slice is an alias for Array
+func (mmap MarshalMap) Slice(key string) ([]interface{}, error) {
+	return mmap.Array(key)
+}
+
 // Array returns a value at key that is expected to be a []interface{}
 func (mmap MarshalMap) Array(key string) ([]interface{}, error) {
 	val, exists := mmap.Value(key)
@@ -276,6 +295,11 @@ func castToStringArray(key string, value interface{}) ([]string, error) {
 	}
 }
 
+// StringSlice is an alias for StringArray
+func (mmap MarshalMap) StringSlice(key string) ([]string, error) {
+	return mmap.StringArray(key)
+}
+
 // StringArray returns a value at key that is expected to be a []string
 // This function supports conversion (by copy) from
 //  * []interface{}
@@ -314,7 +338,12 @@ func castToInt64Array(key string, value interface{}) ([]int64, error) {
 	}
 }
 
-// IntArray returns a value at key that is expected to be a []int64
+// Int64Slice is an alias for Int64Array
+func (mmap MarshalMap) Int64Slice(key string) ([]int64, error) {
+	return mmap.Int64Array(key)
+}
+
+// Int64Array returns a value at key that is expected to be a []int64
 // This function supports conversion (by copy) from
 //  * []interface{}
 func (mmap MarshalMap) Int64Array(key string) ([]int64, error) {
@@ -364,6 +393,11 @@ func (mmap MarshalMap) StringMap(key string) (map[string]string, error) {
 
 		return result, nil
 	}
+}
+
+// StringSliceMap is an alias for StringArrayMap
+func (mmap MarshalMap) StringSliceMap(key string) (map[string][]string, error) {
+	return mmap.StringArrayMap(key)
 }
 
 // StringArrayMap returns a value at key that is expected to be a

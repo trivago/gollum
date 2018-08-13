@@ -403,7 +403,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:e235d51731b532f2390c5958afc127497882ca9fa99cc31026afb3e4908dabec"
+  digest = "1:a626c516b41007a2feec7ab2926f49912b86a8f3d1144094e0054d16c3ff9861"
   name = "github.com/trivago/tgo"
   packages = [
     ".",
@@ -421,8 +421,8 @@
     "ttesting",
   ]
   pruneopts = ""
-  revision = "502a33eea9424a79058eb358a191017503083759"
-  version = "v1.0.3"
+  revision = "26516257a353d3432dc6ed6853784f3947a50701"
+  version = "v1.0.4"
 
 [[projects]]
   digest = "1:56ca33f3ba6c50027aa11df49917b923e335afc7157c27a2ebc0205cc54c7e15"
