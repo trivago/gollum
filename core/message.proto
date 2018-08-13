@@ -3,7 +3,8 @@ option go_package = "core";
 
 message serializedMessageData {
         required bytes Data = 1;
-        optional bytes Metadata = 2;
+        // Field 2 is used for v0.5.x metadata
+        optional bytes Metadata = 3;
 }
 
 message serializedMessage {
