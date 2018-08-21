@@ -15,35 +15,25 @@
 package consumer
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tsync"
 )
 
 const (
 	fileBufferGrowSize = 1024
 	fileOffsetStart    = "oldest"
 	fileOffsetEnd      = "newest"
-)
-
-type fileState int32
-
-const (
-	fileStateOpen = fileState(iota)
-	fileStateRead = fileState(iota)
-	fileStateDone = fileState(iota)
 )
 
 const (
@@ -71,14 +61,16 @@ const (
 // Parameters
 //
 // - File: This value is a mandatory setting and contains the name of the
-// file to read. The file will be read from beginning to end and the reader
-// will stay attached until the consumer is stopped, so appends to the
-// file will be recognized automatically.
+// file to read. This filed supports glob patterns.
+// If the file pointed to is a symlink, changes to the symlink will be
+// detected. The file will be watched for changes, so active logfiles can
+// be scraped, too.
 //
-// - OffsetFile: This value defines the path to a file that stores the
-// current offset inside the source file. If the consumer is restarted, that
-// offset is used to continue reading from the previous position. To disable
-// this setting, set it to "".
+// - OffsetFilePath: This value defines a path where the individual, current
+// file offsets are stored. The filename will the name and extension of the
+// source file plus the extension ".offset". If the consumer is restarted,
+// these offset files are used to continue reading from the previous position.
+// To disable this setting, set it to "".
 // By default this parameter is set to "".
 //
 // - Delimiter: This value defines the delimiter sequence to expect at the
@@ -98,11 +90,15 @@ const (
 // is defined and the file exists, the DefaultOffset parameter is ignored.
 // By default this parameter is set to "newest".
 //
-// - PollingDelay: This value defines the duration the consumer waits between
-// checking the source file for new content after hitting the end of file (EOF).
-// The value is in milliseconds (ms). NOTE: This settings only takes effect if the consumer
-// is running in `poll` mode!
+// - PollingDelayMs: This value defines the duration in Milliseconds the consumer
+//  waits between checking the source file for new content after hitting the
+// end of file (EOF). NOTE: This settings only takes effect if the consumer is
+// running in `poll` mode!
 // By default this parameter is set to "100".
+//
+// - RetryDelaySec: This value defines the duration in seconds the consumer waits
+// between retries, e.g. after not being able to open a file.
+// By default this parameter is set to "3".
 //
 // - SetMetadata: When this value is set to "true", the fields mentioned in the metadata
 // section will be added to each message. Adding metadata will have a
@@ -115,9 +111,9 @@ const (
 //
 //  FileIn:
 //    Type: consumer.File
-//    File: /var/log/system.log
+//    File: /var/log/*.log
 //    DefaultOffset: newest
-//    OffsetFile: ""
+//    OffsetFilePath: ""
 //    Delimiter: "\n"
 //    ObserveMode: poll
 //    PollingDelay: 100
@@ -125,13 +121,16 @@ const (
 type File struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 
-	delimiter        string `config:"Delimiter" default:"\n"`
-	observeMode      string `config:"ObserveMode" default:"poll"`
-	hasToSetMetadata bool   `config:"SetMetadata" default:"false"`
+	fileName         string        `config:"Files" default:"/var/log/*.log"`
+	offsetFilePath   string        `config:"OffsetFilePath"`
+	pollingDelay     time.Duration `config:"PollingDelayMs" default:"100" metric:"ms"`
+	retryDelay       time.Duration `config:"RetryDelaySec" default:"3" metric:"s"`
+	delimiter        string        `config:"Delimiter" default:"\n"`
+	observeMode      string        `config:"ObserveMode" default:"poll"`
+	hasToSetMetadata bool          `config:"SetMetadata" default:"false"`
+	defaultOffset    string        `config:"DefaultOffset" default:"newest"`
 
-	seeker  seeker
-	source  sourceFile
-	watcher *watcher
+	done chan struct{}
 }
 
 func init() {
@@ -140,351 +139,116 @@ func init() {
 
 // Configure initializes this consumer with values from a plugin config.
 func (cons *File) Configure(conf core.PluginConfigReader) {
-	cons.SetRollCallback(cons.onRoll)
+	cons.done = make(chan struct{})
 
-	var err error
-	cons.source, err = newSourceFile(conf)
-	conf.Errors.Push(err)
-
-	cons.seeker = newSeeker(conf)
+	// TODO: support manual roll again
+	//cons.SetRollCallback(cons.onRoll)
+	cons.SetStopCallback(func() {
+		close(cons.done)
+	})
 
 	// restore default observer mode for invalid config settings
 	if cons.observeMode != observeModePoll && cons.observeMode != observeModeWatch {
-		cons.Logger.WithField("observeMode", cons.observeMode).Errorf("Unknown observe mode '%s'", cons.observeMode)
+		cons.Logger.Warningf("Unknown observe mode '%s'. Using poll", cons.observeMode)
 		cons.observeMode = observeModePoll
 	}
 }
 
-// Enqueue creates a new message
-func (cons *File) Enqueue(data []byte) {
-	if cons.hasToSetMetadata {
-		metaData := core.Metadata{}
-
-		dir, file := filepath.Split(cons.source.realFileName)
-		metaData.SetValue("file", []byte(file))
-		metaData.SetValue("dir", []byte(dir))
-
-		cons.EnqueueWithMetadata(data, metaData)
-	} else {
-		cons.SimpleConsumer.Enqueue(data)
-	}
-}
-
-func (cons *File) storeOffset() {
-	if err := ioutil.WriteFile(cons.source.offsetFileName, []byte(strconv.FormatInt(cons.seeker.offset, 10)), 0644); err != nil {
-		cons.Logger.WithError(err).Error("Failed to store offset")
-	}
-}
-
-func (cons *File) enqueueAndPersist(data []byte) {
-	cons.seeker.offset, _ = cons.source.file.Seek(0, io.SeekCurrent)
-	cons.Enqueue(data)
-	cons.storeOffset()
-}
-
-func (cons *File) setState(state fileState) {
-	cons.source.state = state
-}
-
-func (cons *File) initFile() {
-	defer cons.setState(fileStateRead)
-
-	if cons.source.file != nil {
-		cons.source.file.Close()
-		cons.source.file = nil
-		cons.seeker.seek = cons.seeker.onRotate
-		cons.seeker.offset = 0
-		if cons.source.offsetFileName != "" {
-			cons.storeOffset()
-		}
-	}
-
-	if cons.source.offsetFileName != "" {
-		fileContents, err := ioutil.ReadFile(cons.source.offsetFileName)
-		if err == nil {
-			cons.seeker.seek = 1
-			cons.seeker.offset, err = strconv.ParseInt(string(fileContents), 10, 64)
-			if err != nil {
-				cons.Logger.Error("Error reading offset file: ", err)
-			}
-		}
-	}
-}
-
-func (cons *File) close() {
-	if cons.source.file != nil {
-		cons.source.file.Close()
-	}
-	cons.setState(fileStateDone)
-	cons.WorkerDone()
-}
-
-func (cons *File) observe() {
-	defer cons.close()
-
-	sendFunction := cons.Enqueue
-	if cons.source.offsetFileName != "" {
-		sendFunction = cons.enqueueAndPersist
-	}
-
-	buffer := tio.NewBufferedReader(fileBufferGrowSize, 0, 0, cons.delimiter)
-
-	cons.Logger.WithField("file", cons.source.realFileName).Debugf("Use observe mode '%s'", cons.observeMode)
-	if cons.observeMode == observeModeWatch {
-		cons.watcher = newWatcher(cons.Logger, &cons.source, func() { cons.read(buffer, sendFunction, func() {}, func() {}) })
-		cons.watcher.Watch(buffer, sendFunction)
-	} else {
-		cons.poll(buffer, sendFunction)
-	}
-}
-
-func (cons *File) poll(buffer *tio.BufferedReader, sendFunction func(data []byte)) {
-	spin := tsync.NewCustomSpinner(cons.source.pollingDelay)
-
-	for cons.source.state != fileStateDone {
-		cons.read(buffer, sendFunction, spin.Yield, spin.Reset)
-	}
-}
-
-func (cons *File) read(buffer *tio.BufferedReader, sendFunction func(data []byte), onEOF func(), onAfterRead func()) {
-	// Initialize the seek state if requested
-	// Try to read the remains of the file first
-	if cons.source.state == fileStateOpen {
-		if cons.source.file != nil {
-			buffer.ReadAll(cons.source.file, sendFunction)
-		}
-		cons.initFile()
-		buffer.Reset(uint64(cons.seeker.offset))
-	}
-
-	// Try to open the file to read from
-	if cons.source.state == fileStateRead && cons.source.file == nil {
-		file, err := os.OpenFile(cons.source.realFileName, os.O_RDONLY, 0666)
-
-		switch {
-		case err != nil:
-			if cons.source.printFileOpenError {
-				cons.Logger.Warning("Open failed: ", err)
-				cons.source.printFileOpenError = false
-			}
-			time.Sleep(3 * time.Second)
-			return // ### continue, retry ###
-
-		default:
-			cons.source.file = file
-			cons.seeker.offset, _ = cons.source.file.Seek(cons.seeker.offset, cons.seeker.seek)
-			cons.source.printFileOpenError = true
-		}
-	}
-
-	// Try to read from the file
-	if cons.source.state == fileStateRead && cons.source.file != nil {
-		err := buffer.ReadAll(cons.source.file, sendFunction)
-
-		switch {
-		case err == nil: // ok
-			onAfterRead()
-
-		case err == io.EOF:
-			if cons.source.isRotated() {
-				cons.Logger.Info("Rotation detected")
-				cons.onRoll()
-			}
-			onEOF()
-
-		case cons.source.state == fileStateRead:
-			cons.Logger.Error("Reading failed: ", err)
-			cons.source.file.Close()
-			cons.source.file = nil
-		}
-	}
-}
-
-func (source *sourceFile) isRotated() bool {
-	if source.file.Name() != source.realFileName {
-		return true
-	}
-
-	if time.Since(source.lastStatCheck) > time.Second {
-		newStat, newStatErr := os.Stat(source.realFileName)
-		oldStat, oldStatErr := source.file.Stat()
-
-		source.lastStatCheck = time.Now()
-
-		if newStatErr == nil && oldStatErr == nil && !os.SameFile(newStat, oldStat) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (cons *File) onRoll() {
-	cons.setState(fileStateOpen)
-}
-
-// Consume listens to stdin.
-func (cons *File) Consume(workers *sync.WaitGroup) {
-	cons.setState(fileStateOpen)
-	defer cons.setState(fileStateDone)
-
-	go tgo.WithRecoverShutdown(func() {
-		cons.AddMainWorker(workers)
-		cons.observe()
+func (cons *File) newObservedFile(name string) *observableFile {
+	logger := cons.Logger.WithFields(logrus.Fields{
+		"File": cons.fileName,
 	})
 
-	cons.ControlLoop()
-}
+	offsetFileName := ""
+	defaultOffset := strings.ToLower(cons.defaultOffset)
+	cursor := fileCursor{whence: io.SeekStart}
 
-// -- sourceFile --
+	switch {
+	case cons.offsetFilePath != "":
+		offsetFileName = fmt.Sprintf("%s/%s.offset", cons.offsetFilePath, filepath.Base(cons.fileName))
+		if offsetFileData, err := ioutil.ReadFile(offsetFileName); err == nil {
+			logger.WithError(err).Errorf("Failed to open offset file %s", offsetFileName)
+		} else {
+			if offset, err := strconv.ParseInt(string(offsetFileData), 10, 64); err != nil {
+				logger.WithError(err).Errorf("Error reading offset number from %s", offsetFileName)
+			} else {
+				cursor.offset = offset
+			}
+		}
 
-type sourceFile struct {
-	fileName       string        `config:"File" default:"/var/run/system.log"`
-	offsetFileName string        `config:"OffsetFile"`
-	pollingDelay   time.Duration `config:"PollingDelay" default:"100" metric:"ms"`
-
-	file               *os.File
-	realFileName       string
-	state              fileState
-	printFileOpenError bool
-	lastStatCheck      time.Time
-}
-
-func (source *sourceFile) Configure(conf core.PluginConfigReader) {
-	source.realFileName = source.getRealFileName()
-
-	source.printFileOpenError = true
-}
-
-func (source *sourceFile) getRealFileName() string {
-	baseFileName, err := filepath.EvalSymlinks(source.fileName)
-	if err != nil {
-		baseFileName = source.fileName
+	case defaultOffset == fileOffsetEnd:
+		cursor.whence = io.SeekEnd
 	}
 
-	baseFileName, err = filepath.Abs(baseFileName)
-	if err != nil {
-		baseFileName = source.fileName
+	return &observableFile{
+		fileName:       cons.fileName,
+		offsetFileName: offsetFileName,
+		cursor:         cursor,
+		retryDelay:     cons.retryDelay,
+		pollDelay:      cons.pollingDelay,
+		buffer:         tio.NewBufferedReader(fileBufferGrowSize, tio.BufferedReaderFlagDelimiter, 0, cons.delimiter),
+		log:            logger,
+	}
+}
+
+func (cons *File) observeFile(name string) {
+	defer cons.WorkerDone()
+	file := cons.newObservedFile(cons.fileName)
+	defer file.close()
+
+	enqueue := cons.SimpleConsumer.Enqueue
+
+	if cons.hasToSetMetadata {
+		dir, file := filepath.Split(cons.fileName)
+		enqueue = func(data []byte) {
+			metaData := core.Metadata{}
+			metaData.SetValue("file", []byte(file))
+			metaData.SetValue("dir", []byte(dir))
+			cons.EnqueueWithMetadata(data, metaData)
+		}
 	}
 
-	return baseFileName
-}
+	if cons.offsetFilePath != "" {
+		enqueue = func(data []byte) {
+			enqueue(data)
+			file.storeOffset()
+		}
+	}
 
-func newSourceFile(conf core.PluginConfigReader) (sourceFile, error) {
-	source := sourceFile{}
-	err := conf.Configure(&source)
-	return source, err
-}
-
-// -- seeker --
-
-type seeker struct {
-	seek     int
-	onRotate int
-	offset   int64
-}
-
-func newSeeker(conf core.PluginConfigReader) seeker {
-	switch strings.ToLower(conf.GetString("DefaultOffset", fileOffsetEnd)) {
+	switch cons.observeMode {
+	case observeModeWatch:
+		file.observeFSNotify(enqueue, cons.done)
 	default:
-		fallthrough
-	case fileOffsetEnd:
-		return seeker{
-			seek:     io.SeekEnd,
-			onRotate: io.SeekCurrent,
-			offset:   io.SeekStart,
-		}
-
-	case fileOffsetStart:
-		return seeker{
-			seek:     io.SeekCurrent,
-			onRotate: io.SeekCurrent,
-			offset:   io.SeekStart,
-		}
+		file.observePoll(enqueue, cons.done)
 	}
 }
 
-// -- watcher --
+func (cons *File) observeFiles() {
+	defer cons.WorkerDone()
 
-type watcher struct {
-	logger logrus.FieldLogger
-	source *sourceFile
-	read   func()
-
-	done chan int
-}
-
-func newWatcher(logger logrus.FieldLogger, source *sourceFile, readFunction func()) *watcher {
-	return &watcher{
-		logger: logger,
-		source: source,
-		read:   readFunction,
-	}
-}
-
-func (w *watcher) Watch(buffer *tio.BufferedReader, sendFunction func(data []byte)) {
-	// init
-	w.done = make(chan int)
-
-	// watcher loop in subroutine
-	go w.watchLoop()
-
-	// busy loop for shutdown
-	for w.source.state != fileStateDone {
-		time.Sleep(time.Second)
-	}
-
-	w.logger.Debug("shutdown file watcher ..")
-	close(w.done)
-}
-
-func (w *watcher) watchLoop() {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		w.logger.WithError(err).Error("Failed to start watcher")
+	if !strings.Contains(cons.fileName, "*") {
+		cons.observeFile(cons.fileName) // blocking
 		return
 	}
 
-	defer watcher.Close()
-
-	for {
-		if _, err := os.Stat(w.source.realFileName); os.IsNotExist(err) {
-			w.logger.WithField("file", w.source.realFileName).
-				Warning("watched file not exists. retry in 3sec ..")
-			time.Sleep(3 * time.Second)
-			continue // retry
-		}
-
-		// read current file state before watching
-		w.read()
-
-		err := watcher.Add(w.source.realFileName)
-		if err != nil {
-			w.logger.Error("error during adding watcher: ", err)
-			time.Sleep(3 * time.Second)
-			continue // retry
-		}
-
-	fileEvent:
-		for {
-			select {
-			case event := <-watcher.Events:
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					w.logger.Debug("modified file: ", event.Name)
-					w.read()
-					continue fileEvent //break select
-				}
-
-				if event.Op&fsnotify.Rename == fsnotify.Rename || event.Op&fsnotify.Remove == fsnotify.Remove {
-					w.logger.WithField("event", event).Debug("file renamed/removed: ", event.Name)
-					watcher.Remove(w.source.realFileName)
-					break fileEvent
-				}
-			case err := <-watcher.Errors:
-				w.logger.Error("Error during watch loop: ", err)
-			case <-w.done:
-				return
-			}
-		}
+	fileNames, err := filepath.Glob(cons.fileName)
+	if err != nil {
+		cons.Logger.Warningf("Failed to evaluate glob '%s'", cons.fileName)
 	}
+
+	for i := range fileNames {
+		cons.AddWorker()
+		go cons.observeFile(fileNames[i])
+	}
+	<-cons.done
+}
+
+// Consume opens the given file(s) for reading
+func (cons *File) Consume(workers *sync.WaitGroup) {
+	go tgo.WithRecoverShutdown(func() {
+		cons.AddMainWorker(workers)
+		cons.observeFiles()
+	})
+
+	cons.ControlLoop()
 }
