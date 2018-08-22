@@ -91,7 +91,7 @@ const (
 // By default this parameter is set to "newest".
 //
 // - PollingDelayMs: This value defines the duration in Milliseconds the consumer
-//  waits between checking the source file for new content after hitting the
+// waits between checking the source file for new content after hitting the
 // end of file (EOF). NOTE: This settings only takes effect if the consumer is
 // running in `poll` mode!
 // By default this parameter is set to "100".
