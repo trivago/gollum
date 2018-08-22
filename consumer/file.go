@@ -226,7 +226,7 @@ func (cons *File) observeFile(name string) {
 func (cons *File) observeFiles() {
 	defer cons.WorkerDone()
 
-	if !strings.Contains(cons.fileName, "*") {
+	if !strings.ContainsAny(cons.fileName, "*?") {
 		cons.observeFile(cons.fileName) // blocking
 		return
 	}
