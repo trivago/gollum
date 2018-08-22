@@ -42,7 +42,7 @@ Parameters
 **File**
 
   This value is a mandatory setting and contains the name of the
-  file to read. This filed supports glob patterns.
+  file to read. This field supports glob patterns.
   If the file pointed to is a symlink, changes to the symlink will be
   detected. The file will be watched for changes, so active logfiles can
   be scraped, too.
@@ -91,7 +91,7 @@ Parameters
 
 **PollingDelayMs** (default: 100, unit: ms)
 
-  This value defines the duration in Milliseconds the consumer
+  This value defines the duration in milliseconds the consumer
   waits between checking the source file for new content after hitting the
   end of file (EOF). NOTE: This settings only takes effect if the consumer is
   running in `poll` mode!
@@ -104,6 +104,14 @@ Parameters
   This value defines the duration in seconds the consumer waits
   between retries, e.g. after not being able to open a file.
   By default this parameter is set to "3".
+  
+  
+
+**DirScanIntervalSec** (default: 10, unit: s)
+
+  Only applies when using globs. This setting will define the
+  interval in secnds in which the glob will be re-evaluated and new files can be
+  scraped. By default this parameter is set to "10".
   
   
 
