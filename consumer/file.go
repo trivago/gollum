@@ -156,7 +156,7 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 
 func (cons *File) newObservedFile(name string) *observableFile {
 	logger := cons.Logger.WithFields(logrus.Fields{
-		"File": cons.fileName,
+		"File": name,
 	})
 
 	offsetFileName := ""
@@ -180,8 +180,10 @@ func (cons *File) newObservedFile(name string) *observableFile {
 		cursor.whence = io.SeekEnd
 	}
 
+	logger.Info("Starting file scraper")
+
 	return &observableFile{
-		fileName:       cons.fileName,
+		fileName:       name,
 		offsetFileName: offsetFileName,
 		cursor:         cursor,
 		retryDelay:     cons.retryDelay,
@@ -193,13 +195,13 @@ func (cons *File) newObservedFile(name string) *observableFile {
 
 func (cons *File) observeFile(name string) {
 	defer cons.WorkerDone()
-	file := cons.newObservedFile(cons.fileName)
+	file := cons.newObservedFile(name)
 	defer file.close()
 
 	enqueue := cons.SimpleConsumer.Enqueue
 
 	if cons.hasToSetMetadata {
-		dir, file := filepath.Split(cons.fileName)
+		dir, file := filepath.Split(name)
 		enqueue = func(data []byte) {
 			metaData := core.Metadata{}
 			metaData.SetValue("file", []byte(file))
