@@ -34,6 +34,7 @@ type observableFile struct {
 	offsetFileName string
 	cursor         fileCursor
 	buffer         *tio.BufferedReader
+	stopIfNotExist bool
 
 	lastStatCheck time.Time
 	retryDelay    time.Duration
@@ -133,7 +134,7 @@ func (fs *observableFile) scrape(fileName string, enqueue func([]byte), onRotate
 	}
 }
 
-func (fs *observableFile) observePoll(enqueue func([]byte), done chan struct{}) {
+func (fs *observableFile) observePoll(enqueue func([]byte), done <-chan struct{}) {
 	spin := tsync.NewCustomSpinner(fs.pollDelay)
 	actualFileName := fs.getActualFilename()
 	logger := fs.log
@@ -150,6 +151,15 @@ func (fs *observableFile) observePoll(enqueue func([]byte), done chan struct{}) 
 			fs.log = logger.WithFields(logrus.Fields{
 				"Scraping": actualFileName,
 			})
+
+			if _, err := os.Stat(actualFileName); err != nil {
+				fs.log.WithError(err).Warning("failed to get file stat")
+				if fs.stopIfNotExist && os.IsNotExist(err) {
+					return
+				}
+				time.Sleep(fs.retryDelay)
+				continue // retry
+			}
 		}
 
 		fs.scrape(actualFileName, enqueue, spin.Reset)
@@ -157,7 +167,7 @@ func (fs *observableFile) observePoll(enqueue func([]byte), done chan struct{}) 
 	}
 }
 
-func (fs *observableFile) observeFSNotify(enqueue func([]byte), done chan struct{}) {
+func (fs *observableFile) observeFSNotify(enqueue func([]byte), done <-chan struct{}) {
 	notify, err := fsnotify.NewWatcher()
 	if err != nil {
 		fs.log.WithError(err).Error("Failed to start fsnotify watcher")
@@ -181,6 +191,9 @@ func (fs *observableFile) observeFSNotify(enqueue func([]byte), done chan struct
 
 		if _, err := os.Stat(actualFileName); err != nil {
 			fs.log.WithError(err).Warning("failed to get file stat")
+			if fs.stopIfNotExist && os.IsNotExist(err) {
+				return
+			}
 			time.Sleep(fs.retryDelay)
 			continue // retry
 		}

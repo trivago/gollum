@@ -41,6 +41,11 @@ const (
 	observeModeWatch = "watch"
 )
 
+const (
+	stopIfNotExist  = true
+	retryIfNotExist = false
+)
+
 // File consumer plugin
 //
 // The File consumer reads messages from a file, looking for a customizable
@@ -61,7 +66,7 @@ const (
 // Parameters
 //
 // - File: This value is a mandatory setting and contains the name of the
-// file to read. This filed supports glob patterns.
+// file to read. This field supports glob patterns.
 // If the file pointed to is a symlink, changes to the symlink will be
 // detected. The file will be watched for changes, so active logfiles can
 // be scraped, too.
@@ -90,7 +95,7 @@ const (
 // is defined and the file exists, the DefaultOffset parameter is ignored.
 // By default this parameter is set to "newest".
 //
-// - PollingDelayMs: This value defines the duration in Milliseconds the consumer
+// - PollingDelayMs: This value defines the duration in milliseconds the consumer
 // waits between checking the source file for new content after hitting the
 // end of file (EOF). NOTE: This settings only takes effect if the consumer is
 // running in `poll` mode!
@@ -99,6 +104,10 @@ const (
 // - RetryDelaySec: This value defines the duration in seconds the consumer waits
 // between retries, e.g. after not being able to open a file.
 // By default this parameter is set to "3".
+//
+// - DirScanIntervalSec: Only applies when using globs. This setting will define the
+// interval in secnds in which the glob will be re-evaluated and new files can be
+// scraped. By default this parameter is set to "10".
 //
 // - SetMetadata: When this value is set to "true", the fields mentioned in the metadata
 // section will be added to each message. Adding metadata will have a
@@ -125,12 +134,14 @@ type File struct {
 	offsetFilePath   string        `config:"OffsetFilePath"`
 	pollingDelay     time.Duration `config:"PollingDelayMs" default:"100" metric:"ms"`
 	retryDelay       time.Duration `config:"RetryDelaySec" default:"3" metric:"s"`
+	dirScanInterval  time.Duration `config:"DirScanIntervalSec" default:"10" metric:"s"`
 	delimiter        string        `config:"Delimiter" default:"\n"`
 	observeMode      string        `config:"ObserveMode" default:"poll"`
 	hasToSetMetadata bool          `config:"SetMetadata" default:"false"`
 	defaultOffset    string        `config:"DefaultOffset" default:"newest"`
 
-	done chan struct{}
+	observedFiles *sync.Map
+	done          chan struct{}
 }
 
 func init() {
@@ -140,6 +151,7 @@ func init() {
 // Configure initializes this consumer with values from a plugin config.
 func (cons *File) Configure(conf core.PluginConfigReader) {
 	cons.done = make(chan struct{})
+	cons.observedFiles = new(sync.Map)
 
 	// TODO: support manual roll again
 	//cons.SetRollCallback(cons.onRoll)
@@ -154,7 +166,7 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func (cons *File) newObservedFile(name string) *observableFile {
+func (cons *File) newObservedFile(name string, stopIfNotExist bool) *observableFile {
 	logger := cons.Logger.WithFields(logrus.Fields{
 		"File": name,
 	})
@@ -166,7 +178,7 @@ func (cons *File) newObservedFile(name string) *observableFile {
 	switch {
 	case cons.offsetFilePath != "":
 		offsetFileName = fmt.Sprintf("%s/%s.offset", cons.offsetFilePath, filepath.Base(cons.fileName))
-		if offsetFileData, err := ioutil.ReadFile(offsetFileName); err == nil {
+		if offsetFileData, err := ioutil.ReadFile(offsetFileName); err != nil {
 			logger.WithError(err).Errorf("Failed to open offset file %s", offsetFileName)
 		} else {
 			if offset, err := strconv.ParseInt(string(offsetFileData), 10, 64); err != nil {
@@ -186,6 +198,7 @@ func (cons *File) newObservedFile(name string) *observableFile {
 		fileName:       name,
 		offsetFileName: offsetFileName,
 		cursor:         cursor,
+		stopIfNotExist: stopIfNotExist,
 		retryDelay:     cons.retryDelay,
 		pollDelay:      cons.pollingDelay,
 		buffer:         tio.NewBufferedReader(fileBufferGrowSize, tio.BufferedReaderFlagDelimiter, 0, cons.delimiter),
@@ -193,12 +206,16 @@ func (cons *File) newObservedFile(name string) *observableFile {
 	}
 }
 
-func (cons *File) observeFile(name string) {
+func (cons *File) observeFile(name string, stopIfNotExist bool) {
 	defer cons.WorkerDone()
-	file := cons.newObservedFile(name)
+
+	file := cons.newObservedFile(name, stopIfNotExist)
 	defer file.close()
 
-	enqueue := cons.SimpleConsumer.Enqueue
+	cons.observedFiles.Store(name, file)
+	defer cons.observedFiles.Delete(name)
+
+	enqueue := cons.Enqueue
 
 	if cons.hasToSetMetadata {
 		dir, file := filepath.Split(name)
@@ -229,20 +246,32 @@ func (cons *File) observeFiles() {
 	defer cons.WorkerDone()
 
 	if !strings.ContainsAny(cons.fileName, "*?") {
-		cons.observeFile(cons.fileName) // blocking
+		cons.observeFile(cons.fileName, retryIfNotExist) // blocking
 		return
 	}
 
-	fileNames, err := filepath.Glob(cons.fileName)
-	if err != nil {
-		cons.Logger.Warningf("Failed to evaluate glob '%s'", cons.fileName)
-	}
+	// Glob needs to be re-evaluated to find new files.
+	for {
+		fileNames, err := filepath.Glob(cons.fileName)
+		if err != nil {
+			cons.Logger.Warningf("Failed to evaluate glob '%s'", cons.fileName)
+			return
+		}
 
-	for i := range fileNames {
-		cons.AddWorker()
-		go cons.observeFile(fileNames[i])
+		cons.Logger.Debugf("Evaluating glob returned %d files to scrape", len(fileNames))
+		for i := range fileNames {
+			if _, ok := cons.observedFiles.Load(fileNames[i]); !ok {
+				cons.AddWorker()
+				go cons.observeFile(fileNames[i], stopIfNotExist)
+			}
+		}
+
+		select {
+		case <-time.After(cons.dirScanInterval):
+		case <-cons.done:
+			return
+		}
 	}
-	<-cons.done
 }
 
 // Consume opens the given file(s) for reading
