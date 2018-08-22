@@ -153,7 +153,7 @@ func (fs *observableFile) observePoll(enqueue func([]byte), done <-chan struct{}
 			})
 
 			if _, err := os.Stat(actualFileName); err != nil {
-				fs.log.WithError(err).Warning("failed to get file stat")
+				fs.log.WithError(err).Warning("Failed to get file stat")
 				if fs.stopIfNotExist && os.IsNotExist(err) {
 					return
 				}
@@ -190,7 +190,7 @@ func (fs *observableFile) observeFSNotify(enqueue func([]byte), done <-chan stru
 		})
 
 		if _, err := os.Stat(actualFileName); err != nil {
-			fs.log.WithError(err).Warning("failed to get file stat")
+			fs.log.WithError(err).Warning("Failed to get file stat")
 			if fs.stopIfNotExist && os.IsNotExist(err) {
 				return
 			}
@@ -199,7 +199,7 @@ func (fs *observableFile) observeFSNotify(enqueue func([]byte), done <-chan stru
 		}
 
 		if err := notify.Add(actualFileName); err != nil {
-			fs.log.WithError(err).Error("error adding fsnotify watcher")
+			fs.log.WithError(err).Error("Error adding fsnotify watcher")
 			time.Sleep(fs.retryDelay)
 			continue // retry
 		}
@@ -213,13 +213,13 @@ func (fs *observableFile) observeFSNotify(enqueue func([]byte), done <-chan stru
 
 				switch {
 				case containsMoveEvent:
-					fs.log.Debugf("detected file move event %s", event.Name)
+					fs.log.Debugf("Detected file move event %s", event.Name)
 					fs.scrape(actualFileName, enqueue, func() {})
 					rotated = true
 					notify.Remove(actualFileName)
 
 				case containsWriteEvent:
-					fs.log.Debugf("detected file modification event %s", event.Name)
+					fs.log.Debugf("Detected file modification event %s", event.Name)
 					fs.scrape(actualFileName, enqueue, func() {
 						rotated = true
 						notify.Remove(actualFileName)
@@ -227,7 +227,7 @@ func (fs *observableFile) observeFSNotify(enqueue func([]byte), done <-chan stru
 				}
 
 			case err := <-notify.Errors:
-				fs.log.WithError(err).Error("fsnotify reported an error")
+				fs.log.WithError(err).Error("Fsnotify reported an error")
 				rotated = true
 				notify.Remove(actualFileName)
 
