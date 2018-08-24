@@ -4,6 +4,7 @@
 .. toctree::
     :maxdepth: 9
 
+    /src/gen/producer/awsCloudwatchlogs.rst
     /src/gen/producer/awsFirehose.rst
     /src/gen/producer/awsKinesis.rst
     /src/gen/producer/awsS3.rst

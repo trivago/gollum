@@ -83,13 +83,21 @@ Parameters
   
   
 
-**StreamProperties/<streamName>/DayBasedIndex**
+**StreamProperties/<streamName>/TimeBasedIndex**
 
   This value can be set to "true"
-  to append the date of the message to the index as in "<index>_YYYY-MM-DD".
+  to append the date of the message to the index as in "<index>_<TimeBasedFormat>".
   NOTE: This setting incurs a performance penalty because it is necessary to
   check if an index exists for each message!
   By default this parameter is set to "false".
+  
+  
+
+**StreamProperties/<streamName>/TimeBasedFormat**
+
+  This value can be set to a valid
+  go time format string to be used with DayBasedIndex.
+  By default this parameter is set to "2006-01-02".
   
   
 
