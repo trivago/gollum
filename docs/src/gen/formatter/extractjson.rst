@@ -29,12 +29,12 @@ Parameters
   
   
 
-**Precision**
+**Precision** (default: -1)
 
   Defines the number of decimal places to use when converting
-  Numbers into strings. If this parameter is set to 0 no restrictions will
-  apply.
-  By default this parameter is set to 0.
+  Numbers into strings. If this parameter is set to -1 the shortest possible
+  number of decimal places will be used.
+  By default this parameter is set to -1.
   
   
 
