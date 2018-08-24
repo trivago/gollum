@@ -16,6 +16,8 @@ LABEL maintainer="arne.claus@trivago.com"
 
 COPY --from=builder /go/src/github.com/trivago/gollum/gollum /usr/local/bin
 
+RUN apk add ca-certificates
+
 # /etc/gollum is meant to be mounted with config data, etc.
 RUN mkdir -p /etc/gollum && \
     chmod -R 755 /etc/gollum
