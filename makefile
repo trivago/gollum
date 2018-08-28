@@ -79,23 +79,13 @@ clean:
 #############################################################################################################
 # Vendor related targets
 
-Gopkg.toml:
-	@dep init
-
-Gopkg.lock: Gopkg.toml
-	@dep ensure
-
 .PHONY: vendor # Generate the vendor folder
-vendor: Gopkg.toml
-	@dep ensure
-
-.PHONY: vendor-update # Update all dependencies in the vendor folder
-vendor-update: Gopkg.lock
-	@dep ensure -update
+vendor:
+	@$(GO_ENV) go mod vendor
 
 .PHONY: vendor-clean # Removes files & directories under ./vendor that are ignored by git
 vendor-clean:
-	find vendor | git check-ignore --stdin | while read f ; do rm -vrf "$$f" ; done
+	@find vendor | git check-ignore --stdin | while read f ; do rm -vrf "$$f" ; done
 
 #############################################################################################################
 # Test related targets
