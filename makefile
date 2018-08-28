@@ -4,7 +4,7 @@ GOLLUM_TAG := $(shell git describe --always --tags --match "v*" | sed -E 's/^v([
 GOLLUM_DIRTY := $(if $(shell git status --porcelain),-dirty)
 GOLLUM_VERSION := $(join $(GOLLUM_TAG),$(GOLLUM_DIRTY))
 
-GO_ENV := GORACE="halt_on_error=0"
+GO_ENV := GORACE="halt_on_error=0" GO111MODULE="on"
 GO_FLAGS := -ldflags="-s -X 'github.com/trivago/gollum/core.versionString=$(GOLLUM_VERSION)'"
 GO_FLAGS_DEBUG := $(GO_FLAGS) -ldflags='-linkmode=internal' -gcflags='-N -l'
 
