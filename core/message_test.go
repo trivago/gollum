@@ -25,7 +25,7 @@ func getMockMessage(data string) *Message {
 	msg := &Message{
 		prevStreamID: 2,
 		source:       nil,
-		timestamp:    time.Now(),
+		timestamp:    time.Now().UnixNano(),
 	}
 
 	msg.data.payload = []byte(data)
@@ -211,7 +211,7 @@ func TestMessageSerialize(t *testing.T) {
 	expect.Equal(readMessage.streamID, testMessage.streamID)
 	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
 	expect.Equal(readMessage.origStreamID, testMessage.origStreamID)
-	expect.Equal(readMessage.timestamp.UnixNano(), testMessage.timestamp.UnixNano())
+	expect.Equal(readMessage.timestamp, testMessage.timestamp)
 	expect.Equal(readMessage.data.payload, testMessage.data.payload)
 	expect.Equal(readMessage.data.metadata, testMessage.data.metadata)
 	expect.Nil(readMessage.orig)
@@ -230,7 +230,7 @@ func TestMessageSerialize(t *testing.T) {
 	expect.Equal(readMessage.streamID, testMessage.streamID)
 	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
 	expect.Equal(readMessage.origStreamID, testMessage.origStreamID)
-	expect.Equal(readMessage.timestamp.UnixNano(), testMessage.timestamp.UnixNano())
+	expect.Equal(readMessage.timestamp, testMessage.timestamp)
 	expect.Equal(readMessage.data.payload, testMessage.data.payload)
 	expect.Equal(readMessage.data.metadata, testMessage.data.metadata)
 	expect.NotNil(readMessage.orig)

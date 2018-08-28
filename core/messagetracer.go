@@ -17,9 +17,10 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"hash/fnv"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type messageTracer struct {
@@ -156,8 +157,7 @@ func (mt *messageTracer) newMessageDump(msg *Message, comment string) messageDum
 	}
 
 	//  set timestamp
-	dump.Timestamp = msg.timestamp
-
+	dump.Timestamp = msg.GetCreationTime()
 	dump.FingerprintID = mt.createFingerPrintID(&dump)
 
 	return dump
