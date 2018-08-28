@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	pm "github.com/deathowl/go-metrics-prometheus"
+	promMetrics "github.com/MeteoGroup/go-metrics-prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -19,7 +19,7 @@ func startPrometheusMetricsService(address string) func() {
 
 	// Start updates
 	go func() {
-		client := pm.NewPrometheusProvider(core.MetricsRegistry, "gollum", "", registry, 0)
+		client := promMetrics.NewPrometheusProvider(core.MetricsRegistry, "gollum", "", time.Second)
 		for {
 			select {
 			case <-time.After(time.Second):
