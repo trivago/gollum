@@ -16,6 +16,10 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLM
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/bsm/sarama-cluster v2.1.15+incompatible h1:RkV6WiNRnqEEbp81druK8zYhmnIgdOjqSVi0+9Cnl2A=
 github.com/bsm/sarama-cluster v2.1.15+incompatible/go.mod h1:r7ao+4tTNXvWm+VRpRJchr2kQhqxgmAp2iEX5W96gMM=
+github.com/coreos/go-systemd v0.0.0-20180705093442-88bfeed483d3 h1:h/wTyTK7VVFaSLpGFKLPkEYiWuloHpStKd30EZIaL9I=
+github.com/coreos/go-systemd v0.0.0-20180705093442-88bfeed483d3/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
+github.com/coreos/pkg v0.0.0-20180108230652-97fdf19511ea h1:n2Ltr3SrfQlf/9nOna1DoGKxLx3qTSI8Ttl6Xrqp6mw=
+github.com/coreos/pkg v0.0.0-20180108230652-97fdf19511ea/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/deathowl/go-metrics-prometheus v0.0.0-20170731141557-091131e49c33 h1:3iWtaf/nePprcmhkbXiG6AG4YDEzvQX4jqyhwjsaV94=
@@ -51,6 +55,8 @@ github.com/matttproud/golang_protobuf_extensions v1.0.1 h1:4hp9jkHxhMHkqkrB3Ix0j
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b h1:j7+1HpAFS1zy5+Q4qx1fWh90gTKwiN4QCGoY9TWyyO4=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
+github.com/miekg/pcap v0.0.0-20170124221734-51d9d986bf8d h1:S01VYNC9V9SzDdjLwLevKd7DbA8tGi7Yrpm/sKXotFI=
+github.com/miekg/pcap v0.0.0-20170124221734-51d9d986bf8d/go.mod h1:CKoJegRWvelYZDH5VAAdU6UeDzBMRopRWg3ytiFWzug=
 github.com/mmcloughlin/geohash v0.0.0-20180625052535-3b756d8ac3d9 h1:5mdMJe5PZNvVOL9SeqG7dKAL93CqxOa8rBhAarDJ7LI=
 github.com/mmcloughlin/geohash v0.0.0-20180625052535-3b756d8ac3d9/go.mod h1:oNZxQo5yWJh0eMQEP/8hwQuVx9Z9tjwFUqcTB1SmG0c=
 github.com/mssola/user_agent v0.4.1 h1:iTUaMpVrb2qWyvUw8UvK3ygWMd2lB1NGuZ1xhpBf1eg=

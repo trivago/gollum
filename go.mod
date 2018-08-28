@@ -10,6 +10,8 @@ require (
 	github.com/aws/aws-sdk-go v1.15.22
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
 	github.com/bsm/sarama-cluster v2.1.15+incompatible
+	github.com/coreos/go-systemd v0.0.0-20180705093442-88bfeed483d3
+	github.com/coreos/pkg v0.0.0-20180108230652-97fdf19511ea // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deathowl/go-metrics-prometheus v0.0.0-20170731141557-091131e49c33
 	github.com/eapache/go-resiliency v1.1.0 // indirect
@@ -24,6 +26,7 @@ require (
 	github.com/mattn/go-isatty v0.0.3 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
+	github.com/miekg/pcap v0.0.0-20170124221734-51d9d986bf8d
 	github.com/mmcloughlin/geohash v0.0.0-20180625052535-3b756d8ac3d9
 	github.com/mssola/user_agent v0.4.1
 	github.com/oschwald/maxminddb-golang v1.3.0 // indirect
