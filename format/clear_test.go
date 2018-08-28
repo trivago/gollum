@@ -55,6 +55,6 @@ func TestClearFormatterApplyHandling(t *testing.T) {
 	err = plugin.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("", string(msg.GetMetadata().GetValueString("foo")))
+	expect.Equal("", msg.GetMetadata().GetValueString("foo"))
 	expect.Equal("test", msg.String())
 }
