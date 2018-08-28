@@ -8,14 +8,14 @@ git:
 matrix:
   include:
     - 
+      go: "1.11"
+      env: ACCEPT_TARGET=pipeline-accept
+    - 
       go: "1.10"
       env: ACCEPT_TARGET=pipeline-accept
     - 
-      go: "1.9"	
+      go: "1.9"
       env: ACCEPT_TARGET=test
-    - 
-      go: "1.8"	
-      env: ACCEPT_TARGET=test-integration
  
 #before_install:
 #  - sudo apt-get -qq update

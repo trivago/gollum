@@ -17,6 +17,7 @@ Please read the release notes carefully
  * Consumer.File setting "File" has been renamed to "Files"
  * Consumer.File setting "OffsetFile" changed to "OffsetPath" to support multiple offset files per consumer.
  * Consumer.File setting "PollingDelay" has been renamed to "PollingDelayMs".
+ * Removed support for go 1.8 in order to allow sync.Map
 
 ## 0.5.3
 
