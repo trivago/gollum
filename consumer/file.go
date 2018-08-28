@@ -191,8 +191,8 @@ func (cons *File) newObservedFile(name string, stopIfNotExist bool) *observableF
 	case defaultOffset == fileOffsetEnd:
 		cursor.whence = io.SeekEnd
 
-	default:
 	case defaultOffset == fileOffsetStart:
+	default:
 	}
 
 	logger.Info("Starting file scraper")
