@@ -8,11 +8,16 @@ Please read the release notes carefully
 ### New with 0.6.0
 
  * Added a new flag "-mt" to choose the metrics provider (currently only prometheus)
+ * Consumer.File setting "Files" now supports glob patterns.
 
 ### Breaking changes with 0.6.0
 
  * Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
    Old-style metrics have been removed and many metrics names have changed.
+ * Consumer.File setting "File" has been renamed to "Files"
+ * Consumer.File setting "OffsetFile" changed to "OffsetPath" to support multiple offset files per consumer.
+ * Consumer.File setting "PollingDelay" has been renamed to "PollingDelayMs".
+ * Removed support for go 1.8 in order to allow sync.Map
 
 ## 0.5.3
 

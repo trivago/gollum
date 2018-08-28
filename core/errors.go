@@ -33,6 +33,6 @@ func (p ModulateResultError) Error() string {
 // message.
 func NewModulateResultError(message string, values ...interface{}) ModulateResultError {
 	return ModulateResultError{
-		message: fmt.Sprintf(message, values),
+		message: fmt.Sprintf(message, values...),
 	}
 }
