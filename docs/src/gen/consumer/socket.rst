@@ -22,8 +22,9 @@ Parameters
 
   This value defines the protocol, host and port or socket to bind to.
   This can either be any ip address and port like "localhost:5880" or a file
-  like "unix:///var/gollum.socket".
-  By default this parameter is set to ":5880".
+  like "unix:///var/gollum.socket". Valid protocols can be derived from the
+  golang net package documentation. Common values are "udp", "tcp" and "unix".
+  By default this parameter is set to "tcp://0.0.0.0:5880".
   
   
 
@@ -38,11 +39,8 @@ Parameters
 **Acknowledge**
 
   This value can be set to a non-empty value to inform the writer
-  on success or error. On success, the given string is sent. Any error will close
-  the connection. If Acknowledge is enabled and "Address" is set to an IP address,
-  TCP is used to open the connection, otherwise UDP is used. If an error occurs
-  during write, "NOT <Acknowledge>" is returned. To disable this parameter, set it
-  to "".
+  that data has been accepted. On success, the given string is sent. Any error
+  will close the connection. Acknowledge does not work with UDP based sockets.
   By default this parameter is set to "".
   
   
@@ -92,11 +90,11 @@ Parameters
     
     
 
-**Delimiter** (default: \\n)
+**Delimiter** (default: \n)
 
   This value defines the delimiter used by the text and delimiter
   partitioners.
-  By default this parameter is set to "\\n".
+  By default this parameter is set to "\n".
   
   
 
@@ -125,19 +123,19 @@ Parameters
   
   
 
-**AckTimoutSec** (default: 2, unit: sec)
+**AckTimeoutSec** (default: 1, unit: sec)
 
   This value defines the number of seconds to wait for acknowledges
   to succeed.
-  By default this parameter is set to "2".
+  By default this parameter is set to "1".
   
   
 
-**ReadTimoutSec** (default: 5, unit: sec)
+**ReadTimeoutSec** (default: 2, unit: sec)
 
   This value defines the number of seconds to wait for data
-  to be received.
-  By default this parameter is set to "5".
+  to be received. This setting affects the maximum shutdown duration of this consumer.
+  By default this parameter is set to "2".
   
   
 

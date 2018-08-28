@@ -55,7 +55,7 @@ Parameters
   
   
 
-**RetrySleepTimeSec** (default: 4, unit: sec)
+**RetrySleepTimeSec**
 
   This value defines the number of seconds to wait after
   trying to reconnect to a shard.

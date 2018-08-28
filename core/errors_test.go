@@ -15,13 +15,14 @@
 package core
 
 import (
-	"github.com/trivago/tgo/ttesting"
 	"testing"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 func TestModulateResultError(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	err := NewModulateResultError("error message %s", "foo")
-	expect.Equal("error message [foo]", err.Error())
+	expect.Equal("error message foo", err.Error())
 }

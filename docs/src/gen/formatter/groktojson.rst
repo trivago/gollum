@@ -16,6 +16,28 @@ The output format is JSON.
 Parameters
 ----------
 
+**RemoveEmptyValues**
+
+  When set to true, empty captures will not be returned.
+  By default this parameter is set to "true".
+  
+  
+
+**NamedCapturesOnly**
+
+  When set to true, only named captures will be returned.
+  By default this parameter is set to "true".
+  
+  
+
+**SkipDefaultPatterns**
+
+  When set to true, standard grok patterns will not be
+  included in the list of patterns.
+  By default this parameter is set to "true".
+  
+  
+
 **Patterns**
 
   A list of grok patterns that will be applied to messages.

@@ -42,18 +42,20 @@ Parameters
 **File**
 
   This value is a mandatory setting and contains the name of the
-  file to read. The file will be read from beginning to end and the reader
-  will stay attached until the consumer is stopped, so appends to the
-  file will be recognized automatically.
+  file to read. This field supports glob patterns.
+  If the file pointed to is a symlink, changes to the symlink will be
+  detected. The file will be watched for changes, so active logfiles can
+  be scraped, too.
   
   
 
-**OffsetFile**
+**OffsetFilePath**
 
-  This value defines the path to a file that stores the
-  current offset inside the source file. If the consumer is restarted, that
-  offset is used to continue reading from the previous position. To disable
-  this setting, set it to "".
+  This value defines a path where the individual, current
+  file offsets are stored. The filename will the name and extension of the
+  source file plus the extension ".offset". If the consumer is restarted,
+  these offset files are used to continue reading from the previous position.
+  To disable this setting, set it to "".
   By default this parameter is set to "".
   
   
@@ -78,7 +80,7 @@ Parameters
   
   
 
-**DefaultOffset**
+**DefaultOffset** (default: newest)
 
   This value defines the default offset from which to start
   reading within the file. Valid values are  "oldest" and "newest". If OffsetFile
@@ -87,13 +89,29 @@ Parameters
   
   
 
-**PollingDelay**
+**PollingDelayMs** (default: 100, unit: ms)
 
-  This value defines the duration the consumer waits between
-  checking the source file for new content after hitting the end of file (EOF).
-  The value is in milliseconds (ms). NOTE: This settings only takes effect if the consumer
-  is running in `poll` mode!
+  This value defines the duration in milliseconds the consumer
+  waits between checking the source file for new content after hitting the
+  end of file (EOF). NOTE: This settings only takes effect if the consumer is
+  running in `poll` mode!
   By default this parameter is set to "100".
+  
+  
+
+**RetryDelaySec** (default: 3, unit: s)
+
+  This value defines the duration in seconds the consumer waits
+  between retries, e.g. after not being able to open a file.
+  By default this parameter is set to "3".
+  
+  
+
+**DirScanIntervalSec** (default: 10, unit: s)
+
+  Only applies when using globs. This setting will define the
+  interval in secnds in which the glob will be re-evaluated and new files can be
+  scraped. By default this parameter is set to "10".
   
   
 
@@ -104,6 +122,11 @@ Parameters
   performance impact on systems with high throughput.
   By default this parameter is set to "false".
   
+  
+
+**Files** (default: /var/log/*.log)
+
+  (no documentation available)
   
 
 Parameters (from core.SimpleConsumer)
@@ -165,9 +188,9 @@ This example will read the `/var/log/system.log` file and create a message for e
 
 	 FileIn:
 	   Type: consumer.File
-	   File: /var/log/system.log
+	   File: /var/log/*.log
 	   DefaultOffset: newest
-	   OffsetFile: ""
+	   OffsetFilePath: ""
 	   Delimiter: "\n"
 	   ObserveMode: poll
 	   PollingDelay: 100
