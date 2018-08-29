@@ -5,25 +5,27 @@ import (
 	"net/http"
 	"time"
 
-	pm "github.com/deathowl/go-metrics-prometheus"
-	"github.com/prometheus/client_golang/prometheus"
+	promMetrics "github.com/MeteoGroup/go-metrics-prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
 )
 
 func startPrometheusMetricsService(address string) func() {
-	registry := prometheus.NewRegistry()
 	srv := &http.Server{Addr: address}
 	quit := make(chan struct{})
 
+	flushInterval := 3 * time.Second
+	promClient := promMetrics.NewPrometheusProvider(core.MetricsRegistry, "gollum", "", flushInterval)
+
 	// Start updates
 	go func() {
-		client := pm.NewPrometheusProvider(core.MetricsRegistry, "gollum", "", registry, 0)
 		for {
 			select {
-			case <-time.After(time.Second):
-				client.UpdatePrometheusMetricsOnce()
+			case <-time.After(flushInterval):
+				if err := promClient.UpdatePrometheusMetricsOnce(); err != nil {
+					logrus.WithError(err).Warn("Error updating metrics")
+				}
 			case <-quit:
 				return
 			}
@@ -36,7 +38,7 @@ func startPrometheusMetricsService(address string) func() {
 			ErrorLog:      logrus.StandardLogger(),
 			ErrorHandling: promhttp.ContinueOnError,
 		}
-		http.Handle("/prometheus", promhttp.HandlerFor(registry, opts))
+		http.Handle("/prometheus", promhttp.HandlerFor(promClient.PromRegistry, opts))
 
 		err := srv.ListenAndServe()
 		if err != nil {

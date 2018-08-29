@@ -40,7 +40,7 @@ type Message struct {
 	prevStreamID MessageStreamID
 	origStreamID MessageStreamID
 	source       MessageSource
-	timestamp    time.Time
+	timestamp    int64
 }
 
 // NewMessage creates a new message from a given data stream by copying data.
@@ -49,7 +49,7 @@ func NewMessage(source MessageSource, data []byte, metadata tcontainer.MarshalMa
 		source:       source,
 		streamID:     streamID,
 		origStreamID: streamID,
-		timestamp:    time.Now(),
+		timestamp:    time.Now().UnixNano(),
 	}
 
 	msg.data.payload = getPayloadCopy(data)
@@ -69,7 +69,9 @@ func getPayloadCopy(data []byte) (buffer []byte) {
 
 // GetCreationTime returns the time when this message was created.
 func (msg *Message) GetCreationTime() time.Time {
-	return msg.timestamp
+	sec := msg.timestamp / 1e9
+	nano := msg.timestamp - sec*1e9
+	return time.Unix(sec, nano)
 }
 
 // GetStreamID returns the stream this message is currently routed to.
@@ -256,7 +258,7 @@ func (msg *Message) Serialize() ([]byte, error) {
 		StreamID:     proto.Uint64(uint64(msg.GetStreamID())),
 		PrevStreamID: proto.Uint64(uint64(msg.GetPrevStreamID())),
 		OrigStreamID: proto.Uint64(uint64(msg.GetOrigStreamID())),
-		Timestamp:    proto.Int64(msg.timestamp.UnixNano()),
+		Timestamp:    proto.Int64(msg.timestamp),
 		Data: &SerializedMessageData{
 			Data:     msg.data.payload,
 			Metadata: metaBuffer.Bytes(),
@@ -288,15 +290,11 @@ func DeserializeMessage(data []byte) (*Message, error) {
 		return nil, err
 	}
 
-	timestamp := serializable.GetTimestamp()
-	timestampSec := timestamp / 1e9
-	timestampNano := timestamp - timestampSec*1e9
-
 	msg := &Message{
 		streamID:     MessageStreamID(serializable.GetStreamID()),
 		prevStreamID: MessageStreamID(serializable.GetPrevStreamID()),
 		origStreamID: MessageStreamID(serializable.GetOrigStreamID()),
-		timestamp:    time.Unix(timestampSec, timestampNano),
+		timestamp:    serializable.GetTimestamp(),
 	}
 
 	if msgData := serializable.GetData(); msgData != nil {

@@ -155,8 +155,7 @@ func (mt *messageTracer) newMessageDump(msg *Message, comment string) messageDum
 	}
 
 	//  set timestamp
-	dump.Timestamp = msg.timestamp
-
+	dump.Timestamp = msg.GetCreationTime()
 	dump.FingerprintID = mt.createFingerPrintID(&dump)
 
 	return dump
