@@ -5,6 +5,10 @@
 Gollum 0.6.0 contains breaking changes over version 0.5.x.
 Please read the release notes carefully
 
+Gollum 0.6.0 dependency management switches from go-dep to go-modules.
+As of this is recommended to use go 1.11 or later for development.
+Go 1.10 and 1.9 are still supported. Support for Go 1.8 or older has been dropped.
+
 ### New with 0.6.0
 
  * Added a new flag "-mt" to choose the metrics provider (currently only prometheus).

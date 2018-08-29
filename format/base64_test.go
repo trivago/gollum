@@ -15,9 +15,10 @@
 package format
 
 import (
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestBase64(t *testing.T) {
@@ -64,7 +65,7 @@ func TestBase64DecodeApplyHandling(t *testing.T) {
 	err = decoder.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("test", string(msg.GetMetadata().GetValueString("foo")))
+	expect.Equal("test", msg.GetMetadata().GetValueString("foo"))
 }
 
 func TestBase64EncodeApplyHandling(t *testing.T) {
@@ -84,5 +85,5 @@ func TestBase64EncodeApplyHandling(t *testing.T) {
 	err = encoder.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("dGVzdA==", string(msg.GetMetadata().GetValueString("foo")))
+	expect.Equal("dGVzdA==", msg.GetMetadata().GetValueString("foo"))
 }

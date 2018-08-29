@@ -27,7 +27,6 @@ matrix:
 
 install:
   - make pipeline-tools
-  - make vendor
 
 script:
   - make pipeline-build

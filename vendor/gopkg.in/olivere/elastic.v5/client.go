@@ -26,7 +26,7 @@ import (
 
 const (
 	// Version is the current version of Elastic.
-	Version = "5.0.62"
+	Version = "5.0.74"
 
 	// DefaultURL is the default endpoint of Elasticsearch on the local machine.
 	// It is used e.g. when initializing a new Client without a specific URL.
@@ -1089,11 +1089,6 @@ func (c *Client) startupHealthcheck(timeout time.Duration) error {
 	var lastErr error
 	start := time.Now()
 	for {
-		// Make a copy of the HTTP client provided via options to respect
-		// settings like Basic Auth or a user-specified http.Transport.
-		cl := new(http.Client)
-		*cl = *c.c
-		cl.Timeout = timeout
 		for _, url := range urls {
 			req, err := http.NewRequest("HEAD", url, nil)
 			if err != nil {
@@ -1102,7 +1097,10 @@ func (c *Client) startupHealthcheck(timeout time.Duration) error {
 			if basicAuth {
 				req.SetBasicAuth(basicAuthUsername, basicAuthPassword)
 			}
-			res, err := cl.Do(req)
+			ctx, cancel := context.WithTimeout(req.Context(), timeout)
+			defer cancel()
+			req = req.WithContext(ctx)
+			res, err := c.c.Do(req)
 			if err == nil && res != nil && res.StatusCode >= 200 && res.StatusCode < 300 {
 				return nil
 			} else if err != nil {
@@ -1110,7 +1108,7 @@ func (c *Client) startupHealthcheck(timeout time.Duration) error {
 			}
 		}
 		time.Sleep(1 * time.Second)
-		if time.Now().Sub(start) > timeout {
+		if time.Since(start) > timeout {
 			break
 		}
 	}
@@ -1303,16 +1301,9 @@ func (c *Client) PerformRequestWithOptions(ctx context.Context, opt PerformReque
 
 		// Get response
 		res, err := c.c.Do((*http.Request)(req).WithContext(ctx))
-		if err == context.Canceled || err == context.DeadlineExceeded {
+		if IsContextErr(err) {
 			// Proceed, but don't mark the node as dead
 			return nil, err
-		}
-		if ue, ok := err.(*url.Error); ok {
-			// This happens e.g. on redirect errors, see https://golang.org/src/net/http/client_test.go#L329
-			if ue.Err == context.Canceled || ue.Err == context.DeadlineExceeded {
-				// Proceed, but don't mark the node as dead
-				return nil, err
-			}
 		}
 		if err != nil {
 			n++
@@ -1469,9 +1460,17 @@ func (c *Client) Explain(index, typ, id string) *ExplainService {
 }
 
 // TODO Search Template
-// TODO Search Shards API
 // TODO Search Exists API
-// TODO Validate API
+
+// Validate allows a user to validate a potentially expensive query without executing it.
+func (c *Client) Validate(indices ...string) *ValidateService {
+	return NewValidateService(c).Index(indices...)
+}
+
+// SearchShards returns statistical information about nodes and shards.
+func (c *Client) SearchShards(indices ...string) *SearchShardsService {
+	return NewSearchShardsService(c).Index(indices...)
+}
 
 // FieldCaps returns statistical information about fields in indices.
 func (c *Client) FieldCaps(indices ...string) *FieldCapsService {
@@ -1841,10 +1840,4 @@ func (c *Client) WaitForGreenStatus(timeout string) error {
 // See WaitForStatus for more details.
 func (c *Client) WaitForYellowStatus(timeout string) error {
 	return c.WaitForStatus("yellow", timeout)
-}
-
-// IsConnError unwraps the given error value and checks if it is equal to
-// elastic.ErrNoClient.
-func IsConnErr(err error) bool {
-	return errors.Cause(err) == ErrNoClient
 }
