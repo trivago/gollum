@@ -111,17 +111,15 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 	// http://www.ietf.org/rfc/rfc3164.txt
 	case "RFC3164":
 		cons.format = syslog.RFC3164
-		if cons.protocol == "tcp" {
-			cons.Logger.Warning("RFC3164 demands UDP")
-			cons.protocol = "udp"
+		if cons.protocol != "udp" {
+			cons.Logger.Infof("Using '%s' instead of 'udp' for RFC3164 violates the standard", cons.protocol)
 		}
 
 	// https://tools.ietf.org/html/rfc5424
 	case "RFC5424":
 		cons.format = syslog.RFC5424
-		if cons.protocol == "tcp" {
-			cons.Logger.Warning("RFC5424 demands UDP")
-			cons.protocol = "udp"
+		if cons.protocol != "udp" {
+			cons.Logger.Infof("Using '%s' instead of 'udp' for RFC5424 violates the standard", cons.protocol)
 		}
 
 	// https://tools.ietf.org/html/rfc6587

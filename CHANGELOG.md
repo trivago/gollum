@@ -7,8 +7,9 @@ Please read the release notes carefully
 
 ### New with 0.6.0
 
- * Added a new flag "-mt" to choose the metrics provider (currently only prometheus)
+ * Added a new flag "-mt" to choose the metrics provider (currently only prometheus).
  * Consumer.File setting "Files" now supports glob patterns.
+ * Consumer.Syslog now allows non-standard protocol types (see issue #234)
 
 ### Breaking changes with 0.6.0
 
