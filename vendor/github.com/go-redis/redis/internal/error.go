@@ -4,23 +4,28 @@ import (
 	"io"
 	"net"
 	"strings"
+
+	"github.com/go-redis/redis/internal/proto"
 )
 
-const Nil = RedisError("redis: nil")
-
-type RedisError string
-
-func (e RedisError) Error() string { return string(e) }
-
-func IsRetryableError(err error, retryNetError bool) bool {
-	if IsNetworkError(err) {
-		return retryNetError
+func IsRetryableError(err error, retryTimeout bool) bool {
+	if err == io.EOF {
+		return true
+	}
+	if netErr, ok := err.(net.Error); ok {
+		if netErr.Timeout() {
+			return retryTimeout
+		}
+		return true
 	}
 	s := err.Error()
 	if s == "ERR max number of clients reached" {
 		return true
 	}
 	if strings.HasPrefix(s, "LOADING ") {
+		return true
+	}
+	if strings.HasPrefix(s, "READONLY ") {
 		return true
 	}
 	if strings.HasPrefix(s, "CLUSTERDOWN ") {
@@ -30,15 +35,7 @@ func IsRetryableError(err error, retryNetError bool) bool {
 }
 
 func IsRedisError(err error) bool {
-	_, ok := err.(RedisError)
-	return ok
-}
-
-func IsNetworkError(err error) bool {
-	if err == io.EOF {
-		return true
-	}
-	_, ok := err.(net.Error)
+	_, ok := err.(proto.RedisError)
 	return ok
 }
 
@@ -47,7 +44,7 @@ func IsBadConn(err error, allowTimeout bool) bool {
 		return false
 	}
 	if IsRedisError(err) {
-		return false
+		return strings.HasPrefix(err.Error(), "READONLY ")
 	}
 	if allowTimeout {
 		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
