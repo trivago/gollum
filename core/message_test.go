@@ -195,7 +195,7 @@ func TestMessageMetadataReset(t *testing.T) {
 
 	result1, err := msg.GetMetadata().String("key1")
 	expect.NoError(err)
-	expect.Equal("value string", string(result1))
+	expect.Equal("value string", result1)
 
 	msg.GetMetadata().Delete("key1")
 
