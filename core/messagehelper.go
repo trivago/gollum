@@ -17,24 +17,30 @@ type GetAppliedContentAsBytesFunc func(msg *Message) []byte
 // SetAppliedContentFunc is a func() to store message content to payload or meta data
 type SetAppliedContentFunc func(msg *Message, content interface{})
 
+func getPayloadContent(msg *Message) interface{} {
+	return msg.GetPayload()
+}
+
+func getMetadataContent(msg *Message, key string) interface{} {
+	metadata := msg.TryGetMetadata()
+	if metadata == nil {
+		return []byte{}
+	}
+	if data, ok := metadata.Value(key); ok {
+		return data
+	}
+	return []byte{}
+}
+
 // NewGetAppliedContentFunc returns a GetAppliedContentFunc function
 func NewGetAppliedContentFunc(applyTo string) GetAppliedContentFunc {
-	if applyTo != "" {
-		return func(msg *Message) interface{} {
-			metadata := msg.TryGetMetadata()
-			if metadata == nil {
-				return []byte{}
-			}
-			data, exists := metadata.Value(applyTo)
-			if exists {
-				return data
-			}
-			return []byte{}
-		}
+	if applyTo == "" {
+		return getPayloadContent
 	}
 
+	// we need a lambda to hide away the second parameter
 	return func(msg *Message) interface{} {
-		return msg.GetPayload()
+		return getMetadataContent(msg, applyTo)
 	}
 }
 
@@ -56,24 +62,31 @@ func NewGetAppliedContentAsBytesFunc(applyTo string) GetAppliedContentAsBytesFun
 	}
 }
 
+func setMetadataContent(msg *Message, key string, content interface{}) {
+	if content == nil {
+		msg.GetMetadata().Delete(key)
+	} else {
+		msg.GetMetadata().Set(key, content)
+	}
+}
+
+func setPayloadContent(msg *Message, content interface{}) {
+	if content == nil {
+		msg.ResizePayload(0)
+	} else {
+		msg.StorePayload(ConvertToBytes(content))
+	}
+}
+
 // NewSetAppliedContentFunc returns SetAppliedContentFunc function to store message content
 func NewSetAppliedContentFunc(applyTo string) SetAppliedContentFunc {
-	if applyTo != "" {
-		return func(msg *Message, content interface{}) {
-			if content == nil {
-				msg.GetMetadata().Delete(applyTo)
-			} else {
-				msg.GetMetadata().Set(applyTo, content)
-			}
-		}
+	if applyTo == "" {
+		return setPayloadContent
 	}
 
+	// we need a lambda to hide away the second parameter
 	return func(msg *Message, content interface{}) {
-		if content == nil {
-			msg.ResizePayload(0)
-		} else {
-			msg.StorePayload(ConvertToBytes(content))
-		}
+		setMetadataContent(msg, applyTo, content)
 	}
 }
 
