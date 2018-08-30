@@ -96,56 +96,75 @@ func (format *MetadataCopy) Configure(conf core.PluginConfigReader) {
 	}
 }
 
+func (format *MetadataCopy) applyReplace(msg *core.Message) error {
+	getSourceData := core.NewGetAppliedContentFunc(format.key)
+	srcData := getSourceData(msg)
+	srcValue := reflect.ValueOf(srcData)
+
+	switch srcValue.Kind() {
+	case reflect.Map, reflect.Struct:
+		srcData = treflect.Clone(srcValue)
+
+	case reflect.Slice:
+		copyValue := reflect.MakeSlice(srcValue.Type(), srcValue.Len(), srcValue.Len())
+		reflect.Copy(copyValue, srcValue)
+		srcData = copyValue.Interface()
+	}
+
+	format.SetAppliedContent(msg, srcData)
+
+	return nil
+}
+
+func (format *MetadataCopy) applyAppend(msg *core.Message) error {
+	getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
+	srcData := getSrcData(msg)
+	dstData := core.ConvertToBytes(format.GetAppliedContent(msg))
+
+	newLen := len(srcData) + len(dstData) + len(format.separator)
+	cloneData := make([]byte, len(dstData), newLen)
+	copy(cloneData, dstData)
+	dstData = cloneData
+
+	if len(format.separator) != 0 {
+		dstData = append(dstData, format.separator...)
+	}
+	format.SetAppliedContent(msg, append(dstData, srcData...))
+
+	return nil
+}
+
+func (format *MetadataCopy) applyPrepend(msg *core.Message) error {
+	getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
+	srcData := getSrcData(msg)
+	dstData := core.ConvertToBytes(format.GetAppliedContent(msg))
+
+	newLen := len(srcData) + len(dstData) + len(format.separator)
+	cloneData := make([]byte, len(srcData), newLen)
+	copy(cloneData, srcData)
+	srcData = cloneData
+
+	if len(format.separator) != 0 {
+		srcData = append(srcData, format.separator...)
+	}
+	format.SetAppliedContent(msg, append(srcData, dstData...))
+
+	return nil
+}
+
 // ApplyFormatter update message payload
 func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
 	switch format.mode {
 	case metadataCopyModeReplace:
-		getSourceData := core.NewGetAppliedContentFunc(format.key)
-		srcData := getSourceData(msg)
-		srcValue := reflect.ValueOf(srcData)
-
-		switch srcValue.Kind() {
-		case reflect.Map, reflect.Struct:
-			srcData = treflect.Clone(srcValue)
-
-		case reflect.Slice:
-			copyValue := reflect.MakeSlice(srcValue.Type(), srcValue.Len(), srcValue.Len())
-			reflect.Copy(copyValue, srcValue)
-			srcData = copyValue.Interface()
-		}
-
-		format.SetAppliedContent(msg, srcData)
+		return format.applyReplace(msg)
 
 	case metadataCopyModePrepend:
-		getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
-		srcData := getSrcData(msg)
-		dstData := core.ConvertToBytes(format.GetAppliedContent(msg))
-
-		newLen := len(srcData) + len(dstData) + len(format.separator)
-		cloneData := make([]byte, len(srcData), newLen)
-		copy(cloneData, srcData)
-		srcData = cloneData
-
-		if len(format.separator) != 0 {
-			srcData = append(srcData, format.separator...)
-		}
-		format.SetAppliedContent(msg, append(srcData, dstData...))
+		return format.applyPrepend(msg)
 
 	case metadataCopyModeAppend:
-		getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
-		srcData := getSrcData(msg)
-		dstData := core.ConvertToBytes(format.GetAppliedContent(msg))
+		return format.applyAppend(msg)
 
-		newLen := len(srcData) + len(dstData) + len(format.separator)
-		cloneData := make([]byte, len(dstData), newLen)
-		copy(cloneData, dstData)
-		dstData = cloneData
-
-		if len(format.separator) != 0 {
-			dstData = append(dstData, format.separator...)
-		}
-		format.SetAppliedContent(msg, append(dstData, srcData...))
+	default:
+		return nil
 	}
-
-	return nil
 }
