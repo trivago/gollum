@@ -65,9 +65,7 @@ func getPayloadCopy(data []byte) (buffer []byte) {
 
 // GetCreationTime returns the time when this message was created.
 func (msg *Message) GetCreationTime() time.Time {
-	sec := msg.timestamp / 1e9
-	nano := msg.timestamp - sec*1e9
-	return time.Unix(0, nano)
+	return time.Unix(0, msg.timestamp)
 }
 
 // GetStreamID returns the stream this message is currently routed to.
