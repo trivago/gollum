@@ -11,18 +11,19 @@ Go 1.10 and 1.9 are still supported. Support for Go 1.8 or older has been droppe
 
 ### New with 0.6.0
 
- * Added a new flag "-mt" to choose the metrics provider (currently only prometheus).
- * Consumer.File setting "Files" now supports glob patterns.
- * Consumer.Syslog now allows non-standard protocol types (see issue #234)
+* Added a new flag "-mt" to choose the metrics provider (currently only prometheus).
+* Consumer.File setting "Files" now supports glob patterns.
+* Consumer.Syslog now allows non-standard protocol types (see issue #234)
 
 ### Breaking changes with 0.6.0
 
- * Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
+* Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
    Old-style metrics have been removed and many metrics names have changed.
- * Consumer.File setting "File" has been renamed to "Files"
- * Consumer.File setting "OffsetFile" changed to "OffsetPath" to support multiple offset files per consumer.
- * Consumer.File setting "PollingDelay" has been renamed to "PollingDelayMs".
- * Removed support for go 1.8 in order to allow sync.Map
+* Consumer.File setting "File" has been renamed to "Files"
+* Consumer.File setting "OffsetFile" changed to "OffsetPath" to support multiple offset files per consumer.
+* Consumer.File setting "PollingDelay" has been renamed to "PollingDelayMs".
+* Removed support for go 1.8 in order to allow sync.Map
+* The functions Message.ResizePayload and .ExtendPayload have been removed in favor if go's slice internal functions.
 
 ## 0.5.3
 
@@ -30,7 +31,7 @@ This is a patch / minor features release.
 
 ### Fixed with 0.5.3
 
- * Fixed a GC panic/crash caused by tgo.ByteBuffer.
+* Fixed a GC panic/crash caused by tgo.ByteBuffer.
 
 ## 0.5.2
 
@@ -38,18 +39,18 @@ This is a patch / minor features release.
 
 ### New with 0.5.2
 
- * The version number is now generated via make and git. This will properly identify versions between releases.
- * New producer.AwsCloudwatchLogs. Thanks to @luqasz
- * The makefile has been cleaned up and go meta-linter support has been added
+* The version number is now generated via make and git. This will properly identify versions between releases.
+* New producer.AwsCloudwatchLogs. Thanks to @luqasz
+* The makefile has been cleaned up and go meta-linter support has been added
 
 ### Fixed with 0.5.2
 
- * consumer.Kafka now properly commits the consumer offsets to kafka. Thanks to @crewton
- * producer.awsKinesis failed to produce records under certain conditions
- * The consumer.Kafka folderPermissions property is now correctly applied
- * formt.ExtractJSON trimValues property is now correctly applied
- * The gollum binary inside the Dockerfile is built on the same baseimage as deployed
- * Filter will now always filter out the MODIFIED message, not the original. This behavior is more "expected".
+* consumer.Kafka now properly commits the consumer offsets to kafka. Thanks to @crewton
+* producer.awsKinesis failed to produce records under certain conditions
+* The consumer.Kafka folderPermissions property is now correctly applied
+* formt.ExtractJSON trimValues property is now correctly applied
+* The gollum binary inside the Dockerfile is built on the same baseimage as deployed
+* Filter will now always filter out the MODIFIED message, not the original. This behavior is more "expected".
 
 ## 0.5.1
 
@@ -57,19 +58,18 @@ This is a patch / minor features release.
 
 ### New with 0.5.1
 
- * format.MetadataCopy has been updated to support free copying between metadata and payload
- * producer.ElasticSearch alles setting the format of timeBasedIndex
- * format.GrokToJSON has new options: RemoveEmptyValues, NamedCapturesOnly and SkipDefaultPatterns
- * Using dep for dependencies instead of glide
+* format.MetadataCopy has been updated to support free copying between metadata and payload
+* producer.ElasticSearch alles setting the format of timeBasedIndex
+* format.GrokToJSON has new options: RemoveEmptyValues, NamedCapturesOnly and SkipDefaultPatterns
+* Using dep for dependencies instead of glide
 
 ### Fixed with 0.5.1
 
- * Fixed inversion of -lc always
- * Fixed a nil pointer panic with producer.elasticsearch when receiving messages with unassigned streams
- * producer.ElasticSearch settings are now named according to config
- * producer.ElasticSearch dayBasedIndex renamed to timeBasedIndex and it's now working as expected
- * Updated dependencies to latest version (brings support for kafka 1.0, fixes user agent parsing for format.processTSV)
-
+* Fixed inversion of -lc always
+* Fixed a nil pointer panic with producer.elasticsearch when receiving messages with unassigned streams
+* producer.ElasticSearch settings are now named according to config
+* producer.ElasticSearch dayBasedIndex renamed to timeBasedIndex and it's now working as expected
+* Updated dependencies to latest version (brings support for kafka 1.0, fixes user agent parsing for format.processTSV)
 
 ## 0.5.0
 
