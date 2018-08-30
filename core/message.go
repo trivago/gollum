@@ -67,7 +67,7 @@ func getPayloadCopy(data []byte) (buffer []byte) {
 func (msg *Message) GetCreationTime() time.Time {
 	sec := msg.timestamp / 1e9
 	nano := msg.timestamp - sec*1e9
-	return time.Unix(sec, nano)
+	return time.Unix(0, nano)
 }
 
 // GetStreamID returns the stream this message is currently routed to.
@@ -148,37 +148,12 @@ func (msg *Message) TryGetMetadata() Metadata {
 // StorePayload copies data into the hold data buffer. If the buffer can hold
 // data it is resized, otherwise a new buffer will be allocated.
 func (msg *Message) StorePayload(data []byte) {
-	copy(msg.ResizePayload(len(data)), data)
-}
-
-// ResizePayload changes the size of the stored buffer. The current content is
-// not guaranteed to be preserved. If content needs to be preserved use Extend.
-func (msg *Message) ResizePayload(size int) []byte {
-	switch {
-	case size == len(msg.data.payload):
-	case size <= cap(msg.data.payload):
-		msg.data.payload = msg.data.payload[:size]
-	default:
-		msg.data.payload = make([]byte, size)
+	if len(data) <= cap(msg.data.payload) {
+		msg.data.payload = msg.data.payload[:len(data)]
+		copy(msg.data.payload, data)
+	} else {
+		msg.data.payload = data
 	}
-
-	return msg.data.payload
-}
-
-// ExtendPayload changes the size of the stored buffer. The current content will
-// be preserved. If content does not need to be preserved use Resize.
-func (msg *Message) ExtendPayload(size int) []byte {
-	switch {
-	case size == len(msg.data.payload):
-	case size <= cap(msg.data.payload):
-		msg.data.payload = msg.data.payload[:size]
-	default:
-		old := msg.data.payload
-		msg.data.payload = make([]byte, size)
-		copy(msg.data.payload, old)
-	}
-
-	return msg.data.payload
 }
 
 // Clone returns a copy of this message, i.e. the payload is duplicated.

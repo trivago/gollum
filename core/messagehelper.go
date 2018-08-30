@@ -38,7 +38,7 @@ func GetAppliedContentSetFunction(applyTo string) SetAppliedContent {
 
 	return func(msg *Message, content []byte) {
 		if content == nil {
-			msg.ResizePayload(0)
+			msg.data.payload = msg.data.payload[:0]
 		} else {
 			msg.StorePayload(content)
 		}
