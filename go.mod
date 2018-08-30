@@ -1,6 +1,7 @@
 module github.com/trivago/gollum
 
 require (
+	github.com/MeteoGroup/go-metrics-prometheus v0.0.0-20170102121754-1d412ec2ed4f
 	github.com/Shopify/sarama v1.17.0
 	github.com/abbot/go-http-auth v0.4.0
 	github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0

@@ -1,3 +1,5 @@
+github.com/MeteoGroup/go-metrics-prometheus v0.0.0-20170102121754-1d412ec2ed4f h1:ktq2U7clO3LvvPS7mz7ELu6gKlUnzMc2key0HwGP3ws=
+github.com/MeteoGroup/go-metrics-prometheus v0.0.0-20170102121754-1d412ec2ed4f/go.mod h1:1K30pWOX+V5p1W4bLuvKrEj7cAOf2uQNgd3Mt969i3c=
 github.com/Shopify/sarama v1.17.0 h1:Y2/FBwElFVwt7aLKL3fDG6hh+rrlywR6uLgTgKObwTc=
 github.com/Shopify/sarama v1.17.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/abbot/go-http-auth v0.4.0 h1:QjmvZ5gSC7jm3Zg54DqWE/T5m1t2AfDu6QlXJT0EVT0=
