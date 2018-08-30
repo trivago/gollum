@@ -123,11 +123,13 @@ lint-meta:
 	--disable=maligned \
 	--disable=gocyclo \
 	--disable=errcheck \
+	--disable=gosec \
 	--exclude="\.[cC]lose[^ ]*\(.*\) \(errcheck\)" \
 	--skip=contrib \
 	--skip=docs \
 	--skip=testing \
 	--deadline=5m \
+	--concurrency=4 \
 	 ./...
 	@echo "\033[0;32mDone\033[0;0m"
 
@@ -149,7 +151,6 @@ endif
 pipeline-tools:
 	@echo "\033[0;33mInstalling required go tools ...\033[0;0m"
 	@go get -u github.com/mattn/goveralls
-	@go get -u github.com/golang/dep/cmd/dep
 	@go get -u gopkg.in/alecthomas/gometalinter.v2
 	@gometalinter.v2 --install
 	@echo "\033[0;32mDone\033[0;0m"
