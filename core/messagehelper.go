@@ -72,7 +72,7 @@ func setMetadataContent(msg *Message, key string, content interface{}) {
 
 func setPayloadContent(msg *Message, content interface{}) {
 	if content == nil {
-		msg.ResizePayload(0)
+			msg.data.payload = msg.data.payload[:0]
 	} else {
 		msg.StorePayload(ConvertToBytes(content))
 	}

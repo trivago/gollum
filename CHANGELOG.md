@@ -11,7 +11,7 @@ Go 1.10 and 1.9 are still supported. Support for Go 1.8 or older has been droppe
 
 ### New with 0.6.0
 
- * Added a new flag "-mt" to choose the metrics provider (currently only prometheus).
+* Added a new flag "-mt" to choose the metrics provider (currently only prometheus).
 * Consumer.File setting "Files" now supports glob patterns.
 * Consumer.Syslog now allows non-standard protocol types (see issue #234)
 * Message metadata can now store arbitrary data
@@ -26,6 +26,7 @@ Go 1.10 and 1.9 are still supported. Support for Go 1.8 or older has been droppe
 * Metadata type has changed from `map[string][]byte` to `tgo.MarshalMap`.
 * Deserializing messages written by v0.5.x will lead to metadata of those message to be discarded.
 * Removed support for go 1.8 in order to allow sync.Map
+* The functions Message.ResizePayload and .ExtendPayload have been removed in favor if go's slice internal functions.
 
 ## 0.5.3
 
