@@ -3,7 +3,7 @@
 GOLLUM_TAG := $(shell git describe --always --tags --match "v*" | sed -E 's/^v([0-9\.]+)(-[0-9]+){0,1}((-)g([a-f0-9]+)){0,1}.*/\1\2\4\5/')
 GOLLUM_RELEASE_SUFFIX := # Can be set for custom releases to also include plugin versions
 GOLLUM_DIRTY := $(if $(shell git status --porcelain),-dirty)
-GOLLUM_VERSION := $(GOLLUM_TAG)$(GOLLUM_DIRTY)$(if $(GOLLUM_RELEASE_SUFFIX),-$(GOLLUM_RELEASE_SUFFIX))
+GOLLUM_VERSION := $(GOLLUM_TAG)$(GOLLUM_DIRTY)$(if $(GOLLUM_RELEASE_SUFFIX),+$(GOLLUM_RELEASE_SUFFIX))
 
 GO_ENV := GORACE="halt_on_error=0"
 GO_FLAGS := -ldflags="-s -X 'github.com/trivago/gollum/core.versionString=$(GOLLUM_VERSION)'"
