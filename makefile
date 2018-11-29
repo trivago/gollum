@@ -74,7 +74,7 @@ install: build
 .PHONY: clean # Remove all files created by build and distribution targets
 clean:
 	@rm -f ./gollum
-	@rm -f ./dist/gollum_*.zip
+	@rm -f ./dist/gollum-*.zip
 	@go clean
 
 #############################################################################################################
