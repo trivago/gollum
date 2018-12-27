@@ -232,7 +232,7 @@ func (cons *File) observeFile(name string, stopIfNotExist bool) {
 
 	if cons.offsetFilePath != "" {
 		enqueue = func(data []byte) {
-			enqueue(data)
+			cons.Enqueue(data)
 			file.storeOffset()
 		}
 	}
