@@ -95,7 +95,6 @@ func (fs *observableFile) saveOffset(offset int64) {
 	if err := ioutil.WriteFile(fs.offsetFileName, []byte(offsetAsString), 0644); err != nil {
 		fs.log.WithError(err).Error("Failed to store offset")
 	}
-	fs.log.Info("Offset file reseted")
 }
 
 func (fs *observableFile) scrape(fileName string, enqueue func([]byte), onRotate func()) {
@@ -129,6 +128,7 @@ func (fs *observableFile) scrape(fileName string, enqueue func([]byte), onRotate
 			fs.cursor.whence = io.SeekStart
 			fs.cursor.offset = 0
 			fs.saveOffset(fs.cursor.offset)
+			fs.log.Info("Offset file reseted")
 			onRotate()
 		}
 	default:
