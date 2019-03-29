@@ -124,6 +124,26 @@ Parameters
   
   
 
+**BlackList**
+
+  A regular expression matching file paths to NOT read. When both
+  BlackList and WhiteList are defined, the WhiteList takes precedence.
+  This setting is only used when glob expressions (*, ?) are present in the
+  filename. The path checked is the one before symlink evaluation.
+  By default this parameter is set to "".
+  
+  
+
+**WhiteList**
+
+  A regular expression matching file paths to read. When both
+  BlackList and WhiteList are defined, the WhiteList takes precedence.
+  This setting is only used when glob expressions (*, ?) are present in the
+  filename. The path checked is the one before symlink evaluation.
+  By default this parameter is set to "".
+  
+  
+
 **Files** (default: /var/log/*.log)
 
   (no documentation available)
@@ -182,13 +202,15 @@ Parameters (from core.SimpleConsumer)
 Examples
 --------
 
-This example will read the `/var/log/system.log` file and create a message for each new entry.
+This example will read all the `.log` files `/var/log/` into one stream and
+create a message for each new entry. If the file starts with `sys` it is ignored
 
 .. code-block:: yaml
 
 	 FileIn:
 	   Type: consumer.File
 	   File: /var/log/*.log
+	   BlackList '^sys.*'
 	   DefaultOffset: newest
 	   OffsetFilePath: ""
 	   Delimiter: "\n"
