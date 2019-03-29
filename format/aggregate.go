@@ -16,6 +16,7 @@ package format
 
 import (
 	"fmt"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
 )
@@ -125,9 +126,8 @@ func (format *Aggregate) getModulatorSettings(applyTo string, conf core.PluginCo
 		childFormatterMap := tcontainer.TryConvertToMarshalMap(childFormatterArray, nil)
 
 		// switch childFormatterMap type to difference between direct modulator- and nested modulator settings.
-		switch childFormatterMap.(type) {
+		switch childFormatter := childFormatterMap.(type) {
 		case tcontainer.MarshalMap:
-			childFormatter, _ := childFormatterMap.(tcontainer.MarshalMap)
 			for childFormatterName, childFormatterItem := range childFormatter {
 				childFormatterItemMap := childFormatterItem.(tcontainer.MarshalMap)
 				childFormatterItemMap["ApplyTo"] = applyTo
@@ -136,11 +136,10 @@ func (format *Aggregate) getModulatorSettings(applyTo string, conf core.PluginCo
 
 			}
 		case string:
-			childFormatterName := childFormatterMap.(string)
 			childFormatterItemMap := tcontainer.NewMarshalMap()
 			childFormatterItemMap["ApplyTo"] = applyTo
 
-			finalModulatorMap = format.appendModulator(childFormatterName, childFormatterItemMap, finalModulatorMap)
+			finalModulatorMap = format.appendModulator(childFormatter, childFormatterItemMap, finalModulatorMap)
 
 		default:
 			conf.Errors.Pushf("Malformed modulator settings.")

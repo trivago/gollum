@@ -15,9 +15,10 @@
 package format
 
 import (
-	"github.com/trivago/gollum/core"
 	"runtime/debug"
 	"testing"
+
+	"github.com/trivago/gollum/core"
 )
 
 func TestFormatters(t *testing.T) {
