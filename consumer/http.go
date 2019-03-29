@@ -23,7 +23,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/abbot/go-http-auth"
+	auth "github.com/abbot/go-http-auth"
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
 )
@@ -73,7 +73,7 @@ import (
 type HTTP struct {
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	address             string        `config:"Address" default:":80"`
-	readTimeoutSec      time.Duration `config:"ReadTimeoutSec" default:"3" metric:"sec"`
+	readTimeout         time.Duration `config:"ReadTimeoutSec" default:"3" metric:"sec"`
 	withHeaders         bool          `config:"WithHeaders" default:"true"`
 	htpasswd            string        `config:"Htpasswd"`
 	basicRealm          string        `config:"BasicRealm"`
@@ -166,7 +166,7 @@ func (cons *HTTP) serve() {
 	srv := http.Server{
 		Addr:        cons.address,
 		Handler:     http.HandlerFunc(cons.requestHandler),
-		ReadTimeout: cons.readTimeoutSec,
+		ReadTimeout: cons.readTimeout,
 		TLSConfig:   cons.certificate,
 	}
 

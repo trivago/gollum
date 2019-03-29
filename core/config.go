@@ -23,7 +23,7 @@ import (
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/treflect"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 const pluginAggregate = "Aggregate"
@@ -89,7 +89,7 @@ func ReadConfig(buffer []byte) (*Config, error) {
 	}
 
 	if hasError {
-		return config, fmt.Errorf("Configuration parsing produced errors")
+		return config, fmt.Errorf("configuration parsing produced errors")
 	}
 	return config, nil
 }

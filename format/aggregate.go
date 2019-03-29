@@ -111,8 +111,8 @@ func (format *Aggregate) ApplyFormatter(msg *core.Message) error {
 	for _, modulator := range format.modulators {
 		modulateResult := modulator.Modulate(msg)
 		if modulateResult != core.ModulateResultContinue {
-			errMsg := "Child modulator discarded or trigger fallback routing. " +
-				"Please try to use only contend based formatter and filter as child modulators."
+			errMsg := "child modulator discarded or trigger fallback routing. " +
+				"Please try to use only contend based formatter and filter as child modulators"
 			return fmt.Errorf(errMsg)
 		}
 	}
