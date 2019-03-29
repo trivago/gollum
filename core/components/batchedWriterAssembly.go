@@ -153,7 +153,7 @@ func (bwa *BatchedWriterAssembly) NeedsRotate(rotate RotateConfig, forceRotate b
 	// File can be accessed?
 	if !bwa.GetWriter().IsAccessible() {
 		bwa.logger.Debug("Rotate false: ", "no access")
-		return false, errors.New("Can' access file to rotate")
+		return false, errors.New("can' access file to rotate")
 	}
 
 	// File needs rotation?

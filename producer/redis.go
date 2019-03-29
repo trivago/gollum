@@ -15,13 +15,14 @@
 package producer
 
 import (
-	"github.com/go-redis/redis"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tnet"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-redis/redis"
+	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tnet"
 )
 
 // Redis producer
@@ -94,9 +95,7 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) {
 		prod.store = prod.storeSet
 	case "sortedset":
 		prod.store = prod.storeSortedSet
-	default:
-		fallthrough
-	case "string":
+	default: // string
 		prod.store = prod.storeString
 	}
 }

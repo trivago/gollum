@@ -158,7 +158,7 @@ func (state *PluginRunState) WorkerDone() {
 // config. This function internally calls NewPluginWithType.
 func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
 	if len(config.Typename) == 0 {
-		return nil, fmt.Errorf("Plugin '%s' has no type set", config.ID)
+		return nil, fmt.Errorf("plugin '%s' has no type set", config.ID)
 	}
 
 	obj, err := TypeRegistry.New(config.Typename)
@@ -180,7 +180,7 @@ func NewPluginWithConfig(config PluginConfig) (Plugin, error) {
 	//       streams are being created during runtime. Those should be unique
 	//       but we might still run into bugs here.
 	if len(config.ID) > 0 && !PluginRegistry.RegisterUnique(plugin, config.ID) {
-		return nil, fmt.Errorf("Plugin id '%s' must be unique", config.ID)
+		return nil, fmt.Errorf("plugin id '%s' must be unique", config.ID)
 	}
 
 	if err := config.Validate(); err != nil {

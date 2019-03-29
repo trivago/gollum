@@ -8,6 +8,9 @@ git:
 matrix:
   include:
     - 
+      go: "1.12"
+      env: ACCEPT_TARGET=pipeline-accept
+    - 
       go: "1.11"
       env: ACCEPT_TARGET=pipeline-accept
     - 

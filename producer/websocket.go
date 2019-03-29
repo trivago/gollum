@@ -57,7 +57,7 @@ import (
 type Websocket struct {
 	core.BufferedProducer `gollumdoc:"embed_type"`
 	listen                *tnet.StopListener
-	readTimeoutSec        time.Duration `config:"ReadTimeoutSec" default:"3" metric:"sec"`
+	readTimeout           time.Duration `config:"ReadTimeoutSec" default:"3" metric:"sec"`
 	upgrader              websocket.Upgrader
 	clients               [2]clientList
 	address               string `config:"Address" default:":81"`
@@ -173,7 +173,7 @@ func (prod *Websocket) serve() {
 	http.HandleFunc(prod.path, prod.upgrade)
 
 	srv := http.Server{
-		ReadTimeout: prod.readTimeoutSec,
+		ReadTimeout: prod.readTimeout,
 	}
 
 	prod.listen = listen

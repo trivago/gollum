@@ -19,10 +19,11 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/tgo/tsync"
 	"io"
 	"os"
+
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/tgo/tsync"
 )
 
 type s3Buffer interface {
@@ -87,7 +88,7 @@ func (buf *s3ByteBuffer) Seek(offset int64, whence int) (int64, error) {
 		position = int64(len(buf.bytes)) + offset
 	}
 	if position < 0 {
-		return 0, fmt.Errorf("S3Buffer bad seek result %d", position)
+		return 0, fmt.Errorf("s3Buffer bad seek result %d", position)
 	}
 	buf.position = position
 	return position, nil

@@ -17,6 +17,7 @@ package format
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
 )
@@ -88,13 +89,13 @@ func (format *JSONToArray) getCsvContent(content []byte) ([]byte, error) {
 	for _, field := range format.fields {
 		if value, exists := values.Value(field); exists {
 			// Add value to csv string based on the actual type
-			switch value.(type) {
+			switch v := value.(type) {
 			case bool:
-				csv = fmt.Sprintf("%s%t%s", csv, value.(bool), format.separator)
+				csv = fmt.Sprintf("%s%t%s", csv, v, format.separator)
 			case float64:
-				csv = fmt.Sprintf("%s%d%s", csv, value.(int), format.separator)
+				csv = fmt.Sprintf("%s%d%s", csv, int(v), format.separator)
 			case string:
-				csv = fmt.Sprintf("%s%s%s", csv, value.(string), format.separator)
+				csv = fmt.Sprintf("%s%s%s", csv, v, format.separator)
 			default:
 				format.Logger.Warning("Field ", field, " uses an unsupported datatype")
 				csv = format.separator

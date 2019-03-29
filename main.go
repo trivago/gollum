@@ -360,7 +360,7 @@ func startTracer() func() {
 func parseAddress(address string) (string, error) {
 	_, host, port, err := tnet.SplitAddress(address, "")
 	if err != nil {
-		return address, fmt.Errorf("Incorrect address %q: %s", address, err)
+		return address, fmt.Errorf("incorrect address %q: %s", address, err)
 	}
 
 	return host + ":" + port, nil

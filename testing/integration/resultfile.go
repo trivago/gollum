@@ -53,7 +53,7 @@ func readResultFile(filepath string) (string, int, error) {
 		return content, lines, nil
 	}
 
-	return "", 0, fmt.Errorf("Timed out while reading from %s", filepath)
+	return "", 0, fmt.Errorf("timed out while reading from %s", filepath)
 }
 
 func removeTestResultFiles() {

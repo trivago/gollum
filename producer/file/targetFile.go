@@ -16,12 +16,13 @@ package file
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/tgo/tstrings"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/trivago/gollum/core/components"
+	"github.com/trivago/tgo/tstrings"
 )
 
 // TargetFile is a struct for file producer target files
@@ -102,7 +103,7 @@ func (streamFile *TargetFile) GetFinalName(rotate components.RotateConfig) strin
 func (streamFile *TargetFile) GetDir() (string, error) {
 	// Assure path is existing
 	if err := os.MkdirAll(streamFile.dir, streamFile.folderPermissions); err != nil {
-		return "", fmt.Errorf("Failed to create %s because of %s", streamFile.dir, err.Error())
+		return "", fmt.Errorf("failed to create %s because of %s", streamFile.dir, err.Error())
 	}
 
 	return streamFile.dir, nil

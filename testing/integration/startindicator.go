@@ -35,7 +35,7 @@ func defaultStartIndicatorFunc(handle *GollumHandle) error {
 	for !strings.Contains(handle.ReadStdOut(), startupString) {
 		if time.Since(start) > maxStartupWaitTime {
 			fmt.Println(handle.ReadStdOut())
-			return fmt.Errorf("Timed out waiting for string \"%s\"", startupString)
+			return fmt.Errorf("timed out waiting for string \"%s\"", startupString)
 		}
 		time.Sleep(200 * time.Millisecond)
 	}
@@ -64,5 +64,5 @@ func (f FileStartIndicatorData) HasStarted(handle *GollumHandle) error {
 		time.Sleep(200 * time.Millisecond)
 	}
 
-	return fmt.Errorf("Timed out waiting for file %s", f.name)
+	return fmt.Errorf("timed out waiting for file %s", f.name)
 }
