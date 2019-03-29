@@ -127,7 +127,7 @@ lint-meta:
 	--disable=gosec \
 	--disable=gotype \
 	--exclude="\.[cC]lose[^ ]*\(.*\) \(errcheck\)" \
-	--exclude="\/usr\/local\/Cellar\/go" \
+	--exclude="\/go[\/]?1\.[0-9]{1,2}\." \
 	--skip=contrib \
 	--skip=docs \
 	--skip=testing \
