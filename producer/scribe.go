@@ -152,11 +152,11 @@ func (prod *Scribe) tryOpenConnection() bool {
 		}
 		switch status {
 		case fb303.FbStatus_DEAD:
-			return fmt.Errorf("Service dead")
+			return fmt.Errorf("service dead")
 		case fb303.FbStatus_STOPPING:
-			return fmt.Errorf("Service stopping")
+			return fmt.Errorf("service stopping")
 		case fb303.FbStatus_STOPPED:
-			return fmt.Errorf("Service stopped")
+			return fmt.Errorf("service stopped")
 		}
 		return nil // ### return, all is well ###
 	})

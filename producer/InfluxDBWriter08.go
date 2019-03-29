@@ -102,7 +102,7 @@ func (writer *influxDBWriter08) createDatabase(database string) error {
 
 	default:
 		body, _ := ioutil.ReadAll(response.Body)
-		return fmt.Errorf("Could not create database %s with status code \"%s\" and error \"%s\"", database, response.Status[:3], body)
+		return fmt.Errorf("could not create database %s with status code \"%s\" and error \"%s\"", database, response.Status[:3], body)
 	}
 }
 

@@ -297,13 +297,13 @@ func (cons *AwsKinesis) connect() error {
 	}
 
 	if streamInfo.StreamDescription == nil {
-		return fmt.Errorf("StreamDescription could not be retrieved")
+		return fmt.Errorf("streamDescription could not be retrieved")
 	}
 
 	cons.running = true
 	for _, shard := range streamInfo.StreamDescription.Shards {
 		if shard.ShardId == nil {
-			return fmt.Errorf("ShardId could not be retrieved")
+			return fmt.Errorf("shardId could not be retrieved")
 		}
 
 		// No locks required here as connect is called only once on start

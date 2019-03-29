@@ -16,6 +16,7 @@ package components
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -147,6 +148,6 @@ func (cred *AwsCredentials) CreateAwsCredentials() (*credentials.Credentials, er
 		return credentials.AnonymousCredentials, nil
 
 	default:
-		return credentials.AnonymousCredentials, fmt.Errorf("Unknown CredentialType: %s", cred.credentialType)
+		return credentials.AnonymousCredentials, fmt.Errorf("unknown CredentialType: %s", cred.credentialType)
 	}
 }

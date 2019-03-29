@@ -75,7 +75,7 @@ func newGollumHandle(arg ...string) (*GollumHandle, error) {
 // processed by the pipeline.
 func (g *GollumHandle) SendStdIn(wait time.Duration, args ...string) error {
 	if !g.IsRunning() {
-		return fmt.Errorf("Gollum process is not running")
+		return fmt.Errorf("gollum process is not running")
 	}
 
 	for _, arg := range args {
@@ -135,7 +135,7 @@ func (g *GollumHandle) Wait() error {
 
 	case <-time.After(maxShutdownWaitTime):
 		g.cmd.Process.Kill()
-		return fmt.Errorf("Timed out waiting for gollum to stop")
+		return fmt.Errorf("timed out waiting for gollum to stop")
 	}
 }
 
