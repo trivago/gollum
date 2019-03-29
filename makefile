@@ -118,7 +118,7 @@ lint: lint-fmt lint-meta
 .PHONY: lint-meta # Run the go meta linter
 lint-meta:
 	@echo "\033[0;33mRunning go linters\033[0;0m"
-	@gometalinter.v2 --vendor --cyclo-over=20 \
+	@gometalinter --vendor --cyclo-over=20 \
 	--disable=goconst \
 	--disable=gas \
 	--disable=maligned \
@@ -152,8 +152,7 @@ endif
 pipeline-tools:
 	@echo "\033[0;33mInstalling required go tools ...\033[0;0m"
 	@$(GO_ENV) go get -u github.com/mattn/goveralls
-	@$(GO_ENV) go get -u gopkg.in/alecthomas/gometalinter.v2
-	@gometalinter.v2 --install
+	@cd $$GOPATH; curl -L https://git.io/vp6lP | sh
 	@echo "\033[0;32mDone\033[0;0m"
 
 .PHONY: pipeline-accept # Accept runs all targets required for PR acceptance
