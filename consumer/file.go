@@ -161,6 +161,7 @@ type File struct {
 	done          chan struct{}
 	blackList     *regexp.Regexp
 	whiteList     *regexp.Regexp
+	isBlackListed func(string) bool
 }
 
 func init() {
@@ -191,7 +192,27 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 	if len(cons.whiteListString) > 0 {
 		cons.whiteList, err = regexp.Compile(cons.whiteListString)
 	}
-	conf.Errors.Push(err)
+
+	if conf.Errors.Push(err) {
+		return
+	}
+
+	// Define how to do blacklisting based on the values given above
+	switch {
+	case cons.blackList == nil && cons.whiteList == nil:
+		cons.isBlackListed = func(string) bool { return false }
+
+	case cons.blackList == nil && cons.whiteList != nil:
+		cons.isBlackListed = func(filename string) bool { return !cons.whiteList.MatchString(filename) }
+
+	case cons.whiteList == nil && cons.blackList != nil:
+		cons.isBlackListed = func(filename string) bool { return cons.blackList.MatchString(filename) }
+
+	default:
+		cons.isBlackListed = func(filename string) bool {
+			return cons.blackList.MatchString(filename) && !cons.whiteList.MatchString(filename)
+		}
+	}
 }
 
 func (cons *File) newObservedFile(name string, stopIfNotExist bool) *observableFile {
@@ -273,20 +294,6 @@ func (cons *File) observeFile(name string, stopIfNotExist bool) {
 	}
 }
 
-func (cons *File) isBlacklisted(filename string) bool {
-	// netiher black or whitelisted? pass
-	if cons.blackList == nil && cons.whiteList == nil {
-		return false
-	}
-
-	// At this point either a black or whitelist exists
-
-	blacklisted := cons.blackList != nil && cons.blackList.MatchString(filename)
-	notWhiteListed := cons.whiteList == nil || !cons.whiteList.MatchString(filename)
-
-	return blacklisted && notWhiteListed
-}
-
 func (cons *File) observeFiles() {
 	defer cons.WorkerDone()
 
@@ -305,7 +312,7 @@ func (cons *File) observeFiles() {
 
 		cons.Logger.Debugf("Evaluating glob returned %d files to scrape", len(fileNames))
 		for i := range fileNames {
-			if cons.isBlacklisted(fileNames[i]) {
+			if cons.isBlackListed(fileNames[i]) {
 				continue
 			}
 
