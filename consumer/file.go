@@ -159,8 +159,6 @@ type File struct {
 
 	observedFiles *sync.Map
 	done          chan struct{}
-	blackList     *regexp.Regexp
-	whiteList     *regexp.Regexp
 	isBlackListed func(string) bool
 }
 
@@ -185,32 +183,39 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 		cons.observeMode = observeModePoll
 	}
 
-	var err error
+	cons.configureBlacklist(conf)
+}
+
+func (cons *File) configureBlacklist(conf core.PluginConfigReader) {
+	var (
+		err       error
+		blackList *regexp.Regexp
+		whiteList *regexp.Regexp
+	)
+
 	if len(cons.blackListString) > 0 {
-		cons.blackList, err = regexp.Compile(cons.blackListString)
+		blackList, err = regexp.Compile(cons.blackListString)
+		conf.Errors.Push(err)
 	}
 	if len(cons.whiteListString) > 0 {
-		cons.whiteList, err = regexp.Compile(cons.whiteListString)
-	}
-
-	if conf.Errors.Push(err) {
-		return
+		whiteList, err = regexp.Compile(cons.whiteListString)
+		conf.Errors.Push(err)
 	}
 
 	// Define how to do blacklisting based on the values given above
 	switch {
-	case cons.blackList == nil && cons.whiteList == nil:
+	case blackList == nil && whiteList == nil:
 		cons.isBlackListed = func(string) bool { return false }
 
-	case cons.blackList == nil && cons.whiteList != nil:
-		cons.isBlackListed = func(filename string) bool { return !cons.whiteList.MatchString(filename) }
+	case blackList == nil:
+		cons.isBlackListed = func(filename string) bool { return !whiteList.MatchString(filename) }
 
-	case cons.whiteList == nil && cons.blackList != nil:
-		cons.isBlackListed = func(filename string) bool { return cons.blackList.MatchString(filename) }
+	case whiteList == nil:
+		cons.isBlackListed = func(filename string) bool { return blackList.MatchString(filename) }
 
 	default:
 		cons.isBlackListed = func(filename string) bool {
-			return cons.blackList.MatchString(filename) && !cons.whiteList.MatchString(filename)
+			return blackList.MatchString(filename) && !whiteList.MatchString(filename)
 		}
 	}
 }
