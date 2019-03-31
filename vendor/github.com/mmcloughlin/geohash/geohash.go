@@ -6,6 +6,21 @@ import (
 	"math"
 )
 
+// Direction represents directions in the latitute/longitude space.
+type Direction int
+
+// Cardinal and intercardinal directions
+const (
+	North Direction = iota
+	NorthEast
+	East
+	SouthEast
+	South
+	SouthWest
+	West
+	NorthWest
+)
+
 // Encode the point (lat, lng) as a string geohash with the standard 12
 // characters of precision.
 func Encode(lat, lng float64) string {
@@ -204,6 +219,24 @@ func NeighborsIntWithPrecision(hash uint64, bits uint) []uint64 {
 		// NW
 		EncodeIntWithPrecision(lat+latDelta, lng-lngDelta, bits),
 	}
+}
+
+// Neighbor returns a geohash string that corresponds to the provided 
+// geohash's neighbor in the provided direction
+func Neighbor(hash string, direction Direction) string {
+	return Neighbors(hash)[direction]
+}
+
+// NeighborInt returns a uint64 that corresponds to the provided hash's
+// neighbor in the provided direction at 64-bit precision.
+func NeighborInt(hash uint64, direction Direction) uint64 {
+	return NeighborsIntWithPrecision(hash, 64)[direction]
+}
+
+// NeighborIntWithPrecision returns a uint64s that corresponds to the
+// provided hash's neighbor in the provided direction at the given precision.
+func NeighborIntWithPrecision(hash uint64, bits uint, direction Direction) uint64 {
+	return NeighborsIntWithPrecision(hash, bits)[direction]
 }
 
 // precalculated for performance

@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2014-2018 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 )
+
+var botFromSiteRegexp = regexp.MustCompile("http://.+\\.\\w+")
 
 // Get the name of the bot from the website that may be in the given comment. If
 // there is no website in the comment, then an empty string is returned.
@@ -23,8 +25,7 @@ func getFromSite(comment []string) string {
 	}
 
 	// Pick the site.
-	re := regexp.MustCompile("http://.+\\.\\w+")
-	results := re.FindStringSubmatch(comment[idx])
+	results := botFromSiteRegexp.FindStringSubmatch(comment[idx])
 	if len(results) == 1 {
 		// If it's a simple comment, just return the name of the site.
 		if idx == 0 {
@@ -42,8 +43,9 @@ func getFromSite(comment []string) string {
 // mobile bot. This function also modifies some attributes in the receiver
 // accordingly.
 func (p *UserAgent) googleBot() bool {
-	// This is a hackish way to detect Google's mobile bot.
-	if strings.Index(p.ua, "Googlebot") != -1 {
+	// This is a hackish way to detect Google's mobile bot (Googlebot, AdsBot-Google-Mobile, etc.).
+	// See https://support.google.com/webmasters/answer/1061943
+	if strings.Index(p.ua, "Google") != -1 {
 		p.platform = ""
 		p.undecided = true
 	}
@@ -74,6 +76,8 @@ func (p *UserAgent) fixOther(sections []section) {
 	}
 }
 
+var botRegex = regexp.MustCompile("(?i)(bot|crawler|sp(i|y)der|search|worm|fetch|nutch)")
+
 // Check if we're dealing with a bot or with some weird browser. If that is the
 // case, the receiver will be modified accordingly.
 func (p *UserAgent) checkBot(sections []section) {
@@ -82,9 +86,8 @@ func (p *UserAgent) checkBot(sections []section) {
 	if len(sections) == 1 && sections[0].name != "Mozilla" {
 		p.mozilla = ""
 
-		// Check whether the name has some suspicious "bot" in his name.
-		reg, _ := regexp.Compile("(?i)bot")
-		if reg.Match([]byte(sections[0].name)) {
+		// Check whether the name has some suspicious "bot" or "crawler" in his name.
+		if botRegex.Match([]byte(sections[0].name)) {
 			p.setSimple(sections[0].name, "", true)
 			return
 		}
