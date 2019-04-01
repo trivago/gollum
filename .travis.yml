@@ -29,7 +29,7 @@ install:
 
 script:
   - CGO_ENABLED=0 make pipeline-build
-  - CGO_ENABLED=0 make ${ACCEPT_TARGET}
+  - make ${ACCEPT_TARGET}
 
 after_success:
   - make pipeline-coverage
