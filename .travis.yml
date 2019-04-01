@@ -20,17 +20,16 @@ matrix:
       go: "1.9"
       env: ACCEPT_TARGET=test
  
-before_install:
-  - sudo apt-get -qqy update
-  - sudo apt-get -qqy install libzstd-dev # libpcap-dev libsystemd-journal-dev libzstd-dev librdkafka-dev
+#before_install:
+#  - sudo apt-get -qqy update
+#  - sudo apt-get -qqy install libzstd-dev libpcap-dev libsystemd-journal-dev libzstd-dev librdkafka-dev
 
 install:
-  - go get github.com/DataDog/zstd
   - make pipeline-tools
 
 script:
-  - make pipeline-build
-  - make ${ACCEPT_TARGET}
+  - CGO_ENABLED=0 make pipeline-build
+  - CGO_ENABLED=0 make ${ACCEPT_TARGET}
 
 after_success:
   - make pipeline-coverage
