@@ -156,9 +156,10 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 	msg.StorePayload([]byte(msgUpdateString))
 	msg.GetMetadata().SetValue("foo", []byte("bar"))
 
-	msg.CloneOriginal()
+	clone := msg.CloneOriginal()
 
-	expect.Equal("bar", msg.GetMetadata().GetValueString("foo"))
+	// We froze before adding metadata, i.e. original metadata must be empty
+	expect.Equal("", clone.GetMetadata().GetValueString("foo"))
 }
 
 func TestMessageMetadata(t *testing.T) {

@@ -108,6 +108,7 @@ const (
 //    Size: 256
 //
 type Socket struct {
+	sync.Mutex
 	core.SimpleConsumer `gollumdoc:"embed_type"`
 	listener            io.Closer
 	protocol            string
@@ -320,6 +321,9 @@ func (cons *Socket) sendACK(conn net.Conn) error {
 }
 
 func (cons *Socket) closeListener() {
+	cons.Lock()
+	defer cons.Unlock()
+
 	if cons.listener == nil {
 		return
 	}
