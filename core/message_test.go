@@ -158,7 +158,9 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 
 	clone := msg.CloneOriginal()
 
-	expect.Equal("bar", clone.GetMetadata().GetValueString("foo"))
+	// We froze before adding metadata, i.e. original metadata must be empty
+	expect.Equal("", clone.GetMetadata().GetValueString("foo"))
+	expect.Equal("bar", msg.GetMetadata().GetValueString("foo"))
 }
 
 func TestMessageMetadata(t *testing.T) {

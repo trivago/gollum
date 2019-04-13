@@ -179,6 +179,8 @@ func (msg *Message) CloneOriginal() *Message {
 
 	if msg.orig.metadata != nil {
 		clone.data.metadata = msg.orig.metadata.Clone()
+	} else {
+		clone.data.metadata = nil
 	}
 
 	clone.SetStreamID(msg.origStreamID)
