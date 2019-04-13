@@ -108,19 +108,21 @@ const (
 //    Size: 256
 //
 type Socket struct {
+	sync.Mutex
 	core.SimpleConsumer `gollumdoc:"embed_type"`
-	listener            io.Closer
-	protocol            string
-	address             string
-	acknowledge         string        `config:"Acknowledge" default:""`
-	delimiter           string        `config:"Delimiter" default:"\n"`
-	reconnectTime       time.Duration `config:"ReconnectAfterSec" default:"2" metric:"sec"`
-	ackTimeout          time.Duration `config:"AckTimeoutSec" default:"1" metric:"sec"`
-	readTimeout         time.Duration `config:"ReadTimeoutSec" default:"2" metric:"sec"`
-	fileFlags           os.FileMode   `config:"Permissions" default:"0770"`
-	offset              int           `config:"Offset" default:"0"`
-	flags               tio.BufferedReaderFlags
-	clearSocket         bool `config:"RemoveOldSocket" default:"true"`
+
+	listener      io.Closer
+	protocol      string
+	address       string
+	acknowledge   string        `config:"Acknowledge" default:""`
+	delimiter     string        `config:"Delimiter" default:"\n"`
+	reconnectTime time.Duration `config:"ReconnectAfterSec" default:"2" metric:"sec"`
+	ackTimeout    time.Duration `config:"AckTimeoutSec" default:"1" metric:"sec"`
+	readTimeout   time.Duration `config:"ReadTimeoutSec" default:"2" metric:"sec"`
+	fileFlags     os.FileMode   `config:"Permissions" default:"0770"`
+	offset        int           `config:"Offset" default:"0"`
+	flags         tio.BufferedReaderFlags
+	clearSocket   bool `config:"RemoveOldSocket" default:"true"`
 }
 
 func init() {
@@ -320,6 +322,9 @@ func (cons *Socket) sendACK(conn net.Conn) error {
 }
 
 func (cons *Socket) closeListener() {
+	cons.Lock()
+	defer cons.Unlock()
+
 	if cons.listener == nil {
 		return
 	}
