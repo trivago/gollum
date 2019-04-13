@@ -177,10 +177,8 @@ func (msg *Message) CloneOriginal() *Message {
 	clone.data.payload = make([]byte, len(msg.orig.payload))
 	copy(clone.data.payload, msg.orig.payload)
 
-	if msg.orig.metadata == nil {
+	if msg.orig.metadata != nil {
 		clone.data.metadata = msg.orig.metadata.Clone()
-	} else {
-		clone.data.metadata = nil
 	}
 
 	clone.SetStreamID(msg.origStreamID)
