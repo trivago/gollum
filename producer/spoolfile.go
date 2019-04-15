@@ -198,6 +198,8 @@ func (spool *spoolFile) read() {
 	for !spool.prod.IsStopping() {
 		minSuffix, _ := spool.getFileNumbering()
 
+		// Wait for first spooling file to be rolled.
+
 		spoolFileName := fmt.Sprintf(spoolFileFormatString, spool.basePath, minSuffix)
 		if minSuffix == 0 || minSuffix > maxSpoolFileNumber || (spool.file != nil && spool.file.Name() == spoolFileName) {
 			if minSuffix > maxSpoolFileNumber {
@@ -218,44 +220,45 @@ func (spool *spoolFile) read() {
 			continue               // ### continue, try again ###
 		}
 
+		// Only spool back if target is not busy
+		for !spool.prod.IsStopping() && spool.source != nil && spool.source.IsBlocked() {
+			time.Sleep(time.Millisecond * 100)
+			println("sleep")
+			// ### continue, busy source ###
+		}
+
+		if spool.prod.IsStopping() {
+			return
+		}
+
 		file, err := os.OpenFile(spoolFileName, os.O_RDONLY, 0600)
 		if err != nil {
 			spool.prod.Logger.Error("Read open error ", err)
+			// TODO: how to mitigate a possible endless loop?
 			continue // ### continue, try again ###
 		}
 
 		spool.prod.Logger.Debug("Opened ", spoolFileName, " for reading")
 		spool.reader.Reset(0)
-		readFailed := false
 
-		for spool.prod.IsStopping() {
-			// Only spool back if target is not busy
-			if spool.source != nil && spool.source.IsBlocked() {
-				time.Sleep(time.Millisecond * 100)
-				continue // ### continue, busy source ###
+		// Any error cancels the loop
+		if err := spool.reader.ReadAll(file, spool.decode); err != io.EOF {
+			spool.prod.Logger.WithError(err).Error("failed to read spooling file ", spoolFileName)
+			if err := file.Close(); err != nil {
+				spool.prod.Logger.WithError(err).Error("failed to close spooling file ", spoolFileName)
 			}
 
-			// Any error cancels the loop
-			if err := spool.reader.ReadAll(file, spool.decode); err != nil {
-				if err != io.EOF {
-					readFailed = true
-					spool.prod.Logger.Error("Read error: ", err)
-				}
-				break // ### break, read error or EOF ###
-			}
+			spool.prod.Logger.Debug("renaming ", spoolFileName)
+			os.Rename(spoolFileName, spoolFileName+".failed")
+			continue // ### continue, read error or EOF ###
 		}
 
 		// Close and remove file
-		spool.prod.Logger.Debug("Removing ", spoolFileName)
-		file.Close()
-		if readFailed {
-			// Rename file for future processing
-			spool.prod.Logger.Debug("Renaming ", spoolFileName)
-			os.Rename(spoolFileName, spoolFileName+".failed")
-		} else {
-			// Delete file
-			spool.prod.Logger.Debug("Removing ", spoolFileName)
-			os.Remove(spoolFileName)
+		if err := file.Close(); err != nil {
+			spool.prod.Logger.WithError(err).Error("failed to close spooling file ", spoolFileName)
 		}
+
+		spool.prod.Logger.Debug("removing ", spoolFileName)
+		os.Remove(spoolFileName)
 	}
 }
