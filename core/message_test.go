@@ -148,8 +148,10 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	msgString := "Test for clone original"
 	msgUpdateString := "Test for clone original - UPDATE"
+	msgMetadata := Metadata{"foo": []byte("original_bar")}
 
-	msg := NewMessage(nil, []byte(msgString), nil, 1)
+	msg := NewMessage(nil, []byte(msgString), msgMetadata, 1)
+
 	msg.FreezeOriginal()
 
 	msg.SetStreamID(MessageStreamID(10))
@@ -158,9 +160,12 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 
 	clone := msg.CloneOriginal()
 
-	// We froze before adding metadata, i.e. original metadata must be empty
-	expect.Equal("", clone.GetMetadata().GetValueString("foo"))
+	// We froze before changing metadata, i.e. original metadata must be
+	// original value
 	expect.Equal("bar", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("original_bar", clone.GetMetadata().GetValueString("foo"))
+	expect.Equal(MessageStreamID(1), clone.GetStreamID())
+	expect.Equal(msgString, string(clone.GetPayload()))
 }
 
 func TestMessageMetadata(t *testing.T) {
