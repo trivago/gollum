@@ -25,7 +25,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
+	metrics "github.com/rcrowley/go-metrics"
 
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tio"
@@ -170,13 +170,19 @@ func (spool *spoolFile) decode(data []byte) {
 	// Base64 decode, than deserialize
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
 
-	if size, err := base64.StdEncoding.Decode(decoded, data); err != nil {
-		spool.prod.Logger.Error("File read: ", err)
-	} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
-		spool.prod.Logger.Error("File read: ", err)
-	} else {
-		spool.prod.routeToOrigin(msg)
+	size, err := base64.StdEncoding.Decode(decoded, data)
+	if err != nil {
+		spool.prod.Logger.WithError(err).Error("failed deserialiying spooled message from base64")
+		return
 	}
+
+	msg, err := core.DeserializeMessage(decoded[:size])
+	if err != nil {
+		spool.prod.Logger.WithError(err).Error("failed deserializing spooled message from protobuf")
+		return
+	}
+
+	spool.prod.routeToOrigin(msg)
 }
 
 func (spool *spoolFile) waitForReader() {
