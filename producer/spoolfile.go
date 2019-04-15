@@ -242,7 +242,7 @@ func (spool *spoolFile) read() {
 		spool.reader.Reset(0)
 
 		// Any error cancels the loop
-		if err := spool.reader.ReadAll(file, spool.decode); err != io.EOF {
+		if err := spool.reader.ReadAll(file, spool.decode); err != io.EOF && err != nil {
 			spool.prod.Logger.WithError(err).Error("failed to read spooling file ", spoolFileName)
 			if err := file.Close(); err != nil {
 				spool.prod.Logger.WithError(err).Error("failed to close spooling file ", spoolFileName)
