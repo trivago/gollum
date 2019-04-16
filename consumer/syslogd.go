@@ -17,6 +17,7 @@ package consumer
 import (
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -131,6 +132,56 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 	}
 }
 
+func (cons *Syslogd) parseCustomFields(data string, metadata *core.Metadata) {
+	if len(data) == 0 {
+		return
+	}
+
+	endOfSid := strings.IndexByte(data, ' ')
+	if endOfSid < 0 {
+		return
+	}
+
+	data = data[endOfSid+1:]
+	for {
+		if len(data) == 0 {
+			return
+		}
+		endOfKey := strings.IndexByte(data, '=')
+		if endOfKey < 0 {
+			return // not found
+		}
+
+		key := strings.TrimSpace(data[:endOfKey])
+		data = data[endOfKey+1:]
+
+		startOfValue := strings.IndexByte(data, '"') + 1
+		if startOfValue < 1 {
+			return // not found
+		}
+
+		i := startOfValue
+		endOfValue := i + 1
+		for {
+			endOfValue = strings.IndexByte(data[i:], '"')
+			if endOfValue < 0 {
+				return // not found
+			}
+			endOfValue += i
+			if data[endOfValue-1] != '\\' {
+				break // found
+			}
+			i = endOfValue + 1 // escaped quote
+		}
+
+		value := data[startOfValue:endOfValue]
+		data = data[endOfValue+1:]
+
+		metadata.SetValue(key, []byte(value))
+		cons.Logger.WithField(key, value).Debug("structured data parsed")
+	}
+}
+
 // Handle implements the syslog handle interface
 func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 	content := ""
@@ -171,6 +222,11 @@ func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 			facility, _ := parts["facility"].(int)
 			severity, _ := parts["severity"].(int)
 			timestamp, _ := parts["timestamp"].(time.Time)
+			structuredData, _ := parts["structured_data"].(string)
+
+			metaData.SetValue("structured_data", []byte(structuredData))
+
+			cons.parseCustomFields(structuredData, &metaData)
 
 			metaData.SetValue("app_name", []byte(app))
 			metaData.SetValue("version", []byte(version))
