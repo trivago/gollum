@@ -191,8 +191,9 @@ func (spool *spoolFile) waitForReader() {
 
 func (spool *spoolFile) read() {
 	spool.prod.AddWorker()
-	spool.readWorker.Add(1)
 	defer spool.prod.WorkerDone()
+
+	spool.readWorker.Add(1)
 	defer spool.readWorker.Done()
 
 nextFile:
@@ -210,6 +211,7 @@ nextFile:
 			}
 
 			spool.prod.WorkerDone() // to avoid being stuck during shutdown
+			spool.readWorker.Done()
 
 			retry := time.After(spool.prod.maxFileAge / 2)
 			select {
@@ -218,14 +220,13 @@ nextFile:
 			}
 
 			spool.prod.AddWorker() // worker done is always called at exit
-			continue               // ### continue, try again ###
+			spool.readWorker.Add(1)
+			continue // ### continue, try again ###
 		}
 
 		// Only spool back if target is not busy
 		for !spool.prod.IsStopping() && spool.source != nil && spool.source.IsBlocked() {
 			time.Sleep(time.Millisecond * 100)
-			println("sleep")
-			// ### continue, busy source ###
 		}
 
 		if spool.prod.IsStopping() {
