@@ -196,7 +196,7 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 	// Convert to expected payload format
 	encodedPayload, err := prod.encode(msg)
 	if err != nil {
-		prod.Logger.WithError(err).Error("Failed to encoded messager for spooling")
+		prod.Logger.WithError(err).Error("Failed to encode message for spooling")
 		prod.TryFallback(msg)
 		return // ### return, could not spool to disk ###
 	}
