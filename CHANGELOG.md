@@ -15,6 +15,13 @@ Go 1.10 and 1.9 are still supported. Support for Go 1.8 or older has been droppe
 * Consumer.File setting "Files" now supports glob patterns.
 * Consumer.Syslog now allows non-standard protocol types (see issue #234)
 
+### Fixed with 0.6.0
+
+* producer.spooling is now functional again as messages were not written correctly since 0.5.0 (#248).
+* producer.spooling now does not block upon shutdown (#248).
+* metadata is now handled correctly when messages are sent to fallback (#247).
+* a non-critical race condition during shutdown of consumer.socket has been fixed (#246).
+
 ### Breaking changes with 0.6.0
 
 * Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
