@@ -201,7 +201,7 @@ This example starts a simple twitter example producer for local running ElasticS
 	   StreamProperties:
 	     tweets_stream:
 	       Index: twitter
-	       TimeBasedIndex: true
+	       DayBasedIndex: true
 	       Type: tweet
 	       Mapping:
 	         # index mapping for payload
