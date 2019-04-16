@@ -258,11 +258,10 @@ func (prod *Spooling) routeToOrigin(msg *core.Message) {
 }
 
 func (prod *Spooling) waitForReader() {
-	prod.outfileGuard.Lock()
-	defer prod.outfileGuard.Unlock()
+	prod.outfileGuard.RLock()
+	defer prod.outfileGuard.RUnlock()
 
-	outfiles := prod.outfile
-	for _, spool := range outfiles {
+	for _, spool := range prod.outfile {
 		spool.waitForReader()
 	}
 }
@@ -276,8 +275,9 @@ func (prod *Spooling) close() {
 	}
 	prod.DefaultClose()
 
-	prod.outfileGuard.Lock()
-	defer prod.outfileGuard.Unlock()
+	prod.outfileGuard.RLock()
+	defer prod.outfileGuard.RUnlock()
+
 	for _, spool := range prod.outfile {
 		spool.close()
 	}
