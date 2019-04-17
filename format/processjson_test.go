@@ -110,14 +110,14 @@ func TestProcessJsonTrimValuesFalse(t *testing.T) {
 	expect.True(strings.Contains(msgData, "\"bar2\":\" value2\""))
 }
 
-func TestProcessJSONApplyTo(t *testing.T) {
+func TestProcessJSONTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessJSON")
 	config.Override("Directives", []interface{}{
 		"test:rename:foo",
 	})
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

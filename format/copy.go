@@ -22,16 +22,16 @@ import (
 	"github.com/trivago/tgo/treflect"
 )
 
-// MetadataCopy formatter plugin
+// Copy formatter plugin
 //
 // This formatter sets metadata fields by copying data from the message's
 // payload or from other metadata fields.
 //
 // Parameters
 //
-// - Key: Defines the key to copy, i.e. the "source". ApplyTo will define
-// the target of the copy, i.e. the "destination". An empty string will
-// use the message payload as source.
+// - Source: Defines the key to copy, i.e. the "source" of a copy operation.
+// Target will define the target of the copy, i.e. the "destination".
+// An empty string will use the message payload as source.
 // By default this parameter is set to an empty string (i.e. payload).
 //
 // - Mode: Defines the copy mode to use. This can be one of "append",
@@ -51,15 +51,15 @@ import (
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
-//      - format.MetadataCopy:
-//        ApplyTo: key
+//      - format.Copy:
+//        Target: key
 //      - formatter.Identifier
 //        Generator: hash
-//        ApplyTo: key
+//        Target: key
 //
-type MetadataCopy struct {
+type Copy struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	key                  string `config:"Key"`
+	source               string `config:"Source"`
 	separator            []byte `config:"Separator"`
 	mode                 metadataCopyMode
 }
@@ -73,11 +73,11 @@ const (
 )
 
 func init() {
-	core.TypeRegistry.Register(MetadataCopy{})
+	core.TypeRegistry.Register(Copy{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *MetadataCopy) Configure(conf core.PluginConfigReader) {
+func (format *Copy) Configure(conf core.PluginConfigReader) {
 	mode := conf.GetString("Mode", "replace")
 	switch strings.ToLower(mode) {
 	case "replace":
@@ -91,8 +91,8 @@ func (format *MetadataCopy) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func (format *MetadataCopy) applyReplace(msg *core.Message) error {
-	getSourceData := core.NewGetAppliedContentFunc(format.key)
+func (format *Copy) applyReplace(msg *core.Message) error {
+	getSourceData := core.NewGetterFor(format.source)
 	srcData := getSourceData(msg)
 	srcValue := reflect.ValueOf(srcData)
 
@@ -106,15 +106,15 @@ func (format *MetadataCopy) applyReplace(msg *core.Message) error {
 		srcData = copyValue.Interface()
 	}
 
-	format.SetAppliedContent(msg, srcData)
+	format.SetTargetData(msg, srcData)
 
 	return nil
 }
 
-func (format *MetadataCopy) applyAppend(msg *core.Message) error {
-	getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
+func (format *Copy) applyAppend(msg *core.Message) error {
+	getSrcData := core.NewBytesGetterFor(format.source)
 	srcData := getSrcData(msg)
-	dstData := core.ConvertToBytes(format.GetAppliedContent(msg))
+	dstData := core.ConvertToBytes(format.GetTargetData(msg))
 
 	newLen := len(srcData) + len(dstData) + len(format.separator)
 	cloneData := make([]byte, len(dstData), newLen)
@@ -124,15 +124,15 @@ func (format *MetadataCopy) applyAppend(msg *core.Message) error {
 	if len(format.separator) != 0 {
 		dstData = append(dstData, format.separator...)
 	}
-	format.SetAppliedContent(msg, append(dstData, srcData...))
+	format.SetTargetData(msg, append(dstData, srcData...))
 
 	return nil
 }
 
-func (format *MetadataCopy) applyPrepend(msg *core.Message) error {
-	getSrcData := core.NewGetAppliedContentAsBytesFunc(format.key)
+func (format *Copy) applyPrepend(msg *core.Message) error {
+	getSrcData := core.NewBytesGetterFor(format.source)
 	srcData := getSrcData(msg)
-	dstData := core.ConvertToBytes(format.GetAppliedContent(msg))
+	dstData := core.ConvertToBytes(format.GetTargetData(msg))
 
 	newLen := len(srcData) + len(dstData) + len(format.separator)
 	cloneData := make([]byte, len(srcData), newLen)
@@ -142,13 +142,13 @@ func (format *MetadataCopy) applyPrepend(msg *core.Message) error {
 	if len(format.separator) != 0 {
 		srcData = append(srcData, format.separator...)
 	}
-	format.SetAppliedContent(msg, append(srcData, dstData...))
+	format.SetTargetData(msg, append(srcData, dstData...))
 
 	return nil
 }
 
 // ApplyFormatter update message payload
-func (format *MetadataCopy) ApplyFormatter(msg *core.Message) error {
+func (format *Copy) ApplyFormatter(msg *core.Message) error {
 	switch format.mode {
 	case metadataCopyModeReplace:
 		return format.applyReplace(msg)

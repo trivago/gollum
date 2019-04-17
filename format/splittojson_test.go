@@ -106,13 +106,13 @@ func TestSplitToJSONTooMany(t *testing.T) {
 	expect.MapEqual(jsonData, "third", "test3")
 }
 
-func TestSplitToJSONApplyTo(t *testing.T) {
+func TestSplitToJSONTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.SplitToJSON")
 	config.Override("SplitBy", ",")
 	config.Override("Keys", []string{"first", "second", "third"})
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

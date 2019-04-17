@@ -324,12 +324,12 @@ func TestProcessTSVDelimiterAndQuotedValuesAndDirectives(t *testing.T) {
 	)
 }
 
-func TestProcessTSVApplyTo(t *testing.T) {
+func TestProcessTSVTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ProcessTSV")
 	config.Override("Directives", []string{"1:remove"})
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

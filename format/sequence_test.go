@@ -44,11 +44,11 @@ func TestSequence(t *testing.T) {
 	expect.Equal("2:test", string(msg.GetPayload()))
 }
 
-func TestSequenceApplyTo(t *testing.T) {
+func TestSequenceTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Sequence")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
@@ -67,11 +67,11 @@ func TestSequenceApplyTo(t *testing.T) {
 	expect.Equal("1:test", string(foo))
 }
 
-func TestSequenceApplyToNoSeparator(t *testing.T) {
+func TestSequenceTargetNoSeparator(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Sequence")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	config.Override("Separator", "")
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

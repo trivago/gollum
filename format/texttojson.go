@@ -470,7 +470,7 @@ func (format *TextToJSON) ApplyFormatter(msg *core.Message) error {
 	format.state = jsonReadObject
 
 	format.message.WriteString("{")
-	remains, state := format.parser.Parse(format.GetAppliedContentAsBytes(msg), format.initState)
+	remains, state := format.parser.Parse(format.GetTargetDataAsBytes(msg), format.initState)
 
 	// Write remains as string value
 	if remains != nil {
@@ -485,7 +485,7 @@ func (format *TextToJSON) ApplyFormatter(msg *core.Message) error {
 	}
 
 	format.message.WriteString("}\n")
-	format.SetAppliedContent(msg, bytes.TrimSpace(format.message.Bytes()))
+	format.SetTargetData(msg, bytes.TrimSpace(format.message.Bytes()))
 
 	return nil
 }

@@ -60,7 +60,7 @@ type Double struct {
 	leftStreamID         bool                `config:"UseLeftStreamID" default:"false"`
 	left                 core.FormatterArray `config:"Left"`
 	right                core.FormatterArray `config:"Right"`
-	applyTo              string
+	Target              string
 }
 
 func init() {
@@ -69,7 +69,7 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Double) Configure(conf core.PluginConfigReader) {
-	format.applyTo = conf.GetString("ApplyTo", "")
+	format.Target = conf.GetString("Target", "")
 }
 
 // ApplyFormatter update message payload
@@ -78,9 +78,9 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	rightMsg := msg.Clone()
 
 	// pre-process
-	if format.applyTo != "" {
-		leftMsg.StorePayload(format.GetAppliedContentAsBytes(msg))
-		rightMsg.StorePayload(format.GetAppliedContentAsBytes(msg))
+	if format.Target != "" {
+		leftMsg.StorePayload(format.GetTargetDataAsBytes(msg))
+		rightMsg.StorePayload(format.GetTargetDataAsBytes(msg))
 	}
 
 	// apply sub-formatter
@@ -93,7 +93,7 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	}
 
 	// update content
-	format.SetAppliedContent(msg, format.getCombinedContent(leftMsg.GetPayload(), rightMsg.GetPayload()))
+	format.SetTargetData(msg, format.getCombinedContent(leftMsg.GetPayload(), rightMsg.GetPayload()))
 
 	// handle streamID
 	if format.leftStreamID {

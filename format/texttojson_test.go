@@ -94,7 +94,7 @@ func BenchmarkTextToJSONFormatter(b *testing.B) {
 	}
 }
 
-func TestTextToJSONFormatterApplyTo(t *testing.T) {
+func TestTextToJSONFormatterTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	format := TextToJSON{}
@@ -120,7 +120,7 @@ func TestTextToJSONFormatterApplyTo(t *testing.T) {
 	conf := core.NewPluginConfig("mockTextToJSONFormatter", "format.TextToJSON")
 	conf.Override("StartState", "findKey")
 	conf.Override("Directives", directives)
-	conf.Override("ApplyTo", "foo")
+	conf.Override("Target", "foo")
 
 	reader := core.NewPluginConfigReader(&conf)
 	if err := reader.Configure(&format); err != nil {

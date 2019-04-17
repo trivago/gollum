@@ -24,12 +24,12 @@ import (
 // Aggregate formatter plugin
 //
 // Aggregate is a formatter which can group up further formatter.
-// The `ApplyTo` settings will be pass on and overwritten in the child formatter.
+// The `Target` settings will be pass on and overwritten in the child formatter.
 // This plugin could be useful to setup complex configs with metadata handling in more readable format.
 //
 // Parameters
 //
-// - ApplyTo: This value chooses the part of the message the formatting
+// - Target: This value chooses the part of the message the formatting
 // should be applied to. Use "" to target the message payload; other values
 // specify the name of a metadata field to target.
 // This value will also used for further child modulators!
@@ -47,36 +47,40 @@ import (
 //    Type: consumer.Console
 //    Streams: "foo"
 //    Modulators:
-//      - format.MetadataCopy:
-//          CopyToKeys: ["foo", "bar"]
 //      - format.Aggregate:
-//          ApplyTo: foo
+//          Target: bar
 //          Modulators:
+//            - format.Copy
+//            - format.Envelope:
+//                Postfix: "\n"
+//      - format.Aggregate:
+//          Target: foo
+//          Modulators:
+//            - format.Copy
 //            - format.Base64Encode
 //            - format.Double
 //            - format.Envelope:
 //                Postfix: "\n"
-//      - format.Envelope:
-//          Postfix: "\n"
-//          ApplyTo: bar
 //
 //  # same config as
 //  exampleConsumerB:
 //    Type: consumer.Console
 //    Streams: "bar"
 //    Modulators:
-//      - format.MetadataCopy:
-//          CopyToKeys: ["foo", "bar"]
+//      - format.Copy:
+//          Target: foo
+//      - format.Copy:
+//          Target: foo
 //      - format.Base64Encode:
-//          ApplyTo: foo
+//          Target: foo
 //      - format.Double:
-//          ApplyTo: foo
+//          Target: foo
 //      - format.Envelope:
 //          Postfix: "\n"
-//          ApplyTo: foo
+//          Target: foo
 //      - format.Envelope:
 //          Postfix: "\n"
-//          ApplyTo: bar
+//          Target: bar
 //
 type Aggregate struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
@@ -89,10 +93,10 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Aggregate) Configure(conf core.PluginConfigReader) {
-	applyTo := conf.GetString("ApplyTo", "")
+	Target := conf.GetString("Target", "")
 
 	// init modulator array
-	modulatorSettings := format.getModulatorSettings(applyTo, conf)
+	modulatorSettings := format.getModulatorSettings(Target, conf)
 
 	config := core.NewPluginConfig("", "format.Aggregate.Modulators")
 	config.Override("Modulators", modulatorSettings)
@@ -119,7 +123,7 @@ func (format *Aggregate) ApplyFormatter(msg *core.Message) error {
 	return nil
 }
 
-func (format *Aggregate) getModulatorSettings(applyTo string, conf core.PluginConfigReader) []interface{} {
+func (format *Aggregate) getModulatorSettings(Target string, conf core.PluginConfigReader) []interface{} {
 	finalModulatorMap := []interface{}{}
 
 	for _, childFormatterArray := range conf.GetArray("Modulators", []interface{}{}) {
@@ -130,14 +134,14 @@ func (format *Aggregate) getModulatorSettings(applyTo string, conf core.PluginCo
 		case tcontainer.MarshalMap:
 			for childFormatterName, childFormatterItem := range childFormatter {
 				childFormatterItemMap := childFormatterItem.(tcontainer.MarshalMap)
-				childFormatterItemMap["ApplyTo"] = applyTo
+				childFormatterItemMap["Target"] = Target
 
 				finalModulatorMap = format.appendModulator(childFormatterName, childFormatterItemMap, finalModulatorMap)
 
 			}
 		case string:
 			childFormatterItemMap := tcontainer.NewMarshalMap()
-			childFormatterItemMap["ApplyTo"] = applyTo
+			childFormatterItemMap["Target"] = Target
 
 			finalModulatorMap = format.appendModulator(childFormatter, childFormatterItemMap, finalModulatorMap)
 

@@ -8,16 +8,16 @@ import (
 	"github.com/trivago/tgo/ttesting"
 )
 
-func TestMetadataCopyReplace(t *testing.T) {
+func TestCopyReplace(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.MetadataCopy")
+	config := core.NewPluginConfig("", "format.Copy")
 	config.Override("Key", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*MetadataCopy)
+	formatter, casted := plugin.(*Copy)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("not applied"), tcontainer.MarshalMap{"foo": []byte("foo")}, core.InvalidStreamID)
@@ -28,16 +28,16 @@ func TestMetadataCopyReplace(t *testing.T) {
 	expect.Equal("foo", msg.String())
 }
 
-func TestMetadataCopyAddKey(t *testing.T) {
+func TestCopyAddKey(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.MetadataCopy")
-	config.Override("ApplyTo", "foo")
+	config := core.NewPluginConfig("", "format.Copy")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*MetadataCopy)
+	formatter, casted := plugin.(*Copy)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
@@ -51,10 +51,10 @@ func TestMetadataCopyAddKey(t *testing.T) {
 	expect.Equal("test", string(val))
 }
 
-func TestMetadataCopyAppend(t *testing.T) {
+func TestCopyAppend(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.MetadataCopy")
+	config := core.NewPluginConfig("", "format.Copy")
 	config.Override("Key", "foo")
 	config.Override("Mode", "append")
 	config.Override("Separator", " ")
@@ -62,7 +62,7 @@ func TestMetadataCopyAppend(t *testing.T) {
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*MetadataCopy)
+	formatter, casted := plugin.(*Copy)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), tcontainer.MarshalMap{"foo": []byte("foo")}, core.InvalidStreamID)
@@ -73,17 +73,17 @@ func TestMetadataCopyAppend(t *testing.T) {
 	expect.Equal("test foo", msg.String())
 }
 
-func TestMetadataCopyPrepend(t *testing.T) {
+func TestCopyPrepend(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.MetadataCopy")
+	config := core.NewPluginConfig("", "format.Copy")
 	config.Override("Key", "foo")
 	config.Override("Mode", "prepend")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*MetadataCopy)
+	formatter, casted := plugin.(*Copy)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), tcontainer.MarshalMap{"foo": []byte("foo")}, core.InvalidStreamID)
@@ -94,16 +94,16 @@ func TestMetadataCopyPrepend(t *testing.T) {
 	expect.Equal("footest", msg.String())
 }
 
-func TestMetadataCopyMetadataIntegrity(t *testing.T) {
+func TestCopyMetadataIntegrity(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.MetadataCopy")
-	config.Override("ApplyTo", "foo")
+	config := core.NewPluginConfig("", "format.Copy")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*MetadataCopy)
+	formatter, casted := plugin.(*Copy)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("payload"), nil, core.InvalidStreamID)
@@ -124,16 +124,16 @@ func TestMetadataCopyMetadataIntegrity(t *testing.T) {
 	expect.Equal("payload", string(foo))
 }
 
-func TestMetadataCopyPayloadIntegrity(t *testing.T) {
+func TestCopyPayloadIntegrity(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.MetadataCopy")
+	config := core.NewPluginConfig("", "format.Copy")
 	config.Override("Key", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*MetadataCopy)
+	formatter, casted := plugin.(*Copy)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte{}, nil, core.InvalidStreamID)

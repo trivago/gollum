@@ -61,8 +61,8 @@ func (format *Hostname) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Hostname) ApplyFormatter(msg *core.Message) error {
-	content := format.getFinalContent(format.GetAppliedContentAsBytes(msg))
-	format.SetAppliedContent(msg, content)
+	content := format.getFinalContent(format.GetTargetDataAsBytes(msg))
+	format.SetTargetData(msg, content)
 
 	return nil
 }

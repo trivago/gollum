@@ -2,20 +2,20 @@ package core
 
 import "fmt"
 
-// GetAppliedContentFunc is a func() to get message content from payload or meta data
+// GetTargetDataFunc is a func() to get message content from payload or meta data
 // for later handling by plugins
-type GetAppliedContentFunc func(msg *Message) interface{}
+type GetTargetDataFunc func(msg *Message) interface{}
 
-// GetAppliedContentAsStringFunc acts as a wrapper around GetAppliedContentFunc
+// GetTargetDataAsStringFunc acts as a wrapper around GetTargetDataFunc
 // if only string data can be processed.
-type GetAppliedContentAsStringFunc func(msg *Message) string
+type GetTargetDataAsStringFunc func(msg *Message) string
 
-// GetAppliedContentAsBytesFunc acts as a wrapper around GetAppliedContentFunc
+// GetTargetDataAsBytesFunc acts as a wrapper around GetTargetDataFunc
 // if only []byte] data can be processed.
-type GetAppliedContentAsBytesFunc func(msg *Message) []byte
+type GetTargetDataAsBytesFunc func(msg *Message) []byte
 
-// SetAppliedContentFunc is a func() to store message content to payload or meta data
-type SetAppliedContentFunc func(msg *Message, content interface{})
+// SetTargetDataFunc is a func() to store message content to payload or meta data
+type SetTargetDataFunc func(msg *Message, content interface{})
 
 func getPayloadContent(msg *Message) interface{} {
 	return msg.GetPayload()
@@ -32,31 +32,31 @@ func getMetadataContent(msg *Message, key string) interface{} {
 	return []byte{}
 }
 
-// NewGetAppliedContentFunc returns a GetAppliedContentFunc function
-func NewGetAppliedContentFunc(applyTo string) GetAppliedContentFunc {
-	if applyTo == "" {
+// NewGetterFor returns a GetTargetDataFunc function
+func NewGetterFor(identifier string) GetTargetDataFunc {
+	if identifier == "" {
 		return getPayloadContent
 	}
 
 	// we need a lambda to hide away the second parameter
 	return func(msg *Message) interface{} {
-		return getMetadataContent(msg, applyTo)
+		return getMetadataContent(msg, identifier)
 	}
 }
 
-// NewGetAppliedContentAsStringFunc returns a function that gets message content
+// NewStringGetterFor returns a function that gets message content
 // as string.
-func NewGetAppliedContentAsStringFunc(applyTo string) GetAppliedContentAsStringFunc {
-	get := NewGetAppliedContentFunc(applyTo)
+func NewStringGetterFor(identifier string) GetTargetDataAsStringFunc {
+	get := NewGetterFor(identifier)
 	return func(msg *Message) string {
 		return ConvertToString(get(msg))
 	}
 }
 
-// NewGetAppliedContentAsBytesFunc returns a function that gets message content
+// NewBytesGetterFor returns a function that gets message content
 // as bytes.
-func NewGetAppliedContentAsBytesFunc(applyTo string) GetAppliedContentAsBytesFunc {
-	get := NewGetAppliedContentFunc(applyTo)
+func NewBytesGetterFor(identifier string) GetTargetDataAsBytesFunc {
+	get := NewGetterFor(identifier)
 	return func(msg *Message) []byte {
 		return ConvertToBytes(get(msg))
 	}
@@ -78,8 +78,8 @@ func setPayloadContent(msg *Message, content interface{}) {
 	}
 }
 
-// NewSetAppliedContentFunc returns SetAppliedContentFunc function to store message content
-func NewSetAppliedContentFunc(applyTo string) SetAppliedContentFunc {
+// NewSetterFor returns SetTargetDataFunc function to store message content
+func NewSetterFor(applyTo string) SetTargetDataFunc {
 	if applyTo == "" {
 		return setPayloadContent
 	}

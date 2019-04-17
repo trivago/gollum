@@ -55,7 +55,7 @@ import (
 //    Modulators:
 //      - formatter.Identifier
 //        Generator: hash
-//        ApplyTo: checksum
+//        Target: checksum
 type Identifier struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	hash                 func(*core.Message) []byte
@@ -110,6 +110,6 @@ func (format *Identifier) idSeqHex(msg *core.Message) []byte {
 
 // ApplyFormatter update message payload
 func (format *Identifier) ApplyFormatter(msg *core.Message) error {
-	format.SetAppliedContent(msg, format.hash(msg))
+	format.SetTargetData(msg, format.hash(msg))
 	return nil
 }

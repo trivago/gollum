@@ -68,7 +68,7 @@ func (format *TemplateJSON) Configure(conf core.PluginConfigReader) {
 // ApplyFormatter update message payload
 func (format *TemplateJSON) ApplyFormatter(msg *core.Message) error {
 	values := tcontainer.NewMarshalMap()
-	err := json.Unmarshal(format.GetAppliedContentAsBytes(msg), &values)
+	err := json.Unmarshal(format.GetTargetDataAsBytes(msg), &values)
 	if err != nil {
 		format.Logger.Warning("TemplateJSON failed to unmarshal a message: ", err)
 		return err
@@ -81,7 +81,7 @@ func (format *TemplateJSON) ApplyFormatter(msg *core.Message) error {
 		return err
 	}
 
-	format.SetAppliedContent(msg, templateData.Bytes())
+	format.SetTargetData(msg, templateData.Bytes())
 
 	return nil
 }

@@ -72,7 +72,7 @@ func (format *SplitToJSON) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *SplitToJSON) ApplyFormatter(msg *core.Message) error {
-	components := bytes.Split(format.GetAppliedContentAsBytes(msg), format.token)
+	components := bytes.Split(format.GetTargetDataAsBytes(msg), format.token)
 	maxIdx := tmath.MinI(len(format.keys), len(components))
 	jsonData := ""
 
@@ -99,6 +99,6 @@ func (format *SplitToJSON) ApplyFormatter(msg *core.Message) error {
 		}
 	}
 
-	format.SetAppliedContent(msg, []byte(jsonData))
+	format.SetTargetData(msg, []byte(jsonData))
 	return nil
 }

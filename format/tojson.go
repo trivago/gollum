@@ -56,7 +56,7 @@ func (format *ToJSON) ApplyFormatter(msg *core.Message) error {
 		if err != nil {
 			return err
 		}
-		format.SetAppliedContent(msg, data)
+		format.SetTargetData(msg, data)
 		return nil
 	}
 
@@ -66,6 +66,6 @@ func (format *ToJSON) ApplyFormatter(msg *core.Message) error {
 		metadata.Delete(k)
 	}
 
-	format.SetAppliedContent(msg, nil)
+	format.SetTargetData(msg, nil)
 	return nil
 }

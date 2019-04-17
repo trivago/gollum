@@ -66,11 +66,11 @@ func TestFormatterHostnameNoSeparator(t *testing.T) {
 	expect.Equal(fmt.Sprintf("%s%s", hostname, "test"), msg.String())
 }
 
-func TestFormatterHostnameApplyTo(t *testing.T) {
+func TestFormatterHostnameTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Hostname")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	config.Override("Separator", "")
 
 	plugin, err := core.NewPluginWithConfig(config)

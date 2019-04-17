@@ -28,13 +28,13 @@ func TestFormatterRegExp(t *testing.T) {
 	expect.Equal("test", string(msg.GetPayload()))
 }
 
-func TestFormatterRegExpApplyTo(t *testing.T) {
+func TestFormatterRegExpTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.RegExp")
 	config.Override("Expression", "([a-z]*)")
 	config.Override("Template", "${1}")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

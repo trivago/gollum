@@ -18,35 +18,44 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Clear formatter
+// Move formatter
 //
-// This formatter erases the message payload or deletes a metadata key.
+// This formatter moves data from one location to another. When targeting a
+// metadata key, the target key will be created or overwritten. When the source
+// is the payload, it will be cleared.
 //
 // Examples
 //
-// This example removes the "pipe" key from the metadata produced by
-// consumer.Console.
+// This example moves the payload produced by consumer.Console to the metadata
+// key data.
 //
 //  exampleConsumer:
 //    Type: consumer.Console
 //    Streams: stdin
 //    Modulators:
-//      - format.Clear
-//        Target: pipe
-type Clear struct {
+//      - format.Move
+//        Target: data
+type Move struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
+	source               string `config:"Source"`
 }
 
 func init() {
-	core.TypeRegistry.Register(Clear{})
+	core.TypeRegistry.Register(Move{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Clear) Configure(conf core.PluginConfigReader) {
+func (format *Move) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload
-func (format *Clear) ApplyFormatter(msg *core.Message) error {
-	format.SetTargetData(msg, nil)
+func (format *Move) ApplyFormatter(msg *core.Message) error {
+	getSourceData := core.NewBytesGetterFor(format.source)
+	srcData := getSourceData(msg)
+
+	format.SetTargetData(msg, srcData)
+
+	setSourceData := core.NewSetterFor(format.source)
+	setSourceData(msg, nil)
 	return nil
 }

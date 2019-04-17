@@ -49,13 +49,13 @@ func TestFormatterTrimWithSpaces(t *testing.T) {
 	expect.Equal("foo bar foobar", msg.String())
 }
 
-func TestFormatterTrimApplyTo(t *testing.T) {
+func TestFormatterTrimTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Trim")
 	config.Override("LeftSeparator", "|")
 	config.Override("RightSeparator", "|")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

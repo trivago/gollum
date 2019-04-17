@@ -27,11 +27,11 @@ type applyFormatterMockA struct {
 
 // appends "A" to content
 func (formatter *applyFormatterMockA) ApplyFormatter(msg *core.Message) error {
-	c := formatter.GetAppliedContent(msg)
+	c := formatter.GetTargetData(msg)
 	new := []byte("A")
 	c = append(c.([]byte), new...)
 
-	formatter.SetAppliedContent(msg, c)
+	formatter.SetTargetData(msg, c)
 
 	return nil
 }
@@ -49,11 +49,11 @@ func (formatter *applyFormatterMockB) Configure(conf core.PluginConfigReader) {
 
 // appends "B" to content
 func (formatter *applyFormatterMockB) ApplyFormatter(msg *core.Message) error {
-	c := formatter.GetAppliedContent(msg)
+	c := formatter.GetTargetData(msg)
 	new := []byte("B")
 	c = append(c.([]byte), new...)
 
-	formatter.SetAppliedContent(msg, c)
+	formatter.SetTargetData(msg, c)
 
 	return nil
 }
@@ -65,7 +65,7 @@ func TestAggregate_ApplyFormatter(t *testing.T) {
 	core.TypeRegistry.Register(applyFormatterMockB{})
 
 	config := core.NewPluginConfig("", "format.Aggregate")
-	config.Override("ApplyTo", "")
+	config.Override("Target", "")
 
 	config.Override("Modulators", []interface{}{
 		"format.applyFormatterMockA",
@@ -91,20 +91,20 @@ func TestAggregate_ApplyFormatter(t *testing.T) {
 	expect.Equal("bar", configInjection)
 }
 
-func TestAggregate_ApplyFormatterWithApplyTo(t *testing.T) {
+func TestAggregate_ApplyFormatterWithTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	core.TypeRegistry.Register(applyFormatterMockA{})
 	core.TypeRegistry.Register(applyFormatterMockB{})
 
 	config := core.NewPluginConfig("", "format.Aggregate")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	config.Override("Modulators", []interface{}{
 		"format.applyFormatterMockA",
 		map[string]interface{}{
 			"format.applyFormatterMockB": map[string]interface{}{
-				"ApplyTo": "bar",
+				"Target": "bar",
 			},
 		},
 	})

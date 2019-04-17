@@ -51,11 +51,11 @@ func TestDoubleFormatterSeparator(t *testing.T) {
 	expect.Equal("TEST_VALUE-TEST_VALUE", string(msg.GetPayload()))
 }
 
-func TestDoubleFormatterApplyTo(t *testing.T) {
+func TestDoubleFormatterTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Double")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	config.Override("Right", []interface{}{
 		"format.Base64Encode",

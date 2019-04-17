@@ -35,11 +35,11 @@ func TestToArray(t *testing.T) {
 	expect.Equal("value1,value2", string(msg.GetPayload()))
 }
 
-func TestToArrayApplyTo(t *testing.T) {
+func TestToArrayTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.ToArray")
-	config.Override("ApplyTo", "baz")
+	config.Override("Target", "baz")
 	config.Override("Keys", []string{
 		"foo",
 		"bar",

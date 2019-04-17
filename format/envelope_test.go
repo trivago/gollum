@@ -41,11 +41,11 @@ func TestEnvelope(t *testing.T) {
 	expect.Equal("start test end", string(msg.GetPayload()))
 }
 
-func TestEnvelopeApplyTo(t *testing.T) {
+func TestEnvelopeTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Envelope")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	config.Override("Prefix", "start ")
 	config.Override("Postfix", " end")
 

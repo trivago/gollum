@@ -39,24 +39,24 @@ func getMockRouterMessageHelper(streamName string) mockRouterMessageHelper {
 	}
 }
 
-func TestGetAppliedContentFunction(t *testing.T) {
+func TestGetTargetDataFunction(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	resultFunc := NewGetAppliedContentFunc("")
+	resultFunc := NewGetterFor("")
 
 	expect.Equal(reflect.Func, reflect.TypeOf(resultFunc).Kind())
 }
 
-func TestGetAppliedContentFromPayload(t *testing.T) {
+func TestGetTargetDataFromPayload(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	resultFunc := NewGetAppliedContentFunc("")
+	resultFunc := NewGetterFor("")
 	msg := NewMessage(nil, []byte("message payload"), nil, 1)
 
 	expect.Equal([]byte("message payload"), resultFunc(msg).([]byte))
 }
 
-func TestGetAppliedContentFromMetadata(t *testing.T) {
+func TestGetTargetDataFromMetadata(t *testing.T) {
 	expect := ttesting.NewExpect(t)
-	resultFunc := NewGetAppliedContentFunc("foo")
+	resultFunc := NewGetterFor("foo")
 	msg := NewMessage(nil, []byte("message payload"), nil, 1)
 	msg.GetMetadata().Set("foo", "foo content")
 

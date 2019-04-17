@@ -42,7 +42,7 @@ func TestClearFormatterApplyHandling(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Clear")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	pluginConfig, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 

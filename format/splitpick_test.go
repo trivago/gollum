@@ -46,13 +46,13 @@ func TestSplitPick_OutOfBoundIndex(t *testing.T) {
 	expect.Equal(0, len(msg.GetPayload()))
 }
 
-func TestSplitPickApplyTo(t *testing.T) {
+func TestSplitPickTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.SplitPick")
 	config.Override("Index", 0)
 	config.Override("Delimiter", "#")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	plugin, err := core.NewPluginWithConfig(config)
 
 	expect.NoError(err)

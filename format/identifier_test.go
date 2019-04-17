@@ -25,11 +25,11 @@ func TestFormatterIdentifier(t *testing.T) {
 	expect.Equal("f9e6e6ef197c2b25", string(msg.GetPayload()))
 }
 
-func TestFormatterIdentifierApplyTo(t *testing.T) {
+func TestFormatterIdentifierTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Identifier")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	config.Override("Generator", "hash")
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

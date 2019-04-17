@@ -42,12 +42,12 @@ func TestTemplateJSON(t *testing.T) {
 	expect.Equal("bar valid", msg.String())
 }
 
-func TestTemplateJSONApplyTo(t *testing.T) {
+func TestTemplateJSONTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.TemplateJSON")
 	config.Override("Template", "{{ .foo }} {{ .test }}")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

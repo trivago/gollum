@@ -40,11 +40,11 @@ func TestTimestamp(t *testing.T) {
 	expect.Equal(prefix+"test", msg.String())
 }
 
-func TestTimestampApplyTo(t *testing.T) {
+func TestTimestampTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Timestamp")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

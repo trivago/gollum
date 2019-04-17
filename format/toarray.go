@@ -22,7 +22,7 @@ import (
 
 // ToArray formatter plugin
 //
-// ToArray converts a set of metadata keys to CSV and applies it to ApplyTo.
+// ToArray converts a set of metadata keys to CSV and applies it to Target.
 //
 // Parameters
 //
@@ -94,6 +94,6 @@ func (format *ToArray) ApplyFormatter(msg *core.Message) error {
 		csv = csv[:len(csv)-len(format.separator)]
 	}
 
-	format.SetAppliedContent(msg, csv)
+	format.SetTargetData(msg, csv)
 	return nil
 }

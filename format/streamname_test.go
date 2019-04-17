@@ -61,11 +61,11 @@ func TestStreamNameHistory(t *testing.T) {
 	expect.Equal(core.LogInternalStream+":test", msg.String())
 }
 
-func TestStreamNameApplyTo(t *testing.T) {
+func TestStreamNameTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.StreamName")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -85,11 +85,11 @@ func TestStreamNameApplyTo(t *testing.T) {
 	expect.Equal(core.LogInternalStream+":test", string(foo))
 }
 
-func TestStreamNameApplyToNoSeparator(t *testing.T) {
+func TestStreamNameTargetNoSeparator(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.StreamName")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	config.Override("Separator", "")
 
 	plugin, err := core.NewPluginWithConfig(config)

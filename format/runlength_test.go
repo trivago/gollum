@@ -38,11 +38,11 @@ func TestRunlength(t *testing.T) {
 	expect.Equal("4:test", string(msg.GetPayload()))
 }
 
-func TestRunlengthApplyTo(t *testing.T) {
+func TestRunlengthTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Runlength")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
@@ -60,11 +60,11 @@ func TestRunlengthApplyTo(t *testing.T) {
 	expect.Equal("4:test", string(foo))
 }
 
-func TestRunlengthApplyToAndStoreRunlengthOnly(t *testing.T) {
+func TestRunlengthTargetAndStoreRunlengthOnly(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Runlength")
-	config.Override("ApplyTo", "foo")
+	config.Override("Target", "foo")
 	config.Override("StoreRunlengthOnly", true)
 
 	plugin, err := core.NewPluginWithConfig(config)

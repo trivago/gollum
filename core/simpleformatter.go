@@ -27,7 +27,7 @@ import (
 //
 // Parameters
 //
-// - ApplyTo: This value chooses the part of the message the formatting
+// - Target: This value chooses the part of the message the formatting
 // should be applied to. Use "" to target the message payload; other values
 // specify the name of a metadata field to target.
 // By default this parameter is set to "".
@@ -36,23 +36,23 @@ import (
 // that is empty or - in case of metadata - not existing.
 // By default this parameter is set to false
 type SimpleFormatter struct {
-	Logger                    logrus.FieldLogger
-	GetAppliedContent         GetAppliedContentFunc
-	GetAppliedContentAsBytes  GetAppliedContentAsBytesFunc
-	GetAppliedContentAsString GetAppliedContentAsStringFunc
-	SetAppliedContent         SetAppliedContentFunc
-	SkipIfEmpty               bool `config:"SkipIfEmpty"`
+	Logger                logrus.FieldLogger
+	GetTargetData         GetTargetDataFunc
+	GetTargetDataAsBytes  GetTargetDataAsBytesFunc
+	GetTargetDataAsString GetTargetDataAsStringFunc
+	SetTargetData         SetTargetDataFunc
+	SkipIfEmpty           bool `config:"SkipIfEmpty"`
 }
 
 // Configure sets up all values required by SimpleFormatter.
 func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.Logger = conf.GetSubLogger("Formatter")
 
-	applyTo := conf.GetString("ApplyTo", "")
-	format.GetAppliedContent = NewGetAppliedContentFunc(applyTo)
-	format.GetAppliedContentAsBytes = NewGetAppliedContentAsBytesFunc(applyTo)
-	format.GetAppliedContentAsString = NewGetAppliedContentAsStringFunc(applyTo)
-	format.SetAppliedContent = NewSetAppliedContentFunc(applyTo)
+	applyTo := conf.GetString("Target", "")
+	format.GetTargetData = NewGetterFor(applyTo)
+	format.GetTargetDataAsBytes = NewBytesGetterFor(applyTo)
+	format.GetTargetDataAsString = NewStringGetterFor(applyTo)
+	format.SetTargetData = NewSetterFor(applyTo)
 }
 
 // CanBeApplied returns true if the formatter can be applied to this message
@@ -61,7 +61,7 @@ func (format *SimpleFormatter) CanBeApplied(msg *Message) bool {
 		return true
 	}
 
-	data := format.GetAppliedContent(msg)
+	data := format.GetTargetData(msg)
 	if data == nil {
 		return false
 	}
