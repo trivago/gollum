@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'gollum'
-copyright = u'2015-2018 trivago N.V.'
+copyright = u'2015-2019 trivago N.V.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
