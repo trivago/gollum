@@ -29,15 +29,15 @@ import (
 // - Separator: This value sets the separator string placed between both parts.
 // This parameter is set to ":" by default.
 //
-// - UseLeftStreamID: Use the stream id of the left side as the final stream id
-// for the message if this value is "true".
+// - UseLeftStreamID: When set to "true", use the stream id of the left side
+// (after formatting) as the streamID for the resulting message.
 // This parameter is set to "false" by default.
 //
 // - Left: An optional list of formatters. The first copy of the message (left
 // of the delimiter) is passed through these filters.
 // This parameter is set to an empty list by default.
 //
-// - Left: An optional list of formatters. The second copy of the mssage (right
+// - Right: An optional list of formatters. The second copy of the mssage (right
 // of the delimiter) is passed through these filters.
 // This parameter is set to an empty list by default.
 //
