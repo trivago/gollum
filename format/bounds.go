@@ -20,25 +20,25 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Trim formatter
+// Bounds formatter
 //
 // This formatter searches for separator strings and removes all data left or
 // right of this separator.
 //
 // Parameters
 //
-// - LeftSeparator: The string to search for. Searching starts from the left
+// - LeftBounds: The string to search for. Searching starts from the left
 // side of the data. If an empty string is given this parameter is ignored.
 // By default this parameter is set to "".
 //
-// - RightSeparator: The string to search for. Searching starts from the right
+// - RightBounds: The string to search for. Searching starts from the right
 // side of the data. If an empty string is given this parameter is ignored.
 // By default this parameter is set to "".
 //
-// - LeftOffset: Defines the search start index when using LeftSeparator.
+// - LeftOffset: Defines the search start index when using LeftBounds.
 // By default this parameter is set to 0.
 //
-// - RightOffset: Defines the search start index when using RightSeparator.
+// - RightOffset: Defines the search start index when using RightBounds.
 // Counting starts from the right side of the message.
 // By default this parameter is set to 0.
 //
@@ -50,32 +50,32 @@ import (
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
-//      - format.Trim:
-//        LeftSeparator: "["
-//        RightSeparator: "]"
-type Trim struct {
+//      - format.Bounds:
+//        LeftBounds: "["
+//        RightBounds: "]"
+type Bounds struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	leftSeparator        []byte `config:"LeftSeparator"`
-	rightSeparator       []byte `config:"RightSeparator"`
+	leftBounds           []byte `config:"LeftBounds"`
+	rightBounds          []byte `config:"RightBounds"`
 	leftOffset           int    `config:"LeftOffset" default:"0"`
 	rightOffset          int    `config:"RightOffset" default:"0"`
 }
 
 func init() {
-	core.TypeRegistry.Register(Trim{})
+	core.TypeRegistry.Register(Bounds{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Trim) Configure(conf core.PluginConfigReader) {
+func (format *Bounds) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload
-func (format *Trim) ApplyFormatter(msg *core.Message) error {
+func (format *Bounds) ApplyFormatter(msg *core.Message) error {
 	content := format.GetTargetDataAsBytes(msg)
 	offset := len(content)
 
-	if len(format.rightSeparator) > 0 {
-		rightIdx := bytes.LastIndex(content, format.rightSeparator)
+	if len(format.rightBounds) > 0 {
+		rightIdx := bytes.LastIndex(content, format.rightBounds)
 		if rightIdx > 0 {
 			offset = rightIdx
 		}
@@ -83,8 +83,8 @@ func (format *Trim) ApplyFormatter(msg *core.Message) error {
 	format.extendContent(&content, offset-format.rightOffset)
 
 	offset = format.leftOffset
-	if len(format.leftSeparator) > 0 {
-		leftIdx := bytes.Index(msg.GetPayload(), format.leftSeparator)
+	if len(format.leftBounds) > 0 {
+		leftIdx := bytes.Index(msg.GetPayload(), format.leftBounds)
 		leftIdx++
 		if leftIdx > 0 {
 			offset += leftIdx
@@ -96,7 +96,7 @@ func (format *Trim) ApplyFormatter(msg *core.Message) error {
 	return nil
 }
 
-func (format *Trim) extendContent(content *[]byte, size int) {
+func (format *Bounds) extendContent(content *[]byte, size int) {
 	switch {
 	case size == len(*content):
 	case size <= cap(*content):
