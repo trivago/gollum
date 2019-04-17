@@ -21,14 +21,14 @@ import (
 	"github.com/trivago/tgo/ttesting"
 )
 
-func TestClearFormatter(t *testing.T) {
+func TestDeleteFormatter(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Clear")
+	config := core.NewPluginConfig("", "format.Delete")
 	pluginConfig, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	plugin, casted := pluginConfig.(*Clear)
+	plugin, casted := pluginConfig.(*Delete)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
@@ -38,15 +38,15 @@ func TestClearFormatter(t *testing.T) {
 	expect.Equal("", msg.String())
 }
 
-func TestClearFormatterApplyHandling(t *testing.T) {
+func TestDeleteFormatterApplyHandling(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Clear")
+	config := core.NewPluginConfig("", "format.Delete")
 	config.Override("Target", "foo")
 	pluginConfig, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	plugin, casted := pluginConfig.(*Clear)
+	plugin, casted := pluginConfig.(*Delete)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)

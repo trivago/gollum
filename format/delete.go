@@ -18,7 +18,7 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Clear formatter
+// Delete formatter
 //
 // This formatter erases the message payload or deletes a metadata key.
 //
@@ -31,22 +31,22 @@ import (
 //    Type: consumer.Console
 //    Streams: stdin
 //    Modulators:
-//      - format.Clear
+//      - format.Delete
 //        Target: pipe
-type Clear struct {
+type Delete struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 }
 
 func init() {
-	core.TypeRegistry.Register(Clear{})
+	core.TypeRegistry.Register(Delete{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Clear) Configure(conf core.PluginConfigReader) {
+func (format *Delete) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload
-func (format *Clear) ApplyFormatter(msg *core.Message) error {
+func (format *Delete) ApplyFormatter(msg *core.Message) error {
 	format.SetTargetData(msg, nil)
 	return nil
 }
