@@ -12,7 +12,7 @@ matrix:
       env: ACCEPT_TARGET=pipeline-accept
     - 
       go: "1.11"
-      env: ACCEPT_TARGET=pipeline-accept
+      env: ACCEPT_TARGET=pipeline-accept GOMOD=off
     - 
       go: "1.10"
       env: ACCEPT_TARGET=pipeline-accept
