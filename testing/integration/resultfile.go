@@ -14,6 +14,9 @@ const (
 	tmpTestFilePathDefault = "/tmp/gollum_test.log"
 	tmpTestFilePathFoo     = "/tmp/gollum_test_foo.log"
 	tmpTestFilePathBar     = "/tmp/gollum_test_bar.log"
+	tmpTestFilePathGlob0   = "/tmp/gollum_test_glob0.log"
+	tmpTestFilePathGlob1   = "/tmp/gollum_test_glob1.log"
+	tmpTestFilePathGlob2   = "/tmp/gollum_test_glob2.log"
 )
 
 var (
@@ -21,6 +24,9 @@ var (
 		tmpTestFilePathDefault,
 		tmpTestFilePathFoo,
 		tmpTestFilePathBar,
+		tmpTestFilePathGlob0,
+		tmpTestFilePathGlob1,
+		tmpTestFilePathGlob2,
 	}
 )
 

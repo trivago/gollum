@@ -25,6 +25,17 @@ Go 1.10 and 1.9 are still supported. Support for Go 1.8 or older has been droppe
 * Removed support for go 1.8 in order to allow sync.Map
 * The functions Message.ResizePayload and .ExtendPayload have been removed in favor if go's slice internal functions.
 
+## 0.5.4
+
+This is a patch / minor features release.
+
+### Fixed with 0.5.4
+
+* producer.spooling is now functional again as messages were not written correctly since 0.5.0 (#248).
+* producer.spooling now does not block upon shutdown (#248).
+* metadata is now handled correctly when messages are sent to fallback (#247).
+* producer.socket now sends messages directly to fallback if connect fails.
+* 
 ## 0.5.3
 
 This is a patch / minor features release.
