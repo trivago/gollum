@@ -43,8 +43,8 @@ import (
 //
 // Examples
 //
-// This example creates a message of the form "<orig>|<base64>", where <orig> is
-// the original console input and <base64> its Base64-encoded equivalent.
+// This example creates a message of the form "<orig>|<hash>", where <orig> is
+// the original console input and <hash> its hash.
 //
 //  exampleConsumer:
 //    Type: consumer.Console
@@ -53,14 +53,15 @@ import (
 //      - format.Double:
 //        Separator: "|"
 //        Right:
-//          - format.Base64Encode
+//          - format.Identifier:
+//            Generator: hash
 type Double struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            []byte              `config:"Separator" default:":"`
 	leftStreamID         bool                `config:"UseLeftStreamID" default:"false"`
 	left                 core.FormatterArray `config:"Left"`
 	right                core.FormatterArray `config:"Right"`
-	Target              string
+	Target               string
 }
 
 func init() {
