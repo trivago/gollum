@@ -28,10 +28,13 @@ import (
 //
 // - Keys: List of strings specifying the keys to write as CSV.
 // Note that these keys can be paths.
-// See https://godoc.org/github.com/trivago/tgo/tcontainer#MarshalMap.Value.
+// By default this parameter is set to an empty list.
 //
 // - Separator: The delimited string to insert between each value in the generated
 // string. By default this parameter is set to ",".
+//
+// - KeepLastSeparator: When set to true, the last separator will not be removed.
+// By default this parameter is set to false.
 //
 // Examples
 //
@@ -51,6 +54,7 @@ type ToArray struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            string   `config:"Separator" default:","`
 	keys                 []string `config:"Keys"`
+	keepLastSeparator    bool     `config:"KeepLastSeparator"`
 }
 
 func init() {
@@ -90,7 +94,7 @@ func (format *ToArray) ApplyFormatter(msg *core.Message) error {
 	}
 
 	// Remove last separator
-	if len(csv) >= len(format.separator) {
+	if !format.keepLastSeparator && len(csv) >= len(format.separator) {
 		csv = csv[:len(csv)-len(format.separator)]
 	}
 
