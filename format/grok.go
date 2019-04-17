@@ -111,7 +111,7 @@ func (format *Grok) Configure(conf core.PluginConfigReader) {
 func (format *Grok) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContentAsString(msg)
 
-	if err := format.applyGrok(msg.GetMetadata(), content[:]); err != nil {
+	if err := format.applyGrok(msg.GetMetadata(), content); err != nil {
 		return err
 	}
 
