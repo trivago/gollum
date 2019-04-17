@@ -42,11 +42,6 @@ import (
 // inserted between source and destination.
 // By default this parameter is set to an empty string.
 //
-// - CopyToKeys: DEPRECATED. A list of meta data keys to copy the payload
-// or metadata content to. If this field contains at least one value, mode
-// is set to replace and the key field is ignored.
-// By default this parameter is set to an empty list.
-//
 // Examples
 //
 // This example copies the payload to the field key and applies a hash on
