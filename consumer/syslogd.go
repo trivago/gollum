@@ -172,7 +172,7 @@ func parseCustomFields(data string, metadata *core.Metadata) {
 		}
 
 		i := startOfValue
-		endOfValue := i + 1
+		var endOfValue int
 		hasQuotes := false
 		for {
 			endOfValue = strings.IndexByte(data[i:], '"')
