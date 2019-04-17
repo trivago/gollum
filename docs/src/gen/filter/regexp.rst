@@ -11,20 +11,20 @@ This filter rejects or accepts messages based on regular expressions.
 Parameters
 ----------
 
-**FilterExpression**
+**Expression**
 
   Messages matching this expression are passed on.
-  This parameter is ignored when set to "". FilterExpression is checked
-  after FilterExpressionNot.
+  This parameter is ignored when set to "". Expression is checked
+  after ExpressionNot.
   By default this parameter is set to "".
   
   
 
-**FilterExpressionNot**
+**ExpressionNot**
 
   Messages *not* matching this expression are
-  passed on. This parameter is ignored when set to "". FilterExpressionNot
-  is checked before FilterExpression.
+  passed on. This parameter is ignored when set to "". ExpressionNot
+  is checked before Expression.
   By default this parameter is set to "".
   
   
@@ -62,8 +62,8 @@ This example accepts only accesslog entries with a return status of
 	   Streams: console
 	   Modulators:
 	     - filter.RegExp:
-	       FilterExpressionNot: " stage\\."
-	       FilterExpression: "HTTP/1\\.1\\\" [23]\\d\\d"
+	       ExpressionNot: " stage\\."
+	       Expression: "HTTP/1\\.1\\\" [23]\\d\\d"
 
 
 
