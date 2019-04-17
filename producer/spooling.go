@@ -15,6 +15,7 @@
 package producer
 
 import (
+	"encoding/base64"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -106,7 +107,6 @@ type Spooling struct {
 	batchTimeout          time.Duration           `config:"Batch/TimeoutSec" default:"5" metric:"sec"`
 	readDelay             time.Duration
 	spoolCheck            *time.Timer
-	serialze              core.Formatter
 }
 
 const (
@@ -126,14 +126,6 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) {
 	prod.SetStopCallback(prod.close)
 	prod.SetRollCallback(prod.onRoll)
 
-	serializePlugin, err := core.NewPluginWithConfig(core.NewPluginConfig("", "format.Serialize"))
-	conf.Errors.Push(err)
-	if serializeFormatter, isFormatter := serializePlugin.(core.Formatter); isFormatter {
-		prod.serialze = serializeFormatter
-	} else {
-		conf.Errors.Pushf("Failed to instantiate format.Serialize")
-	}
-
 	prod.outfileGuard = new(sync.RWMutex)
 	prod.outfile = make(map[core.MessageStreamID]*spoolFile)
 
@@ -150,19 +142,27 @@ func (prod *Spooling) Configure(conf core.PluginConfigReader) {
 	prod.rotation.SizeByte = prod.maxFileSize
 }
 
-// Modulate enforces the serialize formatter at the end of the modulation chain
-func (prod *Spooling) Modulate(msg *core.Message) core.ModulateResult {
-	result := prod.BufferedProducer.Modulate(msg)
-	prod.serialze.ApplyFormatter(msg) // Ignore result
-	return result
-}
-
 // TryFallback reverts the message stream before dropping
 func (prod *Spooling) TryFallback(msg *core.Message) {
 	if prod.revertOnDrop {
 		msg.SetStreamID(msg.GetPrevStreamID())
 	}
 	prod.BufferedProducer.TryFallback(msg)
+}
+
+func (prod *Spooling) encode(msg *core.Message) ([]byte, error) {
+	serialized, err := msg.Serialize()
+	if err != nil {
+		return nil, err
+	}
+
+	encodedLen := base64.StdEncoding.EncodedLen(len(serialized)) + 1
+	encoded := make([]byte, encodedLen)
+
+	base64.StdEncoding.Encode(encoded, serialized)
+	encoded[encodedLen-1] = '\n'
+
+	return encoded, nil
 }
 
 func (prod *Spooling) writeToFile(msg *core.Message) {
@@ -196,6 +196,16 @@ func (prod *Spooling) writeToFile(msg *core.Message) {
 		prod.TryFallback(msg)
 		return // ### return, could not spool to disk ###
 	}
+
+	// Convert to expected payload format
+	encodedPayload, err := prod.encode(msg)
+	if err != nil {
+		prod.Logger.WithError(err).Error("Failed to encode message for spooling")
+		prod.TryFallback(msg)
+		return // ### return, could not spool to disk ###
+	}
+
+	msg.StorePayload(encodedPayload)
 
 	// Append to buffer
 	spool.batch.AppendOrFlush(msg, spool.flush, prod.IsActiveOrStopping, prod.TryFallback)
@@ -256,11 +266,10 @@ func (prod *Spooling) routeToOrigin(msg *core.Message) {
 }
 
 func (prod *Spooling) waitForReader() {
-	prod.outfileGuard.Lock()
-	defer prod.outfileGuard.Unlock()
+	prod.outfileGuard.RLock()
+	defer prod.outfileGuard.RUnlock()
 
-	outfiles := prod.outfile
-	for _, spool := range outfiles {
+	for _, spool := range prod.outfile {
 		spool.waitForReader()
 	}
 }
@@ -274,8 +283,9 @@ func (prod *Spooling) close() {
 	}
 	prod.DefaultClose()
 
-	prod.outfileGuard.Lock()
-	defer prod.outfileGuard.Unlock()
+	prod.outfileGuard.RLock()
+	defer prod.outfileGuard.RUnlock()
+
 	for _, spool := range prod.outfile {
 		spool.close()
 	}
