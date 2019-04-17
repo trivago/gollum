@@ -85,8 +85,6 @@ func Int64(v interface{}) (int64, bool) {
 		return int64(v.(float64)), true
 	}
 
-	fmt.Printf("%t\n%#v\n%#v\n", v, v, reflect.TypeOf(v).Kind())
-
 	return 0, false
 }
 

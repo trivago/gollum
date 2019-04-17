@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	promMetrics "github.com/MeteoGroup/go-metrics-prometheus"
+	promMetrics "github.com/CrowdStrike/go-metrics-prometheus"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/gollum/core"
@@ -14,9 +15,10 @@ import (
 func startPrometheusMetricsService(address string) func() {
 	srv := &http.Server{Addr: address}
 	quit := make(chan struct{})
+	prometheusRegistry := prometheus.NewRegistry()
 
 	flushInterval := 3 * time.Second
-	promClient := promMetrics.NewPrometheusProvider(core.MetricsRegistry, "gollum", "", flushInterval)
+	promClient := promMetrics.NewPrometheusProvider(core.MetricsRegistry, "gollum", "", prometheusRegistry, flushInterval)
 
 	// Start updates
 	go func() {
@@ -38,7 +40,7 @@ func startPrometheusMetricsService(address string) func() {
 			ErrorLog:      logrus.StandardLogger(),
 			ErrorHandling: promhttp.ContinueOnError,
 		}
-		http.Handle("/prometheus", promhttp.HandlerFor(promClient.PromRegistry, opts))
+		http.Handle("/prometheus", promhttp.HandlerFor(prometheusRegistry, opts))
 
 		err := srv.ListenAndServe()
 		if err != nil {
