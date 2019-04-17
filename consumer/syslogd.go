@@ -132,7 +132,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func (cons *Syslogd) parseCustomFields(data string, metadata *core.Metadata) {
+func parseCustomFields(data string, metadata *core.Metadata) {
 	if len(data) == 0 {
 		return
 	}
@@ -145,40 +145,56 @@ func (cons *Syslogd) parseCustomFields(data string, metadata *core.Metadata) {
 	data = data[endOfSid+1:]
 	for {
 		if len(data) == 0 {
-			return
+			return // ### return, eof ###
 		}
 		endOfKey := strings.IndexByte(data, '=')
 		if endOfKey < 0 {
-			return // not found
+			return // ### return, end of data ###
 		}
 
 		key := strings.TrimSpace(data[:endOfKey])
+		// we might cross into a new section while searching for a key
+		if sectionStart := strings.IndexByte(key, '['); sectionStart >= 0 {
+			data = data[sectionStart+1:]
+			endOfSid = strings.IndexByte(data, ' ')
+			if endOfSid < 0 {
+				return // ### return, end of data ###
+			}
+			data = data[endOfSid+1:]
+			continue // ### continue, look for new key ###
+		}
+
 		data = data[endOfKey+1:]
 
 		startOfValue := strings.IndexByte(data, '"') + 1
 		if startOfValue < 1 {
-			return // not found
+			return // ### return, end of data ###
 		}
 
 		i := startOfValue
 		endOfValue := i + 1
+		hasQuotes := false
 		for {
 			endOfValue = strings.IndexByte(data[i:], '"')
 			if endOfValue < 0 {
-				return // not found
+				return // ### return, end of data ###
 			}
 			endOfValue += i
-			if data[endOfValue-1] != '\\' {
-				break // found
+			if data[endOfValue-1] == '\\' {
+				hasQuotes = true
+				i = endOfValue + 1
+				continue // ### continue, escaped quote ###
 			}
-			i = endOfValue + 1 // escaped quote
+			break // ### break, done ###
 		}
 
 		value := data[startOfValue:endOfValue]
-		data = data[endOfValue+1:]
+		if hasQuotes {
+			value = strings.Replace(value, "\\\"", "\"", -1)
+		}
 
 		metadata.SetValue(key, []byte(value))
-		cons.Logger.WithField(key, value).Debug("structured data parsed")
+		data = data[endOfValue+1:]
 	}
 }
 
@@ -226,7 +242,7 @@ func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 
 			metaData.SetValue("structured_data", []byte(structuredData))
 
-			cons.parseCustomFields(structuredData, &metaData)
+			parseCustomFields(structuredData, &metaData)
 
 			metaData.SetValue("app_name", []byte(app))
 			metaData.SetValue("version", []byte(version))
