@@ -128,6 +128,7 @@ lint-meta:
 	--disable=gotype \
 	--exclude="\.[cC]lose[^ ]*\(.*\) \(errcheck\)" \
 	--exclude="\/go[\/]?1\.[0-9]{1,2}\." \
+	--exclude="^vendor\/" \
 	--skip=contrib \
 	--skip=docs \
 	--skip=testing \
