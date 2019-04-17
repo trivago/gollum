@@ -15,21 +15,20 @@
 package format
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/grok"
+	"github.com/trivago/tgo/tcontainer"
 )
 
-// GrokToJSON formatter plugin
+// Grok formatter plugin
 //
-// GrokToJSON is a formatter that applies regex filters to messages.
+// Grok is a formatter that applies regex filters to messages and stores the result as
+// metadata fields.
 // It works by combining text patterns into something that matches your logs.
 // See https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_grok_basics
 // for more information about Grok.
-//
-// The output format is JSON.
 //
 // Parameters
 //
@@ -70,23 +69,24 @@ import (
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
-//      - format.GrokToJSON:
+//      - format.Grok:
 //        Patterns:
 //          - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.gauge-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_gauge:float}\s*%{INT:time}
 //          - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.latency-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_latency:float}\s*%{INT:time}
 //          - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.statsd\.derive-(?P<application>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value_derive:float}\s*%{INT:time}
 //          - ^(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value:float}\s*%{INT:time}
-type GrokToJSON struct {
+//		- format.ToJSON: {}
+type Grok struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	exp                  []*grok.CompiledGrok
 }
 
 func init() {
-	core.TypeRegistry.Register(GrokToJSON{})
+	core.TypeRegistry.Register(Grok{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *GrokToJSON) Configure(conf core.PluginConfigReader) {
+func (format *Grok) Configure(conf core.PluginConfigReader) {
 	grokParser, err := grok.New(grok.Config{
 		RemoveEmptyValues:   conf.GetBool("RemoveEmptyValues", true),
 		NamedCapturesOnly:   conf.GetBool("NamedCapturesOnly", true),
@@ -108,32 +108,29 @@ func (format *GrokToJSON) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload
-func (format *GrokToJSON) ApplyFormatter(msg *core.Message) error {
+func (format *Grok) ApplyFormatter(msg *core.Message) error {
 	content := format.GetAppliedContentAsString(msg)
 
-	values, err := format.applyGrok(content[:])
-	if err != nil {
+	if err := format.applyGrok(msg.GetMetadata(), content[:]); err != nil {
 		return err
 	}
 
-	serialized, err := json.Marshal(values)
-	if err != nil {
-		return err
-	}
-
-	format.SetAppliedContent(msg, serialized)
 	return nil
 }
 
 // grok iterates over all defined patterns and parses the content based on the first match.
 // It returns a map of the defined values.
-func (format *GrokToJSON) applyGrok(content string) (map[string]string, error) {
+func (format *Grok) applyGrok(metadata tcontainer.MarshalMap, content string) error {
 	for _, exp := range format.exp {
 		values := exp.ParseString(content)
+
 		if len(values) > 0 {
-			return values, nil
+			for k, v := range values {
+				metadata.Set(k, v)
+			}
+			return nil
 		}
 	}
 	format.Logger.Warningf("Message does not match any pattern: %s", content)
-	return nil, fmt.Errorf("grok parsing error")
+	return fmt.Errorf("grok parsing error")
 }
