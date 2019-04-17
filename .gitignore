@@ -36,5 +36,7 @@ vendor/**/*
 !vendor/**/
 !vendor/**/*.go
 !vendor/**/*.s
+!vendor/**/*.h
+!vendor/**/*.c
 !vendor/**/LICENSE
 vendor/**/*_test.go

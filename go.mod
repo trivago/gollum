@@ -1,7 +1,5 @@
 module github.com/trivago/gollum
 
-go 1.11
-
 require (
 	github.com/CrowdStrike/go-metrics-prometheus v0.0.0-20190206080537-f2bb39ee2c39
 	github.com/Shopify/sarama v1.22.0
