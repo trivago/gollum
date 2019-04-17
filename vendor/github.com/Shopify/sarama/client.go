@@ -46,6 +46,10 @@ type Client interface {
 	// the partition leader.
 	InSyncReplicas(topic string, partitionID int32) ([]int32, error)
 
+	// OfflineReplicas returns the set of all offline replica IDs for the given
+	// partition. Offline replicas are replicas which are offline
+	OfflineReplicas(topic string, partitionID int32) ([]int32, error)
+
 	// RefreshMetadata takes a list of topics and queries the cluster to refresh the
 	// available metadata for those topics. If no topics are provided, it will refresh
 	// metadata for all topics.
@@ -288,7 +292,8 @@ func (client *client) Partitions(topic string) ([]int32, error) {
 		partitions = client.cachedPartitions(topic, allPartitions)
 	}
 
-	if partitions == nil {
+	// no partitions found after refresh metadata
+	if len(partitions) == 0 {
 		return nil, ErrUnknownTopicOrPartition
 	}
 
@@ -371,6 +376,31 @@ func (client *client) InSyncReplicas(topic string, partitionID int32) ([]int32, 
 		return dupInt32Slice(metadata.Isr), metadata.Err
 	}
 	return dupInt32Slice(metadata.Isr), nil
+}
+
+func (client *client) OfflineReplicas(topic string, partitionID int32) ([]int32, error) {
+	if client.Closed() {
+		return nil, ErrClosedClient
+	}
+
+	metadata := client.cachedMetadata(topic, partitionID)
+
+	if metadata == nil {
+		err := client.RefreshMetadata(topic)
+		if err != nil {
+			return nil, err
+		}
+		metadata = client.cachedMetadata(topic, partitionID)
+	}
+
+	if metadata == nil {
+		return nil, ErrUnknownTopicOrPartition
+	}
+
+	if metadata.Err == ErrReplicaNotAvailable {
+		return dupInt32Slice(metadata.OfflineReplicas), metadata.Err
+	}
+	return dupInt32Slice(metadata.OfflineReplicas), nil
 }
 
 func (client *client) Leader(topic string, partitionID int32) (*Broker, error) {
@@ -728,11 +758,12 @@ func (client *client) tryRefreshMetadata(topics []string, attemptsRemaining int)
 		}
 
 		req := &MetadataRequest{Topics: topics}
-		if client.conf.Version.IsAtLeast(V0_10_0_0) {
+		if client.conf.Version.IsAtLeast(V1_0_0_0) {
+			req.Version = 5
+		} else if client.conf.Version.IsAtLeast(V0_10_0_0) {
 			req.Version = 1
 		}
 		response, err := broker.GetMetadata(req)
-
 		switch err.(type) {
 		case nil:
 			allKnownMetaData := len(topics) == 0
@@ -792,7 +823,7 @@ func (client *client) updateMetadata(data *MetadataResponse, allKnownMetaData bo
 
 		switch topic.Err {
 		case ErrNoError:
-			break
+			// no-op
 		case ErrInvalidTopic, ErrTopicAuthorizationFailed: // don't retry, don't store partial results
 			err = topic.Err
 			continue
@@ -802,7 +833,6 @@ func (client *client) updateMetadata(data *MetadataResponse, allKnownMetaData bo
 			continue
 		case ErrLeaderNotAvailable: // retry, but store partial partition results
 			retry = true
-			break
 		default: // don't retry, don't store partial results
 			Logger.Printf("Unexpected topic-level metadata error: %s", topic.Err)
 			err = topic.Err
@@ -847,9 +877,8 @@ func (client *client) computeBackoff(attemptsRemaining int) time.Duration {
 		maxRetries := client.conf.Metadata.Retry.Max
 		retries := maxRetries - attemptsRemaining
 		return client.conf.Metadata.Retry.BackoffFunc(retries, maxRetries)
-	} else {
-		return client.conf.Metadata.Retry.Backoff
 	}
+	return client.conf.Metadata.Retry.Backoff
 }
 
 func (client *client) getConsumerMetadata(consumerGroup string, attemptsRemaining int) (*FindCoordinatorResponse, error) {
@@ -910,4 +939,19 @@ func (client *client) getConsumerMetadata(consumerGroup string, attemptsRemainin
 	Logger.Println("client/coordinator no available broker to send consumer metadata request to")
 	client.resurrectDeadBrokers()
 	return retry(ErrOutOfBrokers)
+}
+
+// nopCloserClient embeds an existing Client, but disables
+// the Close method (yet all other methods pass
+// through unchanged). This is for use in larger structs
+// where it is undesirable to close the client that was
+// passed in by the caller.
+type nopCloserClient struct {
+	Client
+}
+
+// Close intercepts and purposely does not call the underlying
+// client's Close() method.
+func (ncc *nopCloserClient) Close() error {
+	return nil
 }
