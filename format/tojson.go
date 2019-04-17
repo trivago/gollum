@@ -18,25 +18,37 @@ import (
 	"encoding/json"
 
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 )
 
 // ToJSON formatter
 //
 // This formatter converts metadata to JSON and stores it where applied.
 //
+// Parameters
+//
+// - Root: The metadata key to transform to json. When left empty, all
+// metadata is assumed. By default this is set to ''.
+//
+// - Ignore: A list of keys or paths to exclude from marshalling.
+// please note that this is currently a quite expensive operation as
+// all metadata below root is cloned during the process.
+// By default this is set to an empty list.
+//
 // Examples
 //
-// This example removes the "pipe" key from the metadata produced by
-// consumer.Console.
+// This example transforms all metadata below the "foo" key to JSON and
+// stores the result as the new payload.
 //
 //  exampleProducer:
 //    Type: consumer.Producer
 //    Streams: stdin
 //    Modulators:
 //      - format.ToJSON
-//        Ignore: ["foo"]
+//		  Root: "foo"
 type ToJSON struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
+	root                 string   `config:"Root"`
 	ignore               []string `config:"Ignore"`
 }
 
@@ -51,21 +63,36 @@ func (format *ToJSON) Configure(conf core.PluginConfigReader) {
 // ApplyFormatter update message payload
 func (format *ToJSON) ApplyFormatter(msg *core.Message) error {
 	metadata := msg.TryGetMetadata()
-	if len(format.ignore) == 0 {
-		data, err := json.Marshal(metadata)
-		if err != nil {
-			return err
-		}
-		format.SetTargetData(msg, data)
+	if metadata == nil {
+		format.SetTargetData(msg, []byte("{}"))
 		return nil
 	}
 
-	// TODO: This is rather expensive, but required as k can be a path.
-	metadata = metadata.Clone()
-	for _, k := range format.ignore {
-		metadata.Delete(k)
+	if len(format.root) > 0 {
+		val, exists := metadata.Value(format.root)
+		if !exists {
+			format.SetTargetData(msg, []byte("{}"))
+			return nil
+		}
+
+		var err error
+		metadata, err = tcontainer.ConvertToMarshalMap(val, nil)
+		if err != nil {
+			return err
+		}
 	}
 
-	format.SetTargetData(msg, nil)
+	if len(format.ignore) > 0 {
+		metadata = metadata.Clone()
+		for _, k := range format.ignore {
+			metadata.Delete(k)
+		}
+	}
+
+	data, err := json.Marshal(metadata)
+	if err != nil {
+		return err
+	}
+	format.SetTargetData(msg, data)
 	return nil
 }
