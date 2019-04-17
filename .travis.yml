@@ -28,7 +28,7 @@ install:
   - make pipeline-tools
 
 script:
-  - CGO_ENABLED=0 make pipeline-build
+  - make pipeline-build
   - make ${ACCEPT_TARGET}
 
 after_success:
