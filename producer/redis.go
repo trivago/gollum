@@ -95,9 +95,7 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) {
 		prod.store = prod.storeSet
 	case "sortedset":
 		prod.store = prod.storeSortedSet
-	default:
-		fallthrough
-	case "string":
+	default: // string
 		prod.store = prod.storeString
 	}
 }

@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -150,19 +151,29 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	msgString := "Test for clone original"
 	msgUpdateString := "Test for clone original - UPDATE"
+	msgMetadata := tcontainer.MarshalMap{"foo": "original_bar"}
 
-	msg := NewMessage(nil, []byte(msgString), nil, 1)
+	msg := NewMessage(nil, []byte(msgString), msgMetadata, 1)
+
 	msg.FreezeOriginal()
 
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
 	msg.GetMetadata().Set("foo", "bar")
 
-	msg.CloneOriginal()
+	clone := msg.CloneOriginal()
 
-	val, err := msg.GetMetadata().String("foo")
+	// We froze before changing metadata, i.e. original metadata must be
+	// original value
+	value, err := msg.GetMetadata().String("foo")
 	expect.NoError(err)
-	expect.Equal("bar", val)
+	expect.Equal("bar", value)
+
+	value, err = clone.GetMetadata().String("foo")
+	expect.Equal("original_bar", value)
+
+	expect.Equal(MessageStreamID(1), clone.GetStreamID())
+	expect.Equal(msgString, string(clone.GetPayload()))
 }
 
 func TestMessageMetadata(t *testing.T) {

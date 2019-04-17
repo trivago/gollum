@@ -165,7 +165,7 @@ func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
 
 	measurement, measurementFound := values[format.measurement]
 	if !measurementFound {
-		return fmt.Errorf("Required field for measurement (%s) not found in payload", format.measurement)
+		return fmt.Errorf("required field for measurement (%s) not found in payload", format.measurement)
 	}
 
 	delete(values, format.measurement)

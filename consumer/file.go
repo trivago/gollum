@@ -19,6 +19,7 @@ import (
 	"io"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -114,13 +115,27 @@ const (
 // performance impact on systems with high throughput.
 // By default this parameter is set to "false".
 //
+// - BlackList: A regular expression matching file paths to NOT read. When both
+// BlackList and WhiteList are defined, the WhiteList takes precedence.
+// This setting is only used when glob expressions (*, ?) are present in the
+// filename. The path checked is the one before symlink evaluation.
+// By default this parameter is set to "".
+//
+// - WhiteList: A regular expression matching file paths to read. When both
+// BlackList and WhiteList are defined, the WhiteList takes precedence.
+// This setting is only used when glob expressions (*, ?) are present in the
+// filename. The path checked is the one before symlink evaluation.
+// By default this parameter is set to "".
+//
 // Examples
 //
-// This example will read the `/var/log/system.log` file and create a message for each new entry.
+// This example will read all the `.log` files `/var/log/` into one stream and
+// create a message for each new entry. If the file starts with `sys` it is ignored
 //
 //  FileIn:
 //    Type: consumer.File
 //    File: /var/log/*.log
+//    BlackList '^sys.*'
 //    DefaultOffset: newest
 //    OffsetFilePath: ""
 //    Delimiter: "\n"
@@ -139,9 +154,12 @@ type File struct {
 	observeMode      string        `config:"ObserveMode" default:"poll"`
 	hasToSetMetadata bool          `config:"SetMetadata" default:"false"`
 	defaultOffset    string        `config:"DefaultOffset" default:"newest"`
+	blackListString  string        `config:"BlackList"`
+	whiteListString  string        `config:"WhiteList"`
 
 	observedFiles *sync.Map
 	done          chan struct{}
+	isBlackListed func(string) bool
 }
 
 func init() {
@@ -163,6 +181,42 @@ func (cons *File) Configure(conf core.PluginConfigReader) {
 	if cons.observeMode != observeModePoll && cons.observeMode != observeModeWatch {
 		cons.Logger.Warningf("Unknown observe mode '%s'. Using poll", cons.observeMode)
 		cons.observeMode = observeModePoll
+	}
+
+	cons.configureBlacklist(conf)
+}
+
+func (cons *File) configureBlacklist(conf core.PluginConfigReader) {
+	var (
+		err       error
+		blackList *regexp.Regexp
+		whiteList *regexp.Regexp
+	)
+
+	if len(cons.blackListString) > 0 {
+		blackList, err = regexp.Compile(cons.blackListString)
+		conf.Errors.Push(err)
+	}
+	if len(cons.whiteListString) > 0 {
+		whiteList, err = regexp.Compile(cons.whiteListString)
+		conf.Errors.Push(err)
+	}
+
+	// Define how to do blacklisting based on the values given above
+	switch {
+	case blackList == nil && whiteList == nil:
+		cons.isBlackListed = func(string) bool { return false }
+
+	case blackList == nil:
+		cons.isBlackListed = func(filename string) bool { return !whiteList.MatchString(filename) }
+
+	case whiteList == nil:
+		cons.isBlackListed = func(filename string) bool { return blackList.MatchString(filename) }
+
+	default:
+		cons.isBlackListed = func(filename string) bool {
+			return blackList.MatchString(filename) && !whiteList.MatchString(filename)
+		}
 	}
 }
 
@@ -232,7 +286,7 @@ func (cons *File) observeFile(name string, stopIfNotExist bool) {
 
 	if cons.offsetFilePath != "" {
 		enqueue = func(data []byte) {
-			enqueue(data)
+			cons.Enqueue(data)
 			file.storeOffset()
 		}
 	}
@@ -263,6 +317,10 @@ func (cons *File) observeFiles() {
 
 		cons.Logger.Debugf("Evaluating glob returned %d files to scrape", len(fileNames))
 		for i := range fileNames {
+			if cons.isBlackListed(fileNames[i]) {
+				continue
+			}
+
 			if _, ok := cons.observedFiles.Load(fileNames[i]); !ok {
 				cons.AddWorker()
 				go cons.observeFile(fileNames[i], stopIfNotExist)

@@ -99,15 +99,15 @@ func (filter *JSON) Configure(conf core.PluginConfigReader) {
 
 func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, bool) {
 	if value, found := values.Value(key); found {
-		switch value.(type) {
+		switch v := value.(type) {
 		case string:
-			return value.(string), true
+			return v, true
 
 		case bool:
-			return strconv.FormatBool(value.(bool)), true
+			return strconv.FormatBool(v), true
 
 		case float64:
-			return strconv.FormatFloat(value.(float64), 'f', -1, 64), true
+			return strconv.FormatFloat(v, 'f', -1, 64), true
 		}
 	}
 

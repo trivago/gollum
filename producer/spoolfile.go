@@ -25,7 +25,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
+	metrics "github.com/rcrowley/go-metrics"
 
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tio"
@@ -170,13 +170,19 @@ func (spool *spoolFile) decode(data []byte) {
 	// Base64 decode, than deserialize
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
 
-	if size, err := base64.StdEncoding.Decode(decoded, data); err != nil {
-		spool.prod.Logger.Error("File read: ", err)
-	} else if msg, err := core.DeserializeMessage(decoded[:size]); err != nil {
-		spool.prod.Logger.Error("File read: ", err)
-	} else {
-		spool.prod.routeToOrigin(msg)
+	size, err := base64.StdEncoding.Decode(decoded, data)
+	if err != nil {
+		spool.prod.Logger.WithError(err).Error("failed deserialiying spooled message from base64")
+		return
 	}
+
+	msg, err := core.DeserializeMessage(decoded[:size])
+	if err != nil {
+		spool.prod.Logger.WithError(err).Error("failed deserializing spooled message from protobuf")
+		return
+	}
+
+	spool.prod.routeToOrigin(msg)
 }
 
 func (spool *spoolFile) waitForReader() {
@@ -185,12 +191,16 @@ func (spool *spoolFile) waitForReader() {
 
 func (spool *spoolFile) read() {
 	spool.prod.AddWorker()
-	spool.readWorker.Add(1)
 	defer spool.prod.WorkerDone()
+
+	spool.readWorker.Add(1)
 	defer spool.readWorker.Done()
 
+nextFile:
 	for !spool.prod.IsStopping() {
 		minSuffix, _ := spool.getFileNumbering()
+
+		// Wait for first spooling file to be rolled.
 
 		spoolFileName := fmt.Sprintf(spoolFileFormatString, spool.basePath, minSuffix)
 		if minSuffix == 0 || minSuffix > maxSpoolFileNumber || (spool.file != nil && spool.file.Name() == spoolFileName) {
@@ -201,6 +211,7 @@ func (spool *spoolFile) read() {
 			}
 
 			spool.prod.WorkerDone() // to avoid being stuck during shutdown
+			spool.readWorker.Done()
 
 			retry := time.After(spool.prod.maxFileAge / 2)
 			select {
@@ -209,47 +220,69 @@ func (spool *spoolFile) read() {
 			}
 
 			spool.prod.AddWorker() // worker done is always called at exit
-			continue               // ### continue, try again ###
+			spool.readWorker.Add(1)
+			continue // ### continue, try again ###
+		}
+
+		// Only spool back if target is not busy
+		for !spool.prod.IsStopping() && spool.source != nil && spool.source.IsBlocked() {
+			time.Sleep(time.Millisecond * 100)
+		}
+
+		if spool.prod.IsStopping() {
+			return // ### return, stop requested ###
 		}
 
 		file, err := os.OpenFile(spoolFileName, os.O_RDONLY, 0600)
 		if err != nil {
 			spool.prod.Logger.Error("Read open error ", err)
+			// TODO: how to mitigate a possible endless loop?
 			continue // ### continue, try again ###
 		}
 
 		spool.prod.Logger.Debug("Opened ", spoolFileName, " for reading")
 		spool.reader.Reset(0)
-		readFailed := false
 
-		for spool.prod.IsStopping() {
-			// Only spool back if target is not busy
-			if spool.source != nil && spool.source.IsBlocked() {
-				time.Sleep(time.Millisecond * 100)
-				continue // ### continue, busy source ###
-			}
+		var data []byte
+		more := true
 
-			// Any error cancels the loop
-			if err := spool.reader.ReadAll(file, spool.decode); err != nil {
-				if err != io.EOF {
-					readFailed = true
-					spool.prod.Logger.Error("Read error: ", err)
+		for more {
+			// read line by line
+			data, more, err = spool.reader.ReadOne(file)
+
+			// Any error marks the file as failed but does not delete it, so messages can eventually be recovered
+			if err != io.EOF && err != nil {
+				spool.prod.Logger.WithError(err).Error("failed to read spooling file ", spoolFileName)
+				if err := file.Close(); err != nil {
+					spool.prod.Logger.WithError(err).Error("failed to close spooling file ", spoolFileName)
 				}
-				break // ### break, read error or EOF ###
+
+				spool.prod.Logger.Debug("renaming ", spoolFileName)
+				os.Rename(spoolFileName, spoolFileName+".failed")
+				continue nextFile // ### continue, read error or EOF ###
+			}
+
+			// len(data) == 0 may be an incomplete message, i.e. we need to read once more to get the rest
+			if len(data) > 0 {
+				spool.decode(data)
+			}
+
+			// Check if we're forced to stop reading
+			if spool.prod.IsStopping() {
+				spool.prod.Logger.Warning("file ", spoolFileName, " will be read again after restart")
+				if err := file.Close(); err != nil {
+					spool.prod.Logger.WithError(err).Error("failed to close spooling file ", spoolFileName)
+				}
+				return // ### return, stop requested ###
 			}
 		}
 
-		// Close and remove file
-		spool.prod.Logger.Debug("Removing ", spoolFileName)
-		file.Close()
-		if readFailed {
-			// Rename file for future processing
-			spool.prod.Logger.Debug("Renaming ", spoolFileName)
-			os.Rename(spoolFileName, spoolFileName+".failed")
-		} else {
-			// Delete file
-			spool.prod.Logger.Debug("Removing ", spoolFileName)
-			os.Remove(spoolFileName)
+		// Close and remove file as it has been completely read
+		if err := file.Close(); err != nil {
+			spool.prod.Logger.WithError(err).Error("failed to close spooling file ", spoolFileName)
 		}
+
+		spool.prod.Logger.Debug("removing ", spoolFileName)
+		os.Remove(spoolFileName)
 	}
 }

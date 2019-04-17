@@ -135,5 +135,5 @@ func (format *GrokToJSON) applyGrok(content string) (map[string]string, error) {
 		}
 	}
 	format.Logger.Warningf("Message does not match any pattern: %s", content)
-	return nil, fmt.Errorf("Grok parsing error")
+	return nil, fmt.Errorf("grok parsing error")
 }

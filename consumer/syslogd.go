@@ -16,8 +16,11 @@ package consumer
 
 import (
 	"os"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/trivago/tgo/tcontainer"
 
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
@@ -130,6 +133,72 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 	}
 }
 
+func parseCustomFields(data string, metadata *tcontainer.MarshalMap) {
+	if len(data) == 0 {
+		return
+	}
+
+	endOfSid := strings.IndexByte(data, ' ')
+	if endOfSid < 0 {
+		return
+	}
+
+	data = data[endOfSid+1:]
+	for {
+		if len(data) == 0 {
+			return // ### return, eof ###
+		}
+		endOfKey := strings.IndexByte(data, '=')
+		if endOfKey < 0 {
+			return // ### return, end of data ###
+		}
+
+		key := strings.TrimSpace(data[:endOfKey])
+		// we might cross into a new section while searching for a key
+		if sectionStart := strings.IndexByte(key, '['); sectionStart >= 0 {
+			data = data[sectionStart+1:]
+			endOfSid = strings.IndexByte(data, ' ')
+			if endOfSid < 0 {
+				return // ### return, end of data ###
+			}
+			data = data[endOfSid+1:]
+			continue // ### continue, look for new key ###
+		}
+
+		data = data[endOfKey+1:]
+
+		startOfValue := strings.IndexByte(data, '"') + 1
+		if startOfValue < 1 {
+			return // ### return, end of data ###
+		}
+
+		i := startOfValue
+		endOfValue := i + 1
+		hasQuotes := false
+		for {
+			endOfValue = strings.IndexByte(data[i:], '"')
+			if endOfValue < 0 {
+				return // ### return, end of data ###
+			}
+			endOfValue += i
+			if data[endOfValue-1] == '\\' {
+				hasQuotes = true
+				i = endOfValue + 1
+				continue // ### continue, escaped quote ###
+			}
+			break // ### break, done ###
+		}
+
+		value := data[startOfValue:endOfValue]
+		if hasQuotes {
+			value = strings.Replace(value, "\\\"", "\"", -1)
+		}
+
+		metadata.Set(key, value)
+		data = data[endOfValue+1:]
+	}
+}
+
 // Handle implements the syslog handle interface
 func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 	content := ""
@@ -170,6 +239,11 @@ func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 			facility, _ := parts["facility"].(int)
 			severity, _ := parts["severity"].(int)
 			timestamp, _ := parts["timestamp"].(time.Time)
+			structuredData, _ := parts["structured_data"].(string)
+
+			metaData.Set("structured_data", structuredData)
+
+			parseCustomFields(structuredData, &metaData)
 
 			metaData.Set("app_name", app)
 			metaData.Set("version", version)

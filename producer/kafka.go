@@ -358,19 +358,18 @@ func (prod *Kafka) Configure(conf core.PluginConfigReader) {
 		prod.config.Producer.Partitioner = kafka.NewRandomPartitioner
 	case partRoundrobin:
 		prod.config.Producer.Partitioner = kafka.NewRoundRobinPartitioner
-	default:
-		fallthrough
 	case partHash:
+		fallthrough
+	default:
 		switch strings.ToLower(conf.GetString("PartitionHasher", "FNV-1a")) {
 		case "murmur2":
 			prod.config.Producer.Partitioner = NewMurmur2HashPartitioner
-		default:
-			fallthrough
 		case "fnv-1a":
+			fallthrough
+		default:
 			prod.config.Producer.Partitioner = kafka.NewHashPartitioner
 
 		}
-
 	}
 }
 

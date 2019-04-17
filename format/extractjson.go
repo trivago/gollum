@@ -94,16 +94,14 @@ func (format *ExtractJSON) extractJSON(content []byte) ([]byte, error) {
 	var strValue string
 
 	if value, exists := values[format.field]; exists {
-		switch value.(type) {
+		switch val := value.(type) {
 		case int64:
-			val, _ := value.(int64)
 			strValue = strconv.FormatInt(val, 10)
 
 		case string:
-			strValue, _ = value.(string)
+			strValue = val
 
 		case float64:
-			val, _ := value.(float64)
 			strValue = strconv.FormatFloat(val, 'f', format.precision, 64)
 
 		default:

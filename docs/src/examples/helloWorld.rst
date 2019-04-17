@@ -5,173 +5,205 @@ Hello World
 -----------
 
 This example sets up a simple console consumer and producer that will simply echo everything you type back to the console.
-As messages have no new line appended by default a Envelope formatter is used to add one before writing to console.
+As messages have no new line appended by default an envelope formatter is used to add one before writing to console.
 Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 
 ::
 
-  - "consumer.Console":
-      Stream: "console"
+  'StdIn':
+    Type: 'consumer.Console'
+    Streams: 'console'
+  
+  'StdOut':
+    Type: 'producer.Console'
+    Streams: 'console'
+    Modulators:
+    - 'format.Envelope': {}
 
-  - "producer.Console":
-      Formatter: "format.Envelope"
-      Stream:
-          - "*"
-          - "_GOLLUM_"
 
-Hello World XML
----------------
+Loadbalancer
+------------
 
-This example extends the Hello World example by introducing a stream configuration.
-All messages from the console consumer will be enveloped into a XML tag, while the log messages are not.
+This example extends the Hello World example by introducing a route configuration.
+All messages from the console consumer will be sent to a round robin loadbalancer that will forward messages to one of the two attached producers.
 Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 
 ::
 
-  - "consumer.Console":
-      Stream: "console"
+  'StdIn':
+    Type: 'consumer.Console'
+    Streams: 'console'
 
-  - "stream.Broadcast":
-      Formatter: "format.Envelope"
-      EnvelopePrefix: "<message>"
-      EnvelopePostfix: "</message>"
-      Stream: "console"
+  'loadbalancer':
+    Type: 'router.RoundRobin'
+    Stream: 'console'
 
-  - "producer.Console":
-      Formatter: "format.Envelope"
-      Stream:
-          - "*"
-          - "_GOLLUM_"
+  'StdOut1':
+    Type: 'producer.Console'
+    Streams: 'console'
+    Modulators:
+    - 'format.Envelope':
+        Prefix: '1: '
+
+  'StdOut2':
+    Type: 'producer.Console'
+    Streams: 'console'
+    Modulators:
+    - 'format.Envelope':
+        Prefix: '2: '
+
+When you remove the router from the config you will see each message to reach both producers.
 
 Hello World filtered
 --------------------
 
-This example extends the previous exmaples by setting up a filter to only echo sentences that end with the word "gollum".
+This example extends the previous example by setting up a filter to only echo sentences that end with the word "gollum".
 A regular expression filter is used to achieve this.
 Note that this filter does not apply to standard log messages.
 Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 
 ::
 
-  - "consumer.Console":
-      Stream: "console"
+  'StdIn':
+    Type: 'consumer.Console'
+    Streams: 'console'
 
-  - "stream.Broadcast":
-      Filter: "filter.RegExp"
-      FilterExpression: "gollum$"
-      Stream: "console"
+  'loadbalancer':
+    Type: 'router.RoundRobin'
+    Stream: 'console'
+    Filters:
+    - 'filter.RegExp':
+        FilterExpression: ".*gollum$"
 
-  - "producer.Console":
-      Formatter: "format.Envelope"
-      Stream:
-          - "*"
-          - "_GOLLUM_"
+  'StdOut1':
+    Type: 'producer.Console'
+    Streams: 'console'
+    Modulators:
+    - 'format.Envelope':
+        Prefix: '1: '
+
+  'StdOut2':
+    Type: 'producer.Console'
+    Streams: 'console'
+    Modulators:
+    - 'format.Envelope':
+        Prefix: '2: '
+
+You can also attach filters to the modulators section of a consumer or a producer.
+Please note that routers can filter but not modify messages.
 
 Hello World splitter
 --------------------
 
-This example extends the Hello World example by introducing another stream configuration.
+This example extends the first example by introducing a stream split.
 This time we will print the console output twice, encoded as XML and as JSON.
 Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 
 ::
 
-  - "consumer.Console":
-      Stream:
-          - "consoleXML"
-          - "consoleJSON"
+  'StdIn':
+    Type: 'consumer.Console'
+    Streams: 'console'
+  
+  'StdOutXML':
+    Type: 'producer.Console'
+    Streams: 'console'
+    Modulators:
+    - 'format.Envelope':
+        Prefix: '<msg>'
+        Postfix: '</msg>\n'
 
-  - "stream.Broadcast":
-      Formatter: "format.Envelope"
-      EnvelopePrefix: "<message>"
-      EnvelopePostfix: "</message>"
-      Stream: "consoleXML"
+  'StdOutJSON':
+    Type: 'producer.Console'
+    Streams: 'console'
+    Modulators:
+    - 'format.Envelope':
+        Prefix: '{"msg":"'
+        Postfix: '"}\n'
 
-  - "stream.Broadcast":
-      Formatter: "format.Envelope"
-      EnvelopePrefix: "{message:\""
-      EnvelopePostfix: "\"}"
-      Stream: "consoleJSON"
+You can also do this in a slightly different way by utilizing two streams.
+When doing this you can filter or route both streams differently.
+In this extended example, every second example will output only JSON.
 
-  - "producer.Console":
-      Formatter: "format.Envelope"
-      Stream:
-          - "*"
-          - "_GOLLUM_"
+::
+
+  'StdIn':
+    Type: 'consumer.Console'
+    Streams: 
+    - 'consoleJSON'
+    - 'consoleXML'
+
+  'xmlFilter':
+    Type: 'router.Broadcast'
+    Stream: 'consoleXML'
+    Filters:
+    - 'filter.Sample': {}
+  
+  'StdOutXML':
+    Type: 'producer.Console'
+    Streams: 'consoleXML'
+    Modulators:
+    - 'format.Envelope':
+        Prefix: '<msg>'
+        Postfix: '</msg>\n'
+
+  'StdOutJSON':
+    Type: 'producer.Console'
+    Streams: 'consoleJSON'
+    Modulators:
+    - 'format.Envelope':
+        Prefix: '{"msg":"'
+        Postfix: '"}\n'
 
 Chat server
 -----------
 
 This example requires two Gollum instances to run.
 The first one acts as the "chat client" while the second one acts as the "chat server".
-Messages entered on the client will be sent to the server using runlength encoding where they are written to a log file and to console.
-The logfile will write a standard timestamp before each message while the console will just print the message.
-Both servers have a standard console producer attached to print log messages to console aswell.
+Messages entered on the client will be sent to the server using runlength encoding.
+When the message reaches the server, it will be decoded and written to the console.
+If the server does not respond, the message will be sent to the fallback and displayed as an error.
 Make sure to start Gollum with `gollum -ll 3` to see all log messages.
 
 **Client**
 ::
 
-  - "consumer.Console":
-      Stream: "client"
+  'StdIn':
+    Type: 'consumer.Console'
+    Streams: 'console'
 
-  - "producer.Socket":
-      Address: ":5880"
-      Formatter: "format.Runlength"
-      Acknowledge: "OK"
-      Stream: "client"
+  'SocketOut':
+    Type: 'producer.Socket'
+    Streams: 'console'
+    Address: ':5880'
+    Acknowledge: 'OK'
+    FallbackStream: 'failed'
+    Modulators: 
+    - 'format.Runlength': {}
 
-  - "producer.Console":
-      Formatter: "format.Envelope"
-      Stream: "_GOLLUM_"
+  'Failed':
+    Type: 'producer.Console'
+    Streams: 'failed'
+    Modulators:
+    - 'format.Envelope':
+        Prefix: 'Failed to sent: '
 
 **Server**
 ::
 
-  - "consumer.Socket":
-      Acknowledge: "OK"
-      Partitioner: "ascii"
-      Delimiter: ":"
-      Address: ":5880"
-      Stream: "server"
-
-  - "producer.File":
-      Formatter: "format.Timestamp"
-      TimestampFormatter: "format.Envelope"
-      File: "chat.log"
-      Stream: "server"
-
-  - "producer.Console":
-      Formatter: "format.Envelope"
-      Stream:
-        - "*"
-        - "_GOLLUM_"
-
-Proxy
------
-
-This configuration will set up a simple proxy for protocols that separate messages by newlines.
-This works well for e.g. basic redis traffic.
-Make sure to start Gollum with `gollum -ll 3` to see all log messages.
-
-::
-
-  - "consumer.Proxy":
-      Address: "localhost:5880"
-      Partitioner: "delimiter"
-      Delimiter: "\r\n"
-      Stream: "redis"
-
-  - "producer.Proxy":
-      Address: "localhost:6379"
-      ConnectionBufferSizeKB: 64
-      Partitioner: "delimiter"
-      Delimiter: "\r\n"
-      Stream: "redis"
-
-Note that the standard proxy consumer and producer cannot react on details implied by a specific protocol.
-While this does work for simple protocols it will have problems with more complex protocols like http.
-In that case it is advisable to use or write a proxy plugin for this specific protocol.
+  'SocketIn':
+    Type: 'consumer.Socket'
+    Streams: 'socket'
+    Address: ":5880"
+    Acknowledge: 'OK'
+    Partitioner: 'ascii'
+    Delimiter: ':'
+  
+  'StdOut':
+    Type: 'producer.Console'
+    Streams: 'socket'
+    Modulators:
+    - 'format.Envelope': {}
 
 Profiling
 ---------
@@ -182,16 +214,17 @@ Make sure to start Gollum with `gollum -ll 3 -ps` to see all log messages as wel
 
 ::
 
-  - "consumer.Profiler":
-      Runs: 100000
-      Batches: 100
-      Characters: "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUFVXYZ 0123456789 .,!;:-_"
-      Message: "%256s"
-      Stream: "profile"
+'Profiler':
+  Type: 'consumer.Profiler'
+  Streams: 'profile'
+  Runs: 100000
+  Batches: 100
+  Characters: 'abcdefghijklmnopqrstuvwxyz .,!;:-_'
+  Message: '%256s'
+  KeepRunning: false
+  ModulatorRoutines: 0
 
-  - "producer.Null":
-      Stream: "profile"
+'Benchmark':
+  Type: 'producer.Benchmark'
+  Streams: 'profile'
 
-  - "producer.Console":
-      Formatter: "format.Envelope"
-      Stream: "_GOLLUM_"

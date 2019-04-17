@@ -11,8 +11,11 @@ import (
 )
 
 const (
-	testFileConsumerConfig = "test_file_consumer.conf"
-	testFileConsumerWait   = 3 * time.Second
+	testFileConsumerConfig     = "test_file_consumer.conf"
+	testFileConsumerWhite      = "test_file_consumer_white.conf"
+	testFileConsumerBlack      = "test_file_consumer_black.conf"
+	testFileConsumerBlackWhite = "test_file_consumer_blackwhite.conf"
+	testFileConsumerWait       = 3 * time.Second
 )
 
 func TestFileConsumerPoll(t *testing.T) {
@@ -34,6 +37,27 @@ func TestFileConsumerPollWithMove(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	testFileChangeAndMove(expect, tmpTestFilePathFoo)
+}
+
+func TestFileConsumerWhite(t *testing.T) {
+	removeTestResultFiles()
+	expect := ttesting.NewExpect(t)
+
+	testGlob(expect, testFileConsumerWhite)
+}
+
+func TestFileConsumerBlack(t *testing.T) {
+	removeTestResultFiles()
+	expect := ttesting.NewExpect(t)
+
+	testGlob(expect, testFileConsumerBlack)
+}
+
+func TestFileConsumerBlackWhite(t *testing.T) {
+	removeTestResultFiles()
+	expect := ttesting.NewExpect(t)
+
+	testGlob(expect, testFileConsumerBlackWhite)
 }
 
 // helper functions
@@ -111,4 +135,33 @@ func testFileChangeAndMove(expect ttesting.Expect, sourceFile string) {
 	expect.Contains(content, "bar")
 	expect.Contains(content, "baz")
 	expect.Equal(1, lines)
+}
+
+func testGlob(expect ttesting.Expect, config string) {
+	file, err := generateTestFile(tmpTestFilePathGlob0, "0\n")
+	expect.NoError(err)
+	file.Close()
+
+	file, err = generateTestFile(tmpTestFilePathGlob1, "1\n")
+	expect.NoError(err)
+	file.Close()
+
+	file, err = generateTestFile(tmpTestFilePathGlob2, "2\n")
+	expect.NoError(err)
+	file.Close()
+
+	cmd, err := StartGollum(config, DefaultStartIndicator, "-ll=2")
+	expect.NoError(err)
+
+	err = cmd.StopAfter(time.Second)
+	expect.NoError(err)
+
+	// Check results
+
+	content, _, err := readResultFile(tmpTestFilePathDefault)
+	expect.NoError(err)
+
+	expect.Contains(content, "0")
+	expect.Contains(content, "1")
+	expect.Equal(2, len(content))
 }

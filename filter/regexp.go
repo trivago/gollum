@@ -26,14 +26,14 @@ import (
 //
 // Parameters
 //
-// - FilterExpression: Messages matching this expression are passed on.
-// This parameter is ignored when set to "". FilterExpression is checked
-// after FilterExpressionNot.
+// - Expression: Messages matching this expression are passed on.
+// This parameter is ignored when set to "". Expression is checked
+// after ExpressionNot.
 // By default this parameter is set to "".
 //
-// - FilterExpressionNot: Messages *not* matching this expression are
-// passed on. This parameter is ignored when set to "". FilterExpressionNot
-// is checked before FilterExpression.
+// - ExpressionNot: Messages *not* matching this expression are
+// passed on. This parameter is ignored when set to "". ExpressionNot
+// is checked before Expression.
 // By default this parameter is set to "".
 //
 // - ApplyTo: Defines which part of the message the filter is applied to.
@@ -51,8 +51,8 @@ import (
 //    Streams: console
 //    Modulators:
 //      - filter.RegExp:
-//        FilterExpressionNot: " stage\\."
-//        FilterExpression: "HTTP/1\\.1\\\" [23]\\d\\d"
+//        ExpressionNot: " stage\\."
+//        Expression: "HTTP/1\\.1\\\" [23]\\d\\d"
 type RegExp struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	exp               *regexp.Regexp
