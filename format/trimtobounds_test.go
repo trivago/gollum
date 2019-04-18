@@ -7,17 +7,17 @@ import (
 	"github.com/trivago/tgo/ttesting"
 )
 
-func TestFormatterTrim(t *testing.T) {
+func TestFormatterTrimToBounds(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Trim")
-	config.Override("LeftSeparator", "|")
-	config.Override("RightSeparator", "|")
+	config := core.NewPluginConfig("", "format.TrimToBounds")
+	config.Override("LeftBounds", "|")
+	config.Override("RightBounds", "|")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*Trim)
+	formatter, casted := plugin.(*TrimToBounds)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("|foo bar foobar|"), nil, core.InvalidStreamID)
@@ -28,17 +28,17 @@ func TestFormatterTrim(t *testing.T) {
 	expect.Equal("foo bar foobar", msg.String())
 }
 
-func TestFormatterTrimWithSpaces(t *testing.T) {
+func TestFormatterTrimToBoundsWithSpaces(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Trim")
-	config.Override("LeftSeparator", " ")
-	config.Override("RightSeparator", "  ")
+	config := core.NewPluginConfig("", "format.TrimToBounds")
+	config.Override("LeftBounds", " ")
+	config.Override("RightBounds", "  ")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*Trim)
+	formatter, casted := plugin.(*TrimToBounds)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte(" foo bar foobar  "), nil, core.InvalidStreamID)
@@ -49,18 +49,18 @@ func TestFormatterTrimWithSpaces(t *testing.T) {
 	expect.Equal("foo bar foobar", msg.String())
 }
 
-func TestFormatterTrimTarget(t *testing.T) {
+func TestFormatterTrimToBoundsTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.Trim")
-	config.Override("LeftSeparator", "|")
-	config.Override("RightSeparator", "|")
+	config := core.NewPluginConfig("", "format.TrimToBounds")
+	config.Override("LeftBounds", "|")
+	config.Override("RightBounds", "|")
 	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*Trim)
+	formatter, casted := plugin.(*TrimToBounds)
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("|foo bar foobar|"), nil, core.InvalidStreamID)

@@ -20,7 +20,7 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// Bounds formatter
+// TrimToBounds formatter
 //
 // This formatter searches for separator strings and removes all data left or
 // right of this separator.
@@ -50,10 +50,10 @@ import (
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
-//      - format.Bounds:
+//      - format.TrimToBounds:
 //        LeftBounds: "["
 //        RightBounds: "]"
-type Bounds struct {
+type TrimToBounds struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	leftBounds           []byte `config:"LeftBounds"`
 	rightBounds          []byte `config:"RightBounds"`
@@ -62,15 +62,15 @@ type Bounds struct {
 }
 
 func init() {
-	core.TypeRegistry.Register(Bounds{})
+	core.TypeRegistry.Register(TrimToBounds{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *Bounds) Configure(conf core.PluginConfigReader) {
+func (format *TrimToBounds) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload
-func (format *Bounds) ApplyFormatter(msg *core.Message) error {
+func (format *TrimToBounds) ApplyFormatter(msg *core.Message) error {
 	content := format.GetTargetDataAsBytes(msg)
 	offset := len(content)
 
@@ -96,7 +96,7 @@ func (format *Bounds) ApplyFormatter(msg *core.Message) error {
 	return nil
 }
 
-func (format *Bounds) extendContent(content *[]byte, size int) {
+func (format *TrimToBounds) extendContent(content *[]byte, size int) {
 	switch {
 	case size == len(*content):
 	case size <= cap(*content):
