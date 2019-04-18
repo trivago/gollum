@@ -37,6 +37,10 @@ import (
 // specify the name of a metadata field to target.
 // By default this parameter is set to "".
 //
+// - ApplyTo: Use this to set Source and Target to the same value. This setting
+// will be ignored if either Source or Target is set to something else but "".
+// By default this parameter is set to "".
+//
 // - SkipIfEmpty: When set to true, this formatter will not be applied to data
 // that is empty or - in case of metadata - not existing.
 // By default this parameter is set to false
@@ -93,6 +97,12 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 
 	target := conf.GetString("Target", "")
 	source := conf.GetString("Source", "")
+	applyTo := conf.GetString("ApplyTo", "")
+
+	if len(applyTo) > 0 && len(target) == 0 && len(source) == 0 {
+		source = applyTo
+		target = applyTo
+	}
 
 	format.GetSourceData = NewGetterFor(source)
 	format.GetSourceDataAsBytes = NewBytesGetterFor(source)
