@@ -57,7 +57,7 @@ type RegExp struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	exp               *regexp.Regexp
 	expNot            *regexp.Regexp
-	getTargetData     core.GetTargetDataAsStringFunc
+	getTargetData     core.GetDataAsStringFunc
 }
 
 func init() {
