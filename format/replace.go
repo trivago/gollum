@@ -1,7 +1,7 @@
 package format
 
 import (
-	"bytes"
+	"strings"
 
 	"github.com/trivago/gollum/core"
 )
@@ -12,7 +12,8 @@ import (
 //
 // Parameters
 //
-// - Search: Defines the string to search for.
+// - Search: Defines the string to search for. When left empty, the target will
+// be completely replaced by ReplaceWith.
 // By default this is set to "".
 //
 // - ReplaceWith: Defines the string to replace all occurences of "search" with.
@@ -29,8 +30,8 @@ import (
 //        ReplaceWith: "bar"
 type Replace struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	search               []byte `config:"Search" default:""`
-	replaceWith          []byte `config:"ReplaceWith" default:""`
+	search               string `config:"Search" default:""`
+	replaceWith          string `config:"ReplaceWith" default:""`
 }
 
 func init() {
@@ -43,8 +44,12 @@ func (format *Replace) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Replace) ApplyFormatter(msg *core.Message) error {
-	srcData := format.GetSourceDataAsBytes(msg)
+	if len(format.search) == 0 {
+		format.SetTargetData(msg, format.replaceWith)
+		return nil
+	}
 
-	format.SetTargetData(msg, bytes.ReplaceAll(srcData, format.search, format.replaceWith))
+	srcData := format.GetSourceDataAsString(msg)
+	format.SetTargetData(msg, strings.ReplaceAll(srcData, format.search, format.replaceWith))
 	return nil
 }

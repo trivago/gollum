@@ -38,5 +38,24 @@ func TestReplace(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("test bar test bar", string(msg.GetPayload()))
+	expect.Equal("test bar test bar", msg.String())
+}
+
+func TestReplaceAll(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.Replace")
+	config.Override("ReplaceWith", "bar")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*Replace)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("test foo test foo"), nil, core.InvalidStreamID)
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("bar", msg.String())
 }
