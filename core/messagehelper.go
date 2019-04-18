@@ -150,14 +150,14 @@ func setPayloadContent(msg *Message, content interface{}) {
 }
 
 // NewSetterFor returns SetDataFunc function to store message content
-func NewSetterFor(applyTo string) SetDataFunc {
-	if applyTo == "" {
+func NewSetterFor(identifier string) SetDataFunc {
+	if identifier == "" {
 		return setPayloadContent
 	}
 
 	// we need a lambda to hide away the second parameter
 	return func(msg *Message, content interface{}) {
-		setMetadataContent(msg, applyTo, content)
+		setMetadataContent(msg, identifier, content)
 	}
 }
 
