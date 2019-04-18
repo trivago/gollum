@@ -65,7 +65,7 @@ func TestSplitPickTarget(t *testing.T) {
 	config := core.NewPluginConfig("", "format.SplitPick")
 	config.Override("Index", 0)
 	config.Override("Delimiter", "#")
-	config.Override("Target", "foo")
+	config.Override("ApplyTo", "foo")
 	plugin, err := core.NewPluginWithConfig(config)
 
 	expect.NoError(err)

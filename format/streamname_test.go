@@ -65,7 +65,7 @@ func TestStreamNameTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.StreamName")
-	config.Override("Target", "foo")
+	config.Override("ApplyTo", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -89,7 +89,7 @@ func TestStreamNameTargetNoSeparator(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.StreamName")
-	config.Override("Target", "foo")
+	config.Override("ApplyTo", "foo")
 	config.Override("Separator", "")
 
 	plugin, err := core.NewPluginWithConfig(config)

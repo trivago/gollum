@@ -42,7 +42,7 @@ func TestRunlengthTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Runlength")
-	config.Override("Target", "foo")
+	config.Override("ApplyTo", "foo")
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
@@ -64,7 +64,7 @@ func TestRunlengthTargetAndStoreRunlengthOnly(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Runlength")
-	config.Override("Target", "foo")
+	config.Override("ApplyTo", "foo")
 	config.Override("StoreRunlengthOnly", true)
 
 	plugin, err := core.NewPluginWithConfig(config)

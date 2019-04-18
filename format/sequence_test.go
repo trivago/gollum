@@ -48,7 +48,7 @@ func TestSequenceTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Sequence")
-	config.Override("Target", "foo")
+	config.Override("ApplyTo", "foo")
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
@@ -71,7 +71,7 @@ func TestSequenceTargetNoSeparator(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Sequence")
-	config.Override("Target", "foo")
+	config.Override("ApplyTo", "foo")
 	config.Override("Separator", "")
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)

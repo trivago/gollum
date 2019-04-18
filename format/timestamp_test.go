@@ -44,7 +44,7 @@ func TestTimestampTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Timestamp")
-	config.Override("Target", "foo")
+	config.Override("ApplyTo", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
