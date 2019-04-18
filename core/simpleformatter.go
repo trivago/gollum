@@ -41,18 +41,46 @@ import (
 // that is empty or - in case of metadata - not existing.
 // By default this parameter is set to false
 type SimpleFormatter struct {
-	Logger                logrus.FieldLogger
-	GetSourceData         GetDataFunc
-	GetSourceDataAsBytes  GetDataAsBytesFunc
+	Logger      logrus.FieldLogger
+	SkipIfEmpty bool `config:"SkipIfEmpty"`
+
+	// GetSourceData returns the data denoted by the source setting
+	GetSourceData GetDataFunc
+
+	// GetSourceDataAsBytes returns the source converted to an array of bytes
+	GetSourceDataAsBytes GetDataAsBytesFunc
+
+	// GetSourceDataAsString returns the source converted to a string
 	GetSourceDataAsString GetDataAsStringFunc
-	GetTargetData         GetDataFunc
-	GetTargetDataAsBytes  GetDataAsBytesFunc
+
+	// GetTargetData returns the data denoted by the target setting
+	GetTargetData GetDataFunc
+
+	// GetTargetDataAsString returns the target converted to an array of bytes
+	GetTargetDataAsBytes GetDataAsBytesFunc
+
+	// GetTargetDataAsString returns the target converted to a string
 	GetTargetDataAsString GetDataAsStringFunc
-	GetTargetAsMetadata   GetMetadataRootFunc
+
+	// GetTargetAsMetadata returns the target as a MarshalMap or returns
+	// an error if the key contains a value that is not a MarshalMap.
+	GetTargetAsMetadata GetMetadataRootFunc
+
+	// ForceTargetAsMetadata works like GetTargetAsMetadata but ensures that
+	// a MarshalMap is returned, if necessary by overwriting a key.
 	ForceTargetAsMetadata ForceMetadataRootFunc
-	SetTargetData         SetDataFunc
-	SetSourceData         SetDataFunc
-	SkipIfEmpty           bool `config:"SkipIfEmpty"`
+
+	// SetTargetData writes data to whatever is denoted as target
+	SetTargetData SetDataFunc
+
+	// SetSourceData writes data to whatever is denoted as source
+	SetSourceData SetDataFunc
+
+	// TargetIsMetadata returns true if the target setting points to metadata
+	TargetIsMetadata func() bool
+
+	// SourceIsMetadata returns true if the source setting points to metadata
+	SourceIsMetadata func() bool
 }
 
 // Configure sets up all values required by SimpleFormatter.
@@ -65,14 +93,28 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.GetSourceData = NewGetterFor(source)
 	format.GetSourceDataAsBytes = NewBytesGetterFor(source)
 	format.GetSourceDataAsString = NewStringGetterFor(source)
+
 	format.SetSourceData = NewSetterFor(source)
 
 	format.GetTargetData = NewGetterFor(target)
 	format.GetTargetDataAsBytes = NewBytesGetterFor(target)
 	format.GetTargetDataAsString = NewStringGetterFor(target)
-	format.SetTargetData = NewSetterFor(target)
 	format.GetTargetAsMetadata = NewMetadataRootGetterFor(target)
 	format.ForceTargetAsMetadata = NewForceMetadataRootGetterFor(target)
+
+	format.SetTargetData = NewSetterFor(target)
+
+	if len(target) == 0 {
+		format.TargetIsMetadata = func() bool { return false }
+	} else {
+		format.TargetIsMetadata = func() bool { return true }
+	}
+
+	if len(source) == 0 {
+		format.SourceIsMetadata = func() bool { return false }
+	} else {
+		format.SourceIsMetadata = func() bool { return true }
+	}
 }
 
 // CanBeApplied returns true if the formatter can be applied to this message
