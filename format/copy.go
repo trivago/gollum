@@ -111,7 +111,7 @@ func (format *Copy) applyReplace(msg *core.Message) error {
 
 func (format *Copy) applyAppend(msg *core.Message) error {
 	srcData := format.GetSourceDataAsBytes(msg)
-	dstData := core.ConvertToBytes(format.GetSourceData(msg))
+	dstData := format.GetTargetDataAsBytes(msg)
 
 	newLen := len(srcData) + len(dstData) + len(format.separator)
 	cloneData := make([]byte, len(dstData), newLen)
@@ -128,7 +128,7 @@ func (format *Copy) applyAppend(msg *core.Message) error {
 
 func (format *Copy) applyPrepend(msg *core.Message) error {
 	srcData := format.GetSourceDataAsBytes(msg)
-	dstData := core.ConvertToBytes(format.GetSourceData(msg))
+	dstData := format.GetTargetDataAsBytes(msg)
 
 	newLen := len(srcData) + len(dstData) + len(format.separator)
 	cloneData := make([]byte, len(srcData), newLen)

@@ -12,7 +12,7 @@ func TestCopyReplace(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Copy")
-	config.Override("Key", "foo")
+	config.Override("Source", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
@@ -32,6 +32,7 @@ func TestCopyAddKey(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Copy")
+	config.Override("Source", "")
 	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
@@ -55,7 +56,7 @@ func TestCopyAppend(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Copy")
-	config.Override("Key", "foo")
+	config.Override("Source", "foo")
 	config.Override("Mode", "append")
 	config.Override("Separator", " ")
 
@@ -77,7 +78,7 @@ func TestCopyPrepend(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Copy")
-	config.Override("Key", "foo")
+	config.Override("Source", "foo")
 	config.Override("Mode", "prepend")
 
 	plugin, err := core.NewPluginWithConfig(config)
@@ -98,6 +99,7 @@ func TestCopyMetadataIntegrity(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Copy")
+	config.Override("Source", "")
 	config.Override("Target", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
@@ -128,7 +130,7 @@ func TestCopyPayloadIntegrity(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Copy")
-	config.Override("Key", "foo")
+	config.Override("Source", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
