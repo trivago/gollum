@@ -24,20 +24,20 @@ import (
 // Aggregate formatter plugin
 //
 // Aggregate is a formatter which can group up further formatter.
-// The `Target` settings will be pass on and overwritten in the child formatter.
+// The `Source` setting will be passed on to all child formatters, overwriting any source value there (if set).
 // This plugin could be useful to setup complex configs with metadata handling in more readable format.
 //
 // Parameters
 //
-// - Target: This value chooses the part of the message the formatting
-// should be applied to. Use "" to target the message payload; other values
-// specify the name of a metadata field to target.
-// This value will also used for further child modulators!
+// - Source: This value chooses the part of the message that should be
+// formatted. Use "" to use the message payload; other values specify the
+// name of a  metadata field to use.
+// This values is forced to be used by all child modulators.
 // By default this parameter is set to "".
 //
-// - Modulators: Defines a list of child modulators to be applied to a message when
-// it arrives at this formatter. Please try to use only content based formatter and filter!
-// If a modulator changes the stream of a message the message is NOT routed to this stream anymore.
+// - Modulators: Defines a list of child modulators to be applied to a message
+// when it arrives at this formatter. Please note that everything is still one
+// message. I.e. applying filters twice might not make sense.
 //
 // Examples
 //
@@ -68,7 +68,10 @@ import (
 //    Streams: "bar"
 //    Modulators:
 //      - format.Copy:
-//          Target: foo
+//          Target: bar
+//      - format.Envelope:
+//          Target: bar
+//          Postfix: "\n"
 //      - format.Copy:
 //          Target: foo
 //      - format.Base64Encode:
@@ -78,9 +81,6 @@ import (
 //      - format.Envelope:
 //          Postfix: "\n"
 //          Target: foo
-//      - format.Envelope:
-//          Postfix: "\n"
-//          Target: bar
 //
 type Aggregate struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
@@ -93,10 +93,10 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Aggregate) Configure(conf core.PluginConfigReader) {
-	Target := conf.GetString("Target", "")
+	Source := conf.GetString("Source", "")
 
 	// init modulator array
-	modulatorSettings := format.getModulatorSettings(Target, conf)
+	modulatorSettings := format.getModulatorSettings(Source, conf)
 
 	config := core.NewPluginConfig("", "format.Aggregate.Modulators")
 	config.Override("Modulators", modulatorSettings)
@@ -123,7 +123,7 @@ func (format *Aggregate) ApplyFormatter(msg *core.Message) error {
 	return nil
 }
 
-func (format *Aggregate) getModulatorSettings(Target string, conf core.PluginConfigReader) []interface{} {
+func (format *Aggregate) getModulatorSettings(Source string, conf core.PluginConfigReader) []interface{} {
 	finalModulatorMap := []interface{}{}
 
 	for _, childFormatterArray := range conf.GetArray("Modulators", []interface{}{}) {
@@ -134,14 +134,14 @@ func (format *Aggregate) getModulatorSettings(Target string, conf core.PluginCon
 		case tcontainer.MarshalMap:
 			for childFormatterName, childFormatterItem := range childFormatter {
 				childFormatterItemMap := childFormatterItem.(tcontainer.MarshalMap)
-				childFormatterItemMap["Target"] = Target
+				childFormatterItemMap["Source"] = Source
 
 				finalModulatorMap = format.appendModulator(childFormatterName, childFormatterItemMap, finalModulatorMap)
 
 			}
 		case string:
 			childFormatterItemMap := tcontainer.NewMarshalMap()
-			childFormatterItemMap["Target"] = Target
+			childFormatterItemMap["Source"] = Source
 
 			finalModulatorMap = format.appendModulator(childFormatter, childFormatterItemMap, finalModulatorMap)
 

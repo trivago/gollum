@@ -27,33 +27,25 @@ type applyFormatterMockA struct {
 
 // appends "A" to content
 func (formatter *applyFormatterMockA) ApplyFormatter(msg *core.Message) error {
-	c := formatter.GetSourceData(msg)
-	new := []byte("A")
-	c = append(c.([]byte), new...)
-
-	formatter.SetTargetData(msg, c)
+	c := formatter.GetSourceDataAsString(msg)
+	formatter.SetTargetData(msg, c+"A")
 
 	return nil
 }
 
-var configInjection string
-
 type applyFormatterMockB struct {
 	core.SimpleFormatter
+	value string `config:"Value"`
 }
 
 // set "foo" to global var
 func (formatter *applyFormatterMockB) Configure(conf core.PluginConfigReader) {
-	configInjection = conf.GetString("foo", "")
 }
 
 // appends "B" to content
 func (formatter *applyFormatterMockB) ApplyFormatter(msg *core.Message) error {
-	c := formatter.GetSourceData(msg)
-	new := []byte("B")
-	c = append(c.([]byte), new...)
-
-	formatter.SetTargetData(msg, c)
+	c := formatter.GetSourceDataAsString(msg)
+	formatter.SetTargetData(msg, c+formatter.value)
 
 	return nil
 }
@@ -65,13 +57,14 @@ func TestAggregate_ApplyFormatter(t *testing.T) {
 	core.TypeRegistry.Register(applyFormatterMockB{})
 
 	config := core.NewPluginConfig("", "format.Aggregate")
-	config.Override("Target", "")
 
 	config.Override("Modulators", []interface{}{
-		"format.applyFormatterMockA",
+		map[string]interface{}{
+			"format.applyFormatterMockA": map[string]interface{}{},
+		},
 		map[string]interface{}{
 			"format.applyFormatterMockB": map[string]interface{}{
-				"foo": "bar",
+				"Value": "B",
 			},
 		},
 	})
@@ -81,14 +74,12 @@ func TestAggregate_ApplyFormatter(t *testing.T) {
 	formatter, casted := plugin.(*Aggregate)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("foo"),
-		nil, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("foo"), nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	expect.Equal("fooAB", string(msg.GetPayload()))
-	expect.Equal("bar", configInjection)
 }
 
 func TestAggregate_ApplyFormatterWithTarget(t *testing.T) {
@@ -98,13 +89,15 @@ func TestAggregate_ApplyFormatterWithTarget(t *testing.T) {
 	core.TypeRegistry.Register(applyFormatterMockB{})
 
 	config := core.NewPluginConfig("", "format.Aggregate")
-	config.Override("Target", "foo")
 
 	config.Override("Modulators", []interface{}{
-		"format.applyFormatterMockA",
+		map[string]interface{}{
+			"format.applyFormatterMockA": map[string]interface{}{},
+		},
 		map[string]interface{}{
 			"format.applyFormatterMockB": map[string]interface{}{
-				"Target": "bar",
+				"Target": "foo",
+				"Value":  "B",
 			},
 		},
 	})
@@ -115,15 +108,16 @@ func TestAggregate_ApplyFormatterWithTarget(t *testing.T) {
 	expect.True(casted)
 
 	metadata := core.NewMetadata()
-	metadata.Set("foo", []byte("value"))
+	metadata.Set("foo", "metadata")
+
 	msg := core.NewMessage(nil, []byte("payload"), metadata, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("payload", string(msg.GetPayload()))
-	expect.Equal("", configInjection)
-	val, err := msg.GetMetadata().Bytes("foo")
+	expect.Equal("payloadA", string(msg.GetPayload()))
+
+	val, err := msg.GetMetadata().String("foo")
 	expect.NoError(err)
-	expect.Equal("valueAB", string(val))
+	expect.Equal("payloadAB", val)
 }
