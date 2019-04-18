@@ -17,24 +17,30 @@ package format
 import (
 	"testing"
 
-	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 
+	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
 )
 
-func TestTemplateJSON(t *testing.T) {
+func TestTemplate(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.TemplateJSON")
+	config := core.NewPluginConfig("", "format.Template")
 	config.Override("Template", "{{ .foo }} {{ .test }}")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*TemplateJSON)
+	formatter, casted := plugin.(*Template)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"), nil, core.InvalidStreamID)
+	metadata := tcontainer.MarshalMap{
+		"foo":  "bar",
+		"test": "valid",
+	}
+
+	msg := core.NewMessage(nil, []byte{}, metadata, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -42,27 +48,34 @@ func TestTemplateJSON(t *testing.T) {
 	expect.Equal("bar valid", msg.String())
 }
 
-func TestTemplateJSONTarget(t *testing.T) {
+func TestTemplateSource(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.TemplateJSON")
+	config := core.NewPluginConfig("", "format.Template")
 	config.Override("Template", "{{ .foo }} {{ .test }}")
-	config.Override("Target", "foo")
+	config.Override("Source", "foo")
+	config.Override("Target", "result")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*TemplateJSON)
+	formatter, casted := plugin.(*Template)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("payload"), nil, core.InvalidStreamID)
-	msg.GetMetadata().Set("foo", []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"))
+	metadata := tcontainer.MarshalMap{
+		"foo": tcontainer.MarshalMap{
+			"test": "valid",
+			"foo":  "bar",
+		},
+	}
+
+	msg := core.NewMessage(nil, []byte("payload"), metadata, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	foo, err := msg.GetMetadata().Bytes("foo")
+	result, err := msg.GetMetadata().String("result")
 	expect.NoError(err)
 	expect.Equal("payload", msg.String())
-	expect.Equal("bar valid", string(foo))
+	expect.Equal("bar valid", result)
 }
