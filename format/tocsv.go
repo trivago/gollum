@@ -20,9 +20,9 @@ import (
 	"github.com/trivago/gollum/core"
 )
 
-// ToArray formatter plugin
+// ToCSV formatter plugin
 //
-// ToArray converts a set of metadata keys to CSV and applies it to Target.
+// ToCSV converts a set of metadata keys to CSV and applies it to Target.
 //
 // Parameters
 //
@@ -45,12 +45,12 @@ import (
 //    Type: producer.Console
 //    Streams: "*"
 //    Modulators:
-//    - format.ToArray:
+//    - format.ToCSV:
 //        Separator: ';'
 //        Keys:
 //        - 'foo'
 //        - 'bar'
-type ToArray struct {
+type ToCSV struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            string   `config:"Separator" default:","`
 	keys                 []string `config:"Keys"`
@@ -58,16 +58,15 @@ type ToArray struct {
 }
 
 func init() {
-	core.TypeRegistry.Register(ToArray{})
+	core.TypeRegistry.Register(ToCSV{})
 }
 
 // Configure initializes this formatter with values from a plugin config.
-func (format *ToArray) Configure(conf core.PluginConfigReader) {
+func (format *ToCSV) Configure(conf core.PluginConfigReader) {
 }
 
 // ApplyFormatter update message payload
-func (format *ToArray) ApplyFormatter(msg *core.Message) error {
-
+func (format *ToCSV) ApplyFormatter(msg *core.Message) error {
 	csv := ""
 	metadata := msg.GetMetadata()
 	for _, key := range format.keys {

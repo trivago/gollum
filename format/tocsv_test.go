@@ -22,10 +22,10 @@ import (
 	"github.com/trivago/tgo/ttesting"
 )
 
-func TestToArray(t *testing.T) {
+func TestToCSV(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.ToArray")
+	config := core.NewPluginConfig("", "format.ToCSV")
 	config.Override("Keys", []interface{}{
 		"foo",
 		"bar",
@@ -34,7 +34,7 @@ func TestToArray(t *testing.T) {
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*ToArray)
+	formatter, casted := plugin.(*ToCSV)
 	expect.True(casted)
 
 	metadata := tcontainer.MarshalMap{
@@ -49,10 +49,10 @@ func TestToArray(t *testing.T) {
 	expect.Equal("value1,value2", string(msg.GetPayload()))
 }
 
-func TestToArrayTarget(t *testing.T) {
+func TestToCSVTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	config := core.NewPluginConfig("", "format.ToArray")
+	config := core.NewPluginConfig("", "format.ToCSV")
 	config.Override("Target", "baz")
 	config.Override("Keys", []string{
 		"foo",
@@ -62,7 +62,7 @@ func TestToArrayTarget(t *testing.T) {
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
 
-	formatter, casted := plugin.(*ToArray)
+	formatter, casted := plugin.(*ToCSV)
 	expect.True(casted)
 
 	metadata := tcontainer.MarshalMap{
