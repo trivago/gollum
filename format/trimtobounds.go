@@ -72,38 +72,42 @@ func (format *TrimToBounds) Configure(conf core.PluginConfigReader) {
 // ApplyFormatter update message payload
 func (format *TrimToBounds) ApplyFormatter(msg *core.Message) error {
 	content := format.GetSourceDataAsBytes(msg)
-	offset := len(content)
 
-	if len(format.rightBounds) > 0 {
-		rightIdx := bytes.LastIndex(content, format.rightBounds)
-		if rightIdx > 0 {
-			offset = rightIdx
+	endIdx := len(content) - format.rightOffset
+	if endIdx < 0 {
+		endIdx = 0
+	}
+
+	if endIdx > 0 && len(format.rightBounds) > 0 {
+		rightIdx := bytes.LastIndex(content[:endIdx], format.rightBounds)
+		if rightIdx >= 0 {
+			endIdx = rightIdx
+		} else {
+			endIdx = len(content)
 		}
 	}
-	format.extendContent(&content, offset-format.rightOffset)
 
-	offset = format.leftOffset
-	if len(format.leftBounds) > 0 {
-		leftIdx := bytes.Index(msg.GetPayload(), format.leftBounds)
-		leftIdx++
-		if leftIdx > 0 {
-			offset += leftIdx
+	startIdx := format.leftOffset
+	if startIdx >= len(content) {
+		startIdx = len(content) - 1
+		if startIdx < 0 {
+			startIdx = 0
 		}
 	}
-	content = content[offset:]
 
-	format.SetTargetData(msg, content)
+	if startIdx < len(content) && len(format.leftBounds) > 0 {
+		leftIdx := bytes.Index(content[startIdx:], format.leftBounds)
+		if leftIdx >= 0 {
+			startIdx += leftIdx + 1
+		} else {
+			leftIdx = 0
+		}
+	}
+
+	if endIdx < startIdx {
+		format.SetTargetData(msg, content[0:0])
+	} else {
+		format.SetTargetData(msg, content[startIdx:endIdx])
+	}
 	return nil
-}
-
-func (format *TrimToBounds) extendContent(content *[]byte, size int) {
-	switch {
-	case size == len(*content):
-	case size <= cap(*content):
-		*content = (*content)[:size]
-	default:
-		old := *content
-		*content = make([]byte, size)
-		copy(*content, old)
-	}
 }

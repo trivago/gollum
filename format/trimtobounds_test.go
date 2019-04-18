@@ -42,6 +42,73 @@ func TestFormatterTrimToBounds(t *testing.T) {
 	expect.Equal("foo bar foobar", msg.String())
 }
 
+func TestFormatterTrimToBoundsOffset(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.TrimToBounds")
+	config.Override("LeftBounds", "|")
+	config.Override("RightBounds", "|")
+	config.Override("LeftOffset", "1")
+	config.Override("RightOffset", "1")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*TrimToBounds)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("||a||"), nil, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("a", msg.String())
+}
+
+func TestFormatterTrimToBoundsEmpty(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.TrimToBounds")
+	config.Override("LeftBounds", "|")
+	config.Override("RightBounds", "|")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*TrimToBounds)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("||"), nil, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("", msg.String())
+}
+
+func TestFormatterTrimToBoundsOverlap(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.TrimToBounds")
+	config.Override("LeftBounds", "|")
+	config.Override("RightBounds", "|")
+	config.Override("LeftOffset", "1")
+	config.Override("RightOffset", "1")
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*TrimToBounds)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("|a|"), nil, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expect.Equal("", msg.String())
+}
+
 func TestFormatterTrimToBoundsWithSpaces(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
@@ -69,7 +136,7 @@ func TestFormatterTrimToBoundsTarget(t *testing.T) {
 	config := core.NewPluginConfig("", "format.TrimToBounds")
 	config.Override("LeftBounds", "|")
 	config.Override("RightBounds", "|")
-	config.Override("Target", "foo")
+	config.Override("ApplyTo", "foo")
 
 	plugin, err := core.NewPluginWithConfig(config)
 	expect.NoError(err)
