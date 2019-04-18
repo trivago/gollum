@@ -45,6 +45,9 @@ type SimpleFormatter struct {
 	GetSourceData         GetDataFunc
 	GetSourceDataAsBytes  GetDataAsBytesFunc
 	GetSourceDataAsString GetDataAsStringFunc
+	GetTargetData         GetDataFunc
+	GetTargetDataAsBytes  GetDataAsBytesFunc
+	GetTargetDataAsString GetDataAsStringFunc
 	GetTargetAsMetadata   GetMetadataRootFunc
 	ForceTargetAsMetadata ForceMetadataRootFunc
 	SetTargetData         SetDataFunc
@@ -62,8 +65,12 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.GetSourceData = NewGetterFor(source)
 	format.GetSourceDataAsBytes = NewBytesGetterFor(source)
 	format.GetSourceDataAsString = NewStringGetterFor(source)
-	format.SetTargetData = NewSetterFor(target)
 	format.SetSourceData = NewSetterFor(source)
+
+	format.GetTargetData = NewGetterFor(target)
+	format.GetTargetDataAsBytes = NewBytesGetterFor(target)
+	format.GetTargetDataAsString = NewStringGetterFor(target)
+	format.SetTargetData = NewSetterFor(target)
 	format.GetTargetAsMetadata = NewMetadataRootGetterFor(target)
 	format.ForceTargetAsMetadata = NewForceMetadataRootGetterFor(target)
 }
