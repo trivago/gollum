@@ -1,18 +1,15 @@
 package format
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tcontainer"
 )
 
 // SplitToFields formatter
 //
 // This formatter splits data into an array by using the given delimiter and
-// stores it at the metadata key denoted by Fields. Targeting the payload (by
-// not given a target or passing an empty string) will result in an error.
+// stores it at the metadata key denoted by Fields.
 //
 // Parameters
 //
@@ -54,12 +51,8 @@ func (format *SplitToFields) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *SplitToFields) ApplyFormatter(msg *core.Message) error {
-	if !format.TargetIsMetadata() {
-		return fmt.Errorf("split target must be a metadata key")
-	}
-
 	parts := strings.Split(format.GetSourceDataAsString(msg), format.delimiter)
-	tree := tcontainer.MarshalMap{}
+	tree := format.ForceTargetAsMetadata(msg)
 
 	count := len(parts)
 	if len(format.fields) < len(parts) {
@@ -70,6 +63,5 @@ func (format *SplitToFields) ApplyFormatter(msg *core.Message) error {
 		tree.Set(format.fields[i], parts[i])
 	}
 
-	format.SetTargetData(msg, tree)
 	return nil
 }
