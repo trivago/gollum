@@ -44,7 +44,39 @@ func TestMultilineGrok(t *testing.T) {
 	expect.Equal(value, "us-west.servicename.webserver0.this.\nis.\nthe.\nmeasurement 12.0 1497003802")
 }
 
-func TestPatternToJSON(t *testing.T) {
+func TestPatternStoreAtKey(t *testing.T) {
+	expect := ttesting.NewExpect(t)
+
+	config := core.NewPluginConfig("", "format.Grok")
+	config.Override("Target", "root")
+	config.Override("Patterns", []string{`(?P<datacenter>[^\.]+?)\.(?P<service>[^\.]+?)\.(?P<host>[^\.]+?)\.(?P<measurement>[^\s]+?)\s%{NUMBER:value:float}\s%{INT:time}`})
+
+	plugin, err := core.NewPluginWithConfig(config)
+	expect.NoError(err)
+
+	formatter, casted := plugin.(*Grok)
+	expect.True(casted)
+
+	msg := core.NewMessage(nil, []byte("us-west.servicename.webserver0.this.is.the.measurement 12.0 1497003802\r"), nil, core.InvalidStreamID)
+
+	err = formatter.ApplyFormatter(msg)
+	expect.NoError(err)
+
+	expectKey := func(key, val string) {
+		v, err := msg.GetMetadata().String(key)
+		expect.NoError(err)
+		expect.Equal(val, v)
+	}
+
+	expectKey("root/datacenter", "us-west")
+	expectKey("root/service", "servicename")
+	expectKey("root/host", "webserver0")
+	expectKey("root/measurement", "this.is.the.measurement")
+	expectKey("root/value", "12.0")
+	expectKey("root/time", "1497003802")
+}
+
+func TestPattern(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Grok")

@@ -46,6 +46,7 @@ type SimpleFormatter struct {
 	GetSourceDataAsBytes  GetDataAsBytesFunc
 	GetSourceDataAsString GetDataAsStringFunc
 	GetTargetAsMetadata   GetMetadataRootFunc
+	ForceTargetAsMetadata ForceMetadataRootFunc
 	SetTargetData         SetDataFunc
 	SetSourceData         SetDataFunc
 	SkipIfEmpty           bool `config:"SkipIfEmpty"`
@@ -64,6 +65,7 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.SetTargetData = NewSetterFor(target)
 	format.SetSourceData = NewSetterFor(source)
 	format.GetTargetAsMetadata = NewMetadataRootGetterFor(target)
+	format.ForceTargetAsMetadata = NewForceMetadataRootGetterFor(target)
 }
 
 // CanBeApplied returns true if the formatter can be applied to this message

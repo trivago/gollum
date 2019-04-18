@@ -23,6 +23,10 @@ type GetDataAsBytesFunc func(msg *Message) []byte
 // error if the value behind the fixed key is not a MarshalMap.
 type GetMetadataRootFunc func(msg *Message) (tcontainer.MarshalMap, error)
 
+// ForceMetadataRootFunc works like GetMetadataRootFunc but makes sure that
+// the targeted key is existing and usable.
+type ForceMetadataRootFunc func(msg *Message) tcontainer.MarshalMap
+
 // SetDataFunc is a func() to store message content to payload or meta data
 type SetDataFunc func(msg *Message, content interface{})
 
@@ -42,7 +46,11 @@ func getMetadataContent(msg *Message, key string) interface{} {
 }
 
 func getMetadataRoot(msg *Message, root string) (tcontainer.MarshalMap, error) {
-	metadata := msg.GetMetadata()
+	metadata := msg.TryGetMetadata()
+	if metadata == nil {
+		return nil, fmt.Errorf("no metadata set")
+	}
+
 	if len(root) == 0 {
 		return metadata, nil
 	}
@@ -55,6 +63,27 @@ func getMetadataRoot(msg *Message, root string) (tcontainer.MarshalMap, error) {
 	}
 
 	return tcontainer.ConvertToMarshalMap(val, nil)
+}
+
+func forceMetadataRoot(msg *Message, root string) tcontainer.MarshalMap {
+	metadata := msg.GetMetadata()
+	if len(root) == 0 {
+		return metadata
+	}
+
+	val, exists := metadata.Value(root)
+	if !exists {
+		rootValue := tcontainer.MarshalMap{}
+		metadata.Set(root, rootValue)
+		return rootValue
+	}
+
+	rootValue, err := tcontainer.ConvertToMarshalMap(val, nil)
+	if err != nil {
+		rootValue = tcontainer.MarshalMap{}
+		metadata.Set(root, rootValue)
+	}
+	return rootValue
 }
 
 // NewGetterFor returns a GetDataFunc function
@@ -87,9 +116,20 @@ func NewBytesGetterFor(identifier string) GetDataAsBytesFunc {
 	}
 }
 
+// NewMetadataRootGetterFor returns a function that gets a metadata value
+// if it is set and if it is a MarshalMap
 func NewMetadataRootGetterFor(identifier string) GetMetadataRootFunc {
 	return func(msg *Message) (tcontainer.MarshalMap, error) {
 		return getMetadataRoot(msg, identifier)
+	}
+}
+
+// NewForceMetadataRootGetterFor returns a function that always returns a valid
+// metadata root. If the key does not exist, it is created. If the key exists
+// but is not a MarshalMap, it will be overridden.
+func NewForceMetadataRootGetterFor(identifier string) ForceMetadataRootFunc {
+	return func(msg *Message) tcontainer.MarshalMap {
+		return forceMetadataRoot(msg, identifier)
 	}
 }
 

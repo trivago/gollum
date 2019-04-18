@@ -25,7 +25,8 @@ import (
 // Grok formatter plugin
 //
 // Grok is a formatter that applies regex filters to messages and stores the result as
-// metadata fields.
+// metadata fields. If the target key is not existing it will be created. If the target
+// key is existing but not a map, it will be replaced.
 // It works by combining text patterns into something that matches your logs.
 // See https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_grok_basics
 // for more information about Grok.
@@ -109,18 +110,10 @@ func (format *Grok) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Grok) ApplyFormatter(msg *core.Message) error {
+	metadata := format.ForceTargetAsMetadata(msg)
 	content := format.GetSourceDataAsString(msg)
 
-	metadata, err := format.GetTargetAsMetadata(msg)
-	if err != nil {
-		return err
-	}
-
-	if err := format.applyGrok(metadata, content); err != nil {
-		return err
-	}
-
-	return nil
+	return format.applyGrok(metadata, content)
 }
 
 // grok iterates over all defined patterns and parses the content based on the first match.
