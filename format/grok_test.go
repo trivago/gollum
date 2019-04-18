@@ -160,5 +160,5 @@ func TestNoMatch(t *testing.T) {
 	msg := core.NewMessage(nil, []byte("nonumber"), nil, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
-	expect.Nil(err)
+	expect.NotNil(err)
 }
