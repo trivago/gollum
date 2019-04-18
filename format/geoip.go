@@ -15,7 +15,6 @@
 package format
 
 import (
-	"fmt"
 	"net"
 	"strings"
 
@@ -72,7 +71,7 @@ func (format *GeoIP) Configure(conf core.PluginConfigReader) {
 
 	geoIPFile := conf.GetString("GeoIPFile", "")
 	if geoIPFile == "" {
-		conf.Errors.Push(fmt.Errorf("setting a GeoIPFile is mandatory"))
+		format.Logger.Error("setting a GeoIPFile is mandatory")
 		return
 
 	}
