@@ -27,7 +27,7 @@ All tests were executed by calling ``time gollum -c profile.conf -ll 1``.
 +------------------+------------+---------+--------+------+-----------+  
 |                  | 0.4.6      | 319,44s | 72,22s | 574% | 1.173.536 |
 +------------------+------------+---------+--------+------+-----------+ 
-| JSON pipeline    | 0.6.0      | 29,44s  | 8,79s  | 165% | 43.205    |
+| JSON pipeline    | 0.6.0      | 14,98s  | 4,77s  | 173% | 78.377    |
 +------------------+------------+---------+--------+------+-----------+ 
 |                  | 0.5.0      | 28,23s  | 6,33s  | 138% | 40.033    |
 +------------------+------------+---------+--------+------+-----------+ 
@@ -38,10 +38,46 @@ All tests were executed by calling ``time gollum -c profile.conf -ll 1``.
 
 v0.6.0
 ------
+
+JSON pipeline
+``````````````
 | Intel Core i7-7700HQ CPU @ 2.80GHz, 16 GB RAM
 | go1.12.3 darwin/amd64
 
-Same config as v0.5.0.
+ * 14,98s user 
+ * 4,77s system 
+ * 173% cpu 
+ * 11,388s total
+ * 73.846 msg/sec
+
+.. code:: yaml
+
+    "Profiler":
+        Type: consumer.Profiler
+        Runs: 10000
+        Batches: 100
+        Characters: "abcdefghijklmnopqrstuvwxyz .,!;:-_"
+        Message: "{\"test\":\"%64s\",\"foo\":\"%32s|%32s\",\"bar\":\"%64s\",\"thisisquitealongstring\":\"%64s\"}"
+        Streams: "profile"
+        KeepRunning: false
+        ModulatorRoutines: 0
+        Modulators:
+            - format.JSON: {}
+            - format.Move:
+                Source: "test"
+                Target: "foobar"
+            - format.Delete:
+                Target: "bar"
+            - format.SplitToFields:
+                Source: "foo"
+                Delimiter: "|"
+                Fields: ["foo1","foo2"]
+            - format.Copy:
+                Source: "thisisquitealongstring"
+
+    "Benchmark":
+        Type: "producer.Benchmark"
+        Streams: "profile"
 
 v0.5.0
 ------
