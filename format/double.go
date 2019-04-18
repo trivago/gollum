@@ -20,9 +20,11 @@ import (
 
 // Double formatter plugin
 //
-// Double is a formatter that appends a delimiter string and a second copy of
-// the message's contents to the message. Independent sets of formatters may
-// be applied to both duplicates.
+// Double is a formatter that duplicates a message and applies two different
+// sets of formatters to both sides. After both messages have been processed,
+// the value of the field defined as "source" by the double formatter will be
+// copied from both copies and merged into the "target" field of the original
+// message using a given separator.
 //
 // Parameters
 //
@@ -78,12 +80,6 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	leftMsg := msg.Clone()
 	rightMsg := msg.Clone()
 
-	// pre-process
-	if format.Target != "" {
-		leftMsg.StorePayload(format.GetSourceDataAsBytes(msg))
-		rightMsg.StorePayload(format.GetSourceDataAsBytes(msg))
-	}
-
 	// apply sub-formatter
 	if err := format.left.ApplyFormatter(leftMsg); err != nil {
 		return err
@@ -94,7 +90,9 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	}
 
 	// update content
-	format.SetTargetData(msg, format.getCombinedContent(leftMsg.GetPayload(), rightMsg.GetPayload()))
+	leftData := format.GetSourceDataAsBytes(leftMsg)
+	rightData := format.GetSourceDataAsBytes(rightMsg)
+	format.SetTargetData(msg, format.mergeData(leftData, rightData))
 
 	// handle streamID
 	if format.leftStreamID {
@@ -107,7 +105,7 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	return nil
 }
 
-func (format *Double) getCombinedContent(leftContent []byte, rightContent []byte) []byte {
+func (format *Double) mergeData(leftContent []byte, rightContent []byte) []byte {
 	size := len(leftContent) + len(format.separator) + len(rightContent)
 	content := make([]byte, 0, size)
 

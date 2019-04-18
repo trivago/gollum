@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -51,14 +52,27 @@ func TestDoubleFormatterSeparator(t *testing.T) {
 	expect.Equal("TEST_VALUE-TEST_VALUE", string(msg.GetPayload()))
 }
 
-func TestDoubleFormatterTarget(t *testing.T) {
+func TestDoubleFormatterSource(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Double")
-	config.Override("Target", "foo")
 
+	config.Override("Source", "bar")
+	config.Override("Left", []interface{}{
+		tcontainer.MarshalMap{
+			"format.Copy": tcontainer.MarshalMap{
+				"Source": "foo",
+				"Target": "bar",
+			},
+		},
+	})
 	config.Override("Right", []interface{}{
-		"format.Base64Encode",
+		tcontainer.MarshalMap{
+			"format.Base64Encode": tcontainer.MarshalMap{
+				"Source": "foo",
+				"Target": "bar",
+			},
+		},
 	})
 
 	plugin, err := core.NewPluginWithConfig(config)
@@ -73,8 +87,5 @@ func TestDoubleFormatterTarget(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	val, err := msg.GetMetadata().Bytes("foo")
-	expect.NoError(err)
-	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", string(val))
-	expect.Equal("SOME_PAYLOAD_DATA", msg.String())
+	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", msg.String())
 }
