@@ -15,7 +15,7 @@ import (
 // Parameters
 //
 // - Delimiter: Defines the delimiter to use when splitting the data.
-// By default this parameter is set to ":"
+// By default this parameter is set to ","
 //
 // - Index: Defines the index to pick.
 // By default this parameter is set to 0.
@@ -28,11 +28,11 @@ import (
 //    Modulators:
 //      - format.SplitPick:
 //        Index: 2
-//        Delimiter: ":"
+//        Delimiter: ","
 type SplitPick struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	index                int    `config:"Index" default:"0"`
-	delimiter            []byte `config:"Delimiter" default:":"`
+	delimiter            []byte `config:"Delimiter" default:","`
 }
 
 func init() {
