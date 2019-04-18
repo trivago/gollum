@@ -49,7 +49,7 @@ func (format *Move) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Move) ApplyFormatter(msg *core.Message) error {
-	srcData := format.GetSourceDataAsBytes(msg)
+	srcData := format.GetSourceData(msg)
 
 	format.SetTargetData(msg, srcData)
 	format.SetSourceData(msg, nil)
