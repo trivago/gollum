@@ -17,7 +17,7 @@ package consumer
 import (
 	"testing"
 
-	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -25,17 +25,17 @@ func TestSyslogStructuredDataParser(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	data1 := "[id@12345 key=\"value\" key2=\"quoted \\\"data\\\"\" key3=\"line\nbreak\" key4 = \"value\"]"
-	metadata := core.Metadata{}
+	metadata := tcontainer.MarshalMap{}
 
 	parseCustomFields(data1, &metadata)
-	expect.MapEqual(metadata, "key", []byte("value"))
-	expect.MapEqual(metadata, "key2", []byte("quoted \"data\""))
-	expect.MapEqual(metadata, "key3", []byte("line\nbreak"))
-	expect.MapEqual(metadata, "key4", []byte("value"))
+	expect.MapEqual(metadata, "key", "value")
+	expect.MapEqual(metadata, "key2", "quoted \"data\"")
+	expect.MapEqual(metadata, "key3", "line\nbreak")
+	expect.MapEqual(metadata, "key4", "value")
 
 	data2 := "[id@12345 key=\"value\"][id@12345 key2=\"value\"]"
-	metadata = core.Metadata{}
+	metadata = tcontainer.MarshalMap{}
 	parseCustomFields(data2, &metadata)
-	expect.MapEqual(metadata, "key", []byte("value"))
-	expect.MapEqual(metadata, "key2", []byte("value"))
+	expect.MapEqual(metadata, "key", "value")
+	expect.MapEqual(metadata, "key2", "value")
 }
