@@ -41,7 +41,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20180503174638-e2704e165165
 	github.com/sirupsen/logrus v1.0.6
 	github.com/trivago/grok v1.0.0
-	github.com/trivago/tgo v1.0.5
+	github.com/trivago/tgo v1.0.7
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac
 	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d // indirect
