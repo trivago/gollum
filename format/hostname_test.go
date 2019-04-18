@@ -70,6 +70,7 @@ func TestFormatterHostnameTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Hostname")
+	config.Override("Source", "foo")
 	config.Override("Target", "foo")
 	config.Override("Separator", "")
 

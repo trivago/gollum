@@ -29,6 +29,7 @@ func TestFormatterIdentifierTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Identifier")
+	config.Override("Source", "foo")
 	config.Override("Target", "foo")
 	config.Override("Generator", "hash")
 	plugin, err := core.NewPluginWithConfig(config)
