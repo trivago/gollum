@@ -55,7 +55,7 @@ func (format *Trim) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Trim) ApplyFormatter(msg *core.Message) error {
-	content := format.GetTargetDataAsString(msg)
+	content := format.GetSourceDataAsString(msg)
 	format.SetTargetData(msg, strings.Trim(content, format.characters))
 	return nil
 }

@@ -59,7 +59,6 @@ import (
 //
 type Copy struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	source               string `config:"Source"`
 	separator            []byte `config:"Separator"`
 	mode                 metadataCopyMode
 }
@@ -92,8 +91,7 @@ func (format *Copy) Configure(conf core.PluginConfigReader) {
 }
 
 func (format *Copy) applyReplace(msg *core.Message) error {
-	getSourceData := core.NewGetterFor(format.source)
-	srcData := getSourceData(msg)
+	srcData := format.GetSourceData(msg)
 	srcValue := reflect.ValueOf(srcData)
 
 	switch srcValue.Kind() {
@@ -112,9 +110,8 @@ func (format *Copy) applyReplace(msg *core.Message) error {
 }
 
 func (format *Copy) applyAppend(msg *core.Message) error {
-	getSrcData := core.NewBytesGetterFor(format.source)
-	srcData := getSrcData(msg)
-	dstData := core.ConvertToBytes(format.GetTargetData(msg))
+	srcData := format.GetSourceDataAsBytes(msg)
+	dstData := core.ConvertToBytes(format.GetSourceData(msg))
 
 	newLen := len(srcData) + len(dstData) + len(format.separator)
 	cloneData := make([]byte, len(dstData), newLen)
@@ -130,9 +127,8 @@ func (format *Copy) applyAppend(msg *core.Message) error {
 }
 
 func (format *Copy) applyPrepend(msg *core.Message) error {
-	getSrcData := core.NewBytesGetterFor(format.source)
-	srcData := getSrcData(msg)
-	dstData := core.ConvertToBytes(format.GetTargetData(msg))
+	srcData := format.GetSourceDataAsBytes(msg)
+	dstData := core.ConvertToBytes(format.GetSourceData(msg))
 
 	newLen := len(srcData) + len(dstData) + len(format.separator)
 	cloneData := make([]byte, len(srcData), newLen)

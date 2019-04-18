@@ -67,7 +67,7 @@ func (format *Runlength) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Runlength) ApplyFormatter(msg *core.Message) error {
-	content := format.GetTargetDataAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 	contentLen := len(content)
 	lengthStr := strconv.Itoa(contentLen)
 

@@ -27,7 +27,7 @@ type applyFormatterMockA struct {
 
 // appends "A" to content
 func (formatter *applyFormatterMockA) ApplyFormatter(msg *core.Message) error {
-	c := formatter.GetTargetData(msg)
+	c := formatter.GetSourceData(msg)
 	new := []byte("A")
 	c = append(c.([]byte), new...)
 
@@ -49,7 +49,7 @@ func (formatter *applyFormatterMockB) Configure(conf core.PluginConfigReader) {
 
 // appends "B" to content
 func (formatter *applyFormatterMockB) ApplyFormatter(msg *core.Message) error {
-	c := formatter.GetTargetData(msg)
+	c := formatter.GetSourceData(msg)
 	new := []byte("B")
 	c = append(c.([]byte), new...)
 

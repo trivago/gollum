@@ -1,21 +1,30 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
 
-// GetTargetDataFunc is a func() to get message content from payload or meta data
+	"github.com/trivago/tgo/tcontainer"
+)
+
+// GetDataFunc is a func() to get message content from payload or meta data
 // for later handling by plugins
-type GetTargetDataFunc func(msg *Message) interface{}
+type GetDataFunc func(msg *Message) interface{}
 
-// GetTargetDataAsStringFunc acts as a wrapper around GetTargetDataFunc
+// GetDataAsStringFunc acts as a wrapper around GetDataFunc
 // if only string data can be processed.
-type GetTargetDataAsStringFunc func(msg *Message) string
+type GetDataAsStringFunc func(msg *Message) string
 
-// GetTargetDataAsBytesFunc acts as a wrapper around GetTargetDataFunc
+// GetDataAsBytesFunc acts as a wrapper around GetDataFunc
 // if only []byte] data can be processed.
-type GetTargetDataAsBytesFunc func(msg *Message) []byte
+type GetDataAsBytesFunc func(msg *Message) []byte
 
-// SetTargetDataFunc is a func() to store message content to payload or meta data
-type SetTargetDataFunc func(msg *Message, content interface{})
+// GetMetadataRootFunc acts as a wrapper around a function that returns the
+// metadata value as MarshalMap for a fixed key. The function returns an
+// error if the value behind the fixed key is not a MarshalMap.
+type GetMetadataRootFunc func(msg *Message) (tcontainer.MarshalMap, error)
+
+// SetDataFunc is a func() to store message content to payload or meta data
+type SetDataFunc func(msg *Message, content interface{})
 
 func getPayloadContent(msg *Message) interface{} {
 	return msg.GetPayload()
@@ -32,8 +41,24 @@ func getMetadataContent(msg *Message, key string) interface{} {
 	return []byte{}
 }
 
-// NewGetterFor returns a GetTargetDataFunc function
-func NewGetterFor(identifier string) GetTargetDataFunc {
+func getMetadataRoot(msg *Message, root string) (tcontainer.MarshalMap, error) {
+	metadata := msg.GetMetadata()
+	if len(root) == 0 {
+		return metadata, nil
+	}
+
+	val, exists := metadata.Value(root)
+	if !exists {
+		rootValue := tcontainer.MarshalMap{}
+		metadata.Set(root, rootValue)
+		return rootValue, nil
+	}
+
+	return tcontainer.ConvertToMarshalMap(val, nil)
+}
+
+// NewGetterFor returns a GetDataFunc function
+func NewGetterFor(identifier string) GetDataFunc {
 	if identifier == "" {
 		return getPayloadContent
 	}
@@ -46,7 +71,7 @@ func NewGetterFor(identifier string) GetTargetDataFunc {
 
 // NewStringGetterFor returns a function that gets message content
 // as string.
-func NewStringGetterFor(identifier string) GetTargetDataAsStringFunc {
+func NewStringGetterFor(identifier string) GetDataAsStringFunc {
 	get := NewGetterFor(identifier)
 	return func(msg *Message) string {
 		return ConvertToString(get(msg))
@@ -55,10 +80,16 @@ func NewStringGetterFor(identifier string) GetTargetDataAsStringFunc {
 
 // NewBytesGetterFor returns a function that gets message content
 // as bytes.
-func NewBytesGetterFor(identifier string) GetTargetDataAsBytesFunc {
+func NewBytesGetterFor(identifier string) GetDataAsBytesFunc {
 	get := NewGetterFor(identifier)
 	return func(msg *Message) []byte {
 		return ConvertToBytes(get(msg))
+	}
+}
+
+func NewMetadataRootGetterFor(identifier string) GetMetadataRootFunc {
+	return func(msg *Message) (tcontainer.MarshalMap, error) {
+		return getMetadataRoot(msg, identifier)
 	}
 }
 
@@ -78,8 +109,8 @@ func setPayloadContent(msg *Message, content interface{}) {
 	}
 }
 
-// NewSetterFor returns SetTargetDataFunc function to store message content
-func NewSetterFor(applyTo string) SetTargetDataFunc {
+// NewSetterFor returns SetDataFunc function to store message content
+func NewSetterFor(applyTo string) SetDataFunc {
 	if applyTo == "" {
 		return setPayloadContent
 	}

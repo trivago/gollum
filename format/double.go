@@ -80,8 +80,8 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 
 	// pre-process
 	if format.Target != "" {
-		leftMsg.StorePayload(format.GetTargetDataAsBytes(msg))
-		rightMsg.StorePayload(format.GetTargetDataAsBytes(msg))
+		leftMsg.StorePayload(format.GetSourceDataAsBytes(msg))
+		rightMsg.StorePayload(format.GetSourceDataAsBytes(msg))
 	}
 
 	// apply sub-formatter

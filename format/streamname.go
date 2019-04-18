@@ -60,7 +60,7 @@ func (format *StreamName) Configure(conf core.PluginConfigReader) {
 // ApplyFormatter update message payload
 func (format *StreamName) ApplyFormatter(msg *core.Message) error {
 	streamName := format.getStreamName(msg)
-	content := format.GetTargetDataAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 
 	dataSize := len(streamName) + len(format.separator) + len(content)
 	payload := make([]byte, dataSize)

@@ -57,7 +57,7 @@ func (format *Timestamp) Configure(conf core.PluginConfigReader) {
 // ApplyFormatter update message payload
 func (format *Timestamp) ApplyFormatter(msg *core.Message) error {
 	timestampStr := msg.GetCreationTime().Format(format.timestampFormat)
-	content := format.GetTargetDataAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 
 	dataSize := len(timestampStr) + len(content)
 	payload := make([]byte, dataSize)

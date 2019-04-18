@@ -67,7 +67,7 @@ func (format *StreamRoute) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
-	content := format.GetTargetDataAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 	delimiterIdx := bytes.Index(content, format.delimiter)
 
 	switch delimiterIdx {

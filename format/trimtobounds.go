@@ -71,7 +71,7 @@ func (format *TrimToBounds) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *TrimToBounds) ApplyFormatter(msg *core.Message) error {
-	content := format.GetTargetDataAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 	offset := len(content)
 
 	if len(format.rightBounds) > 0 {

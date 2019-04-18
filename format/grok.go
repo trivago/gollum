@@ -109,9 +109,14 @@ func (format *Grok) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Grok) ApplyFormatter(msg *core.Message) error {
-	content := format.GetTargetDataAsString(msg)
+	content := format.GetSourceDataAsString(msg)
 
-	if err := format.applyGrok(msg.GetMetadata(), content); err != nil {
+	metadata, err := format.GetTargetAsMetadata(msg)
+	if err != nil {
+		return err
+	}
+
+	if err := format.applyGrok(metadata, content); err != nil {
 		return err
 	}
 

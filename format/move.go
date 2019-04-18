@@ -37,7 +37,6 @@ import (
 //        Target: data
 type Move struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	source               string `config:"Source"`
 }
 
 func init() {
@@ -50,12 +49,9 @@ func (format *Move) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Move) ApplyFormatter(msg *core.Message) error {
-	getSourceData := core.NewBytesGetterFor(format.source)
-	srcData := getSourceData(msg)
+	srcData := format.GetSourceDataAsBytes(msg)
 
 	format.SetTargetData(msg, srcData)
-
-	setSourceData := core.NewSetterFor(format.source)
-	setSourceData(msg, nil)
+	format.SetSourceData(msg, nil)
 	return nil
 }

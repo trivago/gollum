@@ -27,8 +27,13 @@ import (
 //
 // Parameters
 //
-// - Target: This value chooses the part of the message the formatting
-// should be applied to. Use "" to target the message payload; other values
+// - Source: This value chooses the part of the message the data to be formatted
+// should be read from. Use "" to target the message payload; other values
+// specify the name of a metadata field to target.
+// By default this parameter is set to "".
+//
+// - Target: This value chooses the part of the message the formatted data
+// should be stored to. Use "" to target the message payload; other values
 // specify the name of a metadata field to target.
 // By default this parameter is set to "".
 //
@@ -37,10 +42,12 @@ import (
 // By default this parameter is set to false
 type SimpleFormatter struct {
 	Logger                logrus.FieldLogger
-	GetTargetData         GetTargetDataFunc
-	GetTargetDataAsBytes  GetTargetDataAsBytesFunc
-	GetTargetDataAsString GetTargetDataAsStringFunc
-	SetTargetData         SetTargetDataFunc
+	GetSourceData         GetDataFunc
+	GetSourceDataAsBytes  GetDataAsBytesFunc
+	GetSourceDataAsString GetDataAsStringFunc
+	GetTargetAsMetadata   GetMetadataRootFunc
+	SetTargetData         SetDataFunc
+	SetSourceData         SetDataFunc
 	SkipIfEmpty           bool `config:"SkipIfEmpty"`
 }
 
@@ -48,11 +55,15 @@ type SimpleFormatter struct {
 func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.Logger = conf.GetSubLogger("Formatter")
 
-	applyTo := conf.GetString("Target", "")
-	format.GetTargetData = NewGetterFor(applyTo)
-	format.GetTargetDataAsBytes = NewBytesGetterFor(applyTo)
-	format.GetTargetDataAsString = NewStringGetterFor(applyTo)
-	format.SetTargetData = NewSetterFor(applyTo)
+	target := conf.GetString("Target", "")
+	source := conf.GetString("Source", "")
+
+	format.GetSourceData = NewGetterFor(source)
+	format.GetSourceDataAsBytes = NewBytesGetterFor(source)
+	format.GetSourceDataAsString = NewStringGetterFor(source)
+	format.SetTargetData = NewSetterFor(target)
+	format.SetSourceData = NewSetterFor(source)
+	format.GetTargetAsMetadata = NewMetadataRootGetterFor(target)
 }
 
 // CanBeApplied returns true if the formatter can be applied to this message
@@ -61,7 +72,7 @@ func (format *SimpleFormatter) CanBeApplied(msg *Message) bool {
 		return true
 	}
 
-	data := format.GetTargetData(msg)
+	data := format.GetSourceData(msg)
 	if data == nil {
 		return false
 	}
