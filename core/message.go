@@ -166,6 +166,10 @@ func (msg *Message) Clone() *Message {
 	clone.data.payload = make([]byte, len(msg.data.payload))
 	copy(clone.data.payload, msg.data.payload)
 
+	if clone.data.metadata != nil {
+		clone.data.metadata = msg.data.metadata.Clone()
+	}
+
 	return &clone
 }
 
