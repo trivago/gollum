@@ -53,6 +53,10 @@ type SimpleFormatter struct {
 	// GetSourceDataAsString returns the source converted to a string
 	GetSourceDataAsString GetDataAsStringFunc
 
+	// GetSourceAsMetadata returns the source as a MarshalMap or returns
+	// an error if the key contains a value that is not a MarshalMap.
+	GetSourceAsMetadata GetMetadataRootFunc
+
 	// GetTargetData returns the data denoted by the target setting
 	GetTargetData GetDataFunc
 
@@ -93,6 +97,7 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.GetSourceData = NewGetterFor(source)
 	format.GetSourceDataAsBytes = NewBytesGetterFor(source)
 	format.GetSourceDataAsString = NewStringGetterFor(source)
+	format.GetSourceAsMetadata = NewMetadataRootGetterFor(source)
 
 	format.SetSourceData = NewSetterFor(source)
 
