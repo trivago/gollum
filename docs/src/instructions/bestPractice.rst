@@ -43,6 +43,7 @@ You can also change the version string of you Gollum builds to include the versi
 Set the GOLLUM_RELEASE_SUFFIX variable either in the environment or as an argument to ``make``:
 
 .. code-block:: bash
+
     # build Gollum with myPackage version suffixed to the Gollum version
     # e.g.: 0.5.3-pkg0a01d7b6
     make all GOLLUM_RELEASE_SUFFIX=pkg$(git -C contrib/myPackage describe --tags --always)
