@@ -68,7 +68,7 @@ func (format *Sequence) Configure(conf core.PluginConfigReader) {
 func (format *Sequence) ApplyFormatter(msg *core.Message) error {
 	seq := atomic.AddInt64(format.seq, 1)
 	sequenceStr := strconv.FormatInt(seq, 10)
-	content := format.GetAppliedContentAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 
 	dataSize := len(sequenceStr) + len(format.separator) + len(content)
 	payload := make([]byte, dataSize)
@@ -77,6 +77,6 @@ func (format *Sequence) ApplyFormatter(msg *core.Message) error {
 	offset += copy(payload[offset:], format.separator)
 	copy(payload[offset:], content)
 
-	format.SetAppliedContent(msg, payload)
+	format.SetTargetData(msg, payload)
 	return nil
 }

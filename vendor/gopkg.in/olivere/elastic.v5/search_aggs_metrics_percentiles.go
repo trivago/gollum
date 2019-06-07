@@ -7,23 +7,20 @@ package elastic
 // PercentilesAggregation
 // See: https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-aggregations-metrics-percentile-aggregation.html
 type PercentilesAggregation struct {
-	field                          string
-	script                         *Script
-	format                         string
-	subAggregations                map[string]Aggregation
-	meta                           map[string]interface{}
-	percentiles                    []float64
-	method                         string
-	compression                    *float64
-	numberOfSignificantValueDigits *int
-	estimator                      string
+	field           string
+	script          *Script
+	format          string
+	subAggregations map[string]Aggregation
+	meta            map[string]interface{}
+	percentiles     []float64
+	compression     *float64
+	estimator       string
 }
 
 func NewPercentilesAggregation() *PercentilesAggregation {
 	return &PercentilesAggregation{
 		subAggregations: make(map[string]Aggregation),
 		percentiles:     make([]float64, 0),
-		method:          "tdigest",
 	}
 }
 
@@ -58,19 +55,8 @@ func (a *PercentilesAggregation) Percentiles(percentiles ...float64) *Percentile
 	return a
 }
 
-// Method is the percentiles method, which can be "tdigest" (default) or "hdr".
-func (a *PercentilesAggregation) Method(method string) *PercentilesAggregation {
-	a.method = method
-	return a
-}
-
 func (a *PercentilesAggregation) Compression(compression float64) *PercentilesAggregation {
 	a.compression = &compression
-	return a
-}
-
-func (a *PercentilesAggregation) NumberOfSignificantValueDigits(digits int) *PercentilesAggregation {
-	a.numberOfSignificantValueDigits = &digits
 	return a
 }
 
@@ -115,19 +101,8 @@ func (a *PercentilesAggregation) Source() (interface{}, error) {
 	if len(a.percentiles) > 0 {
 		opts["percents"] = a.percentiles
 	}
-	switch a.method {
-	case "tdigest":
-		if c := a.compression; c != nil {
-			opts[a.method] = map[string]interface{}{
-				"compression": *c,
-			}
-		}
-	case "hdr":
-		if n := a.numberOfSignificantValueDigits; n != nil {
-			opts[a.method] = map[string]interface{}{
-				"number_of_significant_value_digits": *n,
-			}
-		}
+	if a.compression != nil {
+		opts["compression"] = *a.compression
 	}
 	if a.estimator != "" {
 		opts["estimator"] = a.estimator

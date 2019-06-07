@@ -20,31 +20,33 @@ import (
 
 // Double formatter plugin
 //
-// Double is a formatter that appends a delimiter string and a second copy of
-// the message's contents to the message. Independent sets of formatters may
-// be applied to both duplicates.
+// Double is a formatter that duplicates a message and applies two different
+// sets of formatters to both sides. After both messages have been processed,
+// the value of the field defined as "source" by the double formatter will be
+// copied from both copies and merged into the "target" field of the original
+// message using a given separator.
 //
 // Parameters
 //
 // - Separator: This value sets the separator string placed between both parts.
 // This parameter is set to ":" by default.
 //
-// - UseLeftStreamID: Use the stream id of the left side as the final stream id
-// for the message if this value is "true".
+// - UseLeftStreamID: When set to "true", use the stream id of the left side
+// (after formatting) as the streamID for the resulting message.
 // This parameter is set to "false" by default.
 //
 // - Left: An optional list of formatters. The first copy of the message (left
 // of the delimiter) is passed through these filters.
 // This parameter is set to an empty list by default.
 //
-// - Left: An optional list of formatters. The second copy of the mssage (right
+// - Right: An optional list of formatters. The second copy of the mssage (right
 // of the delimiter) is passed through these filters.
 // This parameter is set to an empty list by default.
 //
 // Examples
 //
-// This example creates a message of the form "<orig>|<base64>", where <orig> is
-// the original console input and <base64> its Base64-encoded equivalent.
+// This example creates a message of the form "<orig>|<hash>", where <orig> is
+// the original console input and <hash> its hash.
 //
 //  exampleConsumer:
 //    Type: consumer.Console
@@ -53,14 +55,15 @@ import (
 //      - format.Double:
 //        Separator: "|"
 //        Right:
-//          - format.Base64Encode
+//          - format.Identifier:
+//            Generator: hash
 type Double struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	separator            []byte              `config:"Separator" default:":"`
 	leftStreamID         bool                `config:"UseLeftStreamID" default:"false"`
 	left                 core.FormatterArray `config:"Left"`
 	right                core.FormatterArray `config:"Right"`
-	applyTo              string
+	Target               string
 }
 
 func init() {
@@ -69,19 +72,13 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Double) Configure(conf core.PluginConfigReader) {
-	format.applyTo = conf.GetString("ApplyTo", "")
+	format.Target = conf.GetString("Target", "")
 }
 
 // ApplyFormatter update message payload
 func (format *Double) ApplyFormatter(msg *core.Message) error {
 	leftMsg := msg.Clone()
 	rightMsg := msg.Clone()
-
-	// pre-process
-	if format.applyTo != "" {
-		leftMsg.StorePayload(format.GetAppliedContentAsBytes(msg))
-		rightMsg.StorePayload(format.GetAppliedContentAsBytes(msg))
-	}
 
 	// apply sub-formatter
 	if err := format.left.ApplyFormatter(leftMsg); err != nil {
@@ -93,7 +90,9 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	}
 
 	// update content
-	format.SetAppliedContent(msg, format.getCombinedContent(leftMsg.GetPayload(), rightMsg.GetPayload()))
+	leftData := format.GetSourceDataAsBytes(leftMsg)
+	rightData := format.GetSourceDataAsBytes(rightMsg)
+	format.SetTargetData(msg, format.mergeData(leftData, rightData))
 
 	// handle streamID
 	if format.leftStreamID {
@@ -106,7 +105,7 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 	return nil
 }
 
-func (format *Double) getCombinedContent(leftContent []byte, rightContent []byte) []byte {
+func (format *Double) mergeData(leftContent []byte, rightContent []byte) []byte {
 	size := len(leftContent) + len(format.separator) + len(rightContent)
 	content := make([]byte, 0, size)
 

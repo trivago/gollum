@@ -89,7 +89,7 @@ func TestStreamRouteFormat(t *testing.T) {
 	expect.Equal(core.LogInternalStream, core.StreamRegistry.GetStreamName(msg.GetStreamID()))
 }
 
-func TestStreamApplyTo(t *testing.T) {
+func TestStreamTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.StreamRoute")

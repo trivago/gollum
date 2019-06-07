@@ -223,20 +223,6 @@ func isValidReceivedCloseCode(code int) bool {
 	return validReceivedCloseCodes[code] || (code >= 3000 && code <= 4999)
 }
 
-// BufferPool represents a pool of buffers. The *sync.Pool type satisfies this
-// interface.  The type of the value stored in a pool is not specified.
-type BufferPool interface {
-	// Get gets a value from the pool or returns nil if the pool is empty.
-	Get() interface{}
-	// Put adds a value to the pool.
-	Put(interface{})
-}
-
-// writePoolData is the type added to the write buffer pool. This wrapper is
-// used to prevent applications from peeking at and depending on the values
-// added to the pool.
-type writePoolData struct{ buf []byte }
-
 // The Conn type represents a WebSocket connection.
 type Conn struct {
 	conn        net.Conn
@@ -246,8 +232,6 @@ type Conn struct {
 	// Write fields
 	mu            chan bool // used as mutex to protect write to conn
 	writeBuf      []byte    // frame is constructed in this buffer.
-	writePool     BufferPool
-	writeBufSize  int
 	writeDeadline time.Time
 	writer        io.WriteCloser // the current writer returned to the application
 	isWriting     bool           // for best-effort concurrent write detection
@@ -279,29 +263,64 @@ type Conn struct {
 	newDecompressionReader func(io.Reader) io.ReadCloser
 }
 
-func newConn(conn net.Conn, isServer bool, readBufferSize, writeBufferSize int, writeBufferPool BufferPool, br *bufio.Reader, writeBuf []byte) *Conn {
+func newConn(conn net.Conn, isServer bool, readBufferSize, writeBufferSize int) *Conn {
+	return newConnBRW(conn, isServer, readBufferSize, writeBufferSize, nil)
+}
 
+type writeHook struct {
+	p []byte
+}
+
+func (wh *writeHook) Write(p []byte) (int, error) {
+	wh.p = p
+	return len(p), nil
+}
+
+func newConnBRW(conn net.Conn, isServer bool, readBufferSize, writeBufferSize int, brw *bufio.ReadWriter) *Conn {
+	mu := make(chan bool, 1)
+	mu <- true
+
+	var br *bufio.Reader
+	if readBufferSize == 0 && brw != nil && brw.Reader != nil {
+		// Reuse the supplied bufio.Reader if the buffer has a useful size.
+		// This code assumes that peek on a reader returns
+		// bufio.Reader.buf[:0].
+		brw.Reader.Reset(conn)
+		if p, err := brw.Reader.Peek(0); err == nil && cap(p) >= 256 {
+			br = brw.Reader
+		}
+	}
 	if br == nil {
 		if readBufferSize == 0 {
 			readBufferSize = defaultReadBufferSize
-		} else if readBufferSize < maxControlFramePayloadSize {
-			// must be large enough for control frame
+		}
+		if readBufferSize < maxControlFramePayloadSize {
 			readBufferSize = maxControlFramePayloadSize
 		}
 		br = bufio.NewReaderSize(conn, readBufferSize)
 	}
 
-	if writeBufferSize <= 0 {
-		writeBufferSize = defaultWriteBufferSize
+	var writeBuf []byte
+	if writeBufferSize == 0 && brw != nil && brw.Writer != nil {
+		// Use the bufio.Writer's buffer if the buffer has a useful size. This
+		// code assumes that bufio.Writer.buf[:1] is passed to the
+		// bufio.Writer's underlying writer.
+		var wh writeHook
+		brw.Writer.Reset(&wh)
+		brw.Writer.WriteByte(0)
+		brw.Flush()
+		if cap(wh.p) >= maxFrameHeaderSize+256 {
+			writeBuf = wh.p[:cap(wh.p)]
+		}
 	}
-	writeBufferSize += maxFrameHeaderSize
 
-	if writeBuf == nil && writeBufferPool == nil {
-		writeBuf = make([]byte, writeBufferSize)
+	if writeBuf == nil {
+		if writeBufferSize == 0 {
+			writeBufferSize = defaultWriteBufferSize
+		}
+		writeBuf = make([]byte, writeBufferSize+maxFrameHeaderSize)
 	}
 
-	mu := make(chan bool, 1)
-	mu <- true
 	c := &Conn{
 		isServer:               isServer,
 		br:                     br,
@@ -309,8 +328,6 @@ func newConn(conn net.Conn, isServer bool, readBufferSize, writeBufferSize int, 
 		mu:                     mu,
 		readFinal:              true,
 		writeBuf:               writeBuf,
-		writePool:              writeBufferPool,
-		writeBufSize:           writeBufferSize,
 		enableWriteCompression: true,
 		compressionLevel:       defaultCompressionLevel,
 	}
@@ -351,15 +368,6 @@ func (c *Conn) writeFatal(err error) error {
 	}
 	c.writeErrMu.Unlock()
 	return err
-}
-
-func (c *Conn) read(n int) ([]byte, error) {
-	p, err := c.br.Peek(n)
-	if err == io.EOF {
-		err = errUnexpectedEOF
-	}
-	c.br.Discard(len(p))
-	return p, err
 }
 
 func (c *Conn) write(frameType int, deadline time.Time, buf0, buf1 []byte) error {
@@ -467,19 +475,7 @@ func (c *Conn) prepWrite(messageType int) error {
 	c.writeErrMu.Lock()
 	err := c.writeErr
 	c.writeErrMu.Unlock()
-	if err != nil {
-		return err
-	}
-
-	if c.writeBuf == nil {
-		wpd, ok := c.writePool.Get().(writePoolData)
-		if ok {
-			c.writeBuf = wpd.buf
-		} else {
-			c.writeBuf = make([]byte, c.writeBufSize)
-		}
-	}
-	return nil
+	return err
 }
 
 // NextWriter returns a writer for the next message to send. The writer's Close
@@ -605,10 +601,6 @@ func (w *messageWriter) flushFrame(final bool, extra []byte) error {
 
 	if final {
 		c.writer = nil
-		if c.writePool != nil {
-			c.writePool.Put(writePoolData{buf: c.writeBuf})
-			c.writeBuf = nil
-		}
 		return nil
 	}
 

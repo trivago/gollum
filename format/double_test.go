@@ -1,9 +1,24 @@
+// Copyright 2015-2018 trivago N.V.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package format
 
 import (
 	"testing"
 
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -51,14 +66,27 @@ func TestDoubleFormatterSeparator(t *testing.T) {
 	expect.Equal("TEST_VALUE-TEST_VALUE", string(msg.GetPayload()))
 }
 
-func TestDoubleFormatterApplyTo(t *testing.T) {
+func TestDoubleFormatterSource(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Double")
-	config.Override("ApplyTo", "foo")
 
+	config.Override("Source", "bar")
+	config.Override("Left", []interface{}{
+		tcontainer.MarshalMap{
+			"format.Copy": tcontainer.MarshalMap{
+				"Source": "foo",
+				"Target": "bar",
+			},
+		},
+	})
 	config.Override("Right", []interface{}{
-		"format.Base64Encode",
+		tcontainer.MarshalMap{
+			"format.Base64Encode": tcontainer.MarshalMap{
+				"Source": "foo",
+				"Target": "bar",
+			},
+		},
 	})
 
 	plugin, err := core.NewPluginWithConfig(config)
@@ -73,8 +101,5 @@ func TestDoubleFormatterApplyTo(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	val, err := msg.GetMetadata().Bytes("foo")
-	expect.NoError(err)
-	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", string(val))
-	expect.Equal("SOME_PAYLOAD_DATA", msg.String())
+	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", msg.String())
 }

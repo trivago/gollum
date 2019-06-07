@@ -38,7 +38,7 @@ func TestRunlength(t *testing.T) {
 	expect.Equal("4:test", string(msg.GetPayload()))
 }
 
-func TestRunlengthApplyTo(t *testing.T) {
+func TestRunlengthTarget(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Runlength")
@@ -60,7 +60,7 @@ func TestRunlengthApplyTo(t *testing.T) {
 	expect.Equal("4:test", string(foo))
 }
 
-func TestRunlengthApplyToAndStoreRunlengthOnly(t *testing.T) {
+func TestRunlengthTargetAndStoreRunlengthOnly(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	config := core.NewPluginConfig("", "format.Runlength")

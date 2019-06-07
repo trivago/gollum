@@ -15,50 +15,34 @@
 package format
 
 import (
-	"bytes"
+	"strings"
 
 	"github.com/trivago/gollum/core"
 )
 
-// Trim formatter
+// Trim formatter plugin
 //
-// This formatter searches for separator strings and removes all data left or
-// right of this separator.
+// Trim removes a set of characters from the beginning and end of a metadata value
+// or the payload.
 //
 // Parameters
 //
-// - LeftSeparator: The string to search for. Searching starts from the left
-// side of the data. If an empty string is given this parameter is ignored.
-// By default this parameter is set to "".
-//
-// - RightSeparator: The string to search for. Searching starts from the right
-// side of the data. If an empty string is given this parameter is ignored.
-// By default this parameter is set to "".
-//
-// - LeftOffset: Defines the search start index when using LeftSeparator.
-// By default this parameter is set to 0.
-//
-// - RightOffset: Defines the search start index when using RightSeparator.
-// Counting starts from the right side of the message.
-// By default this parameter is set to 0.
+// - Characters: This value defines which characters should be removed from
+// both ends of the data. The data to operate on is expected to be a string.
+// By default this is set to " \t\r\n\v\f".
 //
 // Examples
 //
-// This example will reduce data like "foo[bar[foo]bar]foo" to "bar[foo]bar".
+// This example will trim spaces from the message payload:
 //
 //  exampleConsumer:
 //    Type: consumer.Console
 //    Streams: "*"
 //    Modulators:
-//      - format.Trim:
-//        LeftSeparator: "["
-//        RightSeparator: "]"
+//      - format.Trim: {}
 type Trim struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	leftSeparator        []byte `config:"LeftSeparator"`
-	rightSeparator       []byte `config:"RightSeparator"`
-	leftOffset           int    `config:"LeftOffset" default:"0"`
-	rightOffset          int    `config:"RightOffset" default:"0"`
+	characters           string `config:"Characters" default:" \t\r\n\v\f"`
 }
 
 func init() {
@@ -71,39 +55,7 @@ func (format *Trim) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Trim) ApplyFormatter(msg *core.Message) error {
-	content := format.GetAppliedContentAsBytes(msg)
-	offset := len(content)
-
-	if len(format.rightSeparator) > 0 {
-		rightIdx := bytes.LastIndex(content, format.rightSeparator)
-		if rightIdx > 0 {
-			offset = rightIdx
-		}
-	}
-	format.extendContent(&content, offset-format.rightOffset)
-
-	offset = format.leftOffset
-	if len(format.leftSeparator) > 0 {
-		leftIdx := bytes.Index(msg.GetPayload(), format.leftSeparator)
-		leftIdx++
-		if leftIdx > 0 {
-			offset += leftIdx
-		}
-	}
-	content = content[offset:]
-
-	format.SetAppliedContent(msg, content)
+	content := format.GetSourceDataAsString(msg)
+	format.SetTargetData(msg, strings.Trim(content, format.characters))
 	return nil
-}
-
-func (format *Trim) extendContent(content *[]byte, size int) {
-	switch {
-	case size == len(*content):
-	case size <= cap(*content):
-		*content = (*content)[:size]
-	default:
-		old := *content
-		*content = make([]byte, size)
-		copy(*content, old)
-	}
 }

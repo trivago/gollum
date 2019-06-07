@@ -40,7 +40,7 @@ import (
 //    Modulators:
 //      - format.Timestamp:
 //        Timestamp: "2006-01-02T15:04:05.000 MST"
-//        ApplyTo: time
+//        Target: time
 type Timestamp struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	timestampFormat      string `config:"Timestamp" default:"2006-01-02 15:04:05 MST | "`
@@ -57,7 +57,7 @@ func (format *Timestamp) Configure(conf core.PluginConfigReader) {
 // ApplyFormatter update message payload
 func (format *Timestamp) ApplyFormatter(msg *core.Message) error {
 	timestampStr := msg.GetCreationTime().Format(format.timestampFormat)
-	content := format.GetAppliedContentAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 
 	dataSize := len(timestampStr) + len(content)
 	payload := make([]byte, dataSize)
@@ -65,6 +65,6 @@ func (format *Timestamp) ApplyFormatter(msg *core.Message) error {
 	offset := copy(payload, []byte(timestampStr))
 	copy(payload[offset:], content)
 
-	format.SetAppliedContent(msg, payload)
+	format.SetTargetData(msg, payload)
 	return nil
 }

@@ -207,23 +207,12 @@ func (r *MetadataResponse) decode(pd packetDecoder, version int16) (err error) {
 }
 
 func (r *MetadataResponse) encode(pe packetEncoder) error {
-	if r.Version >= 3 {
-		pe.putInt32(r.ThrottleTimeMs)
-	}
-
 	err := pe.putArrayLength(len(r.Brokers))
 	if err != nil {
 		return err
 	}
 	for _, broker := range r.Brokers {
 		err = broker.encode(pe, r.Version)
-		if err != nil {
-			return err
-		}
-	}
-
-	if r.Version >= 2 {
-		err := pe.putNullableString(r.ClusterID)
 		if err != nil {
 			return err
 		}
@@ -296,7 +285,7 @@ foundTopic:
 	return tmatch
 }
 
-func (r *MetadataResponse) AddTopicPartition(topic string, partition, brokerID int32, replicas, isr []int32, offline []int32, err KError) {
+func (r *MetadataResponse) AddTopicPartition(topic string, partition, brokerID int32, replicas, isr []int32, err KError) {
 	tmatch := r.AddTopic(topic, ErrNoError)
 	var pmatch *PartitionMetadata
 
@@ -316,7 +305,6 @@ foundPartition:
 	pmatch.Leader = brokerID
 	pmatch.Replicas = replicas
 	pmatch.Isr = isr
-	pmatch.OfflineReplicas = offline
 	pmatch.Err = err
 
 }

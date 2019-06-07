@@ -61,7 +61,7 @@ func (format *Envelope) Configure(conf core.PluginConfigReader) {
 func (format *Envelope) ApplyFormatter(msg *core.Message) error {
 	prefixLen := len(format.prefix)
 	postfixLen := len(format.postfix)
-	content := format.GetAppliedContentAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 	offset := 0
 
 	payload := make([]byte, prefixLen+len(content)+postfixLen)
@@ -76,6 +76,6 @@ func (format *Envelope) ApplyFormatter(msg *core.Message) error {
 		copy(payload[offset:], format.postfix)
 	}
 
-	format.SetAppliedContent(msg, payload)
+	format.SetTargetData(msg, payload)
 	return nil
 }

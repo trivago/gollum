@@ -48,7 +48,7 @@ import (
 //      - format.MetadataCopy:
 //        CopyToKeys: ["length"]
 //      - format.Runlength:
-//        ApplyTo: length
+//        Target: length
 //        StoreRunlengthOnly: true
 //
 type Runlength struct {
@@ -67,7 +67,7 @@ func (format *Runlength) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Runlength) ApplyFormatter(msg *core.Message) error {
-	content := format.GetAppliedContentAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 	contentLen := len(content)
 	lengthStr := strconv.Itoa(contentLen)
 
@@ -83,6 +83,6 @@ func (format *Runlength) ApplyFormatter(msg *core.Message) error {
 		payload = []byte(lengthStr)
 	}
 
-	format.SetAppliedContent(msg, payload)
+	format.SetTargetData(msg, payload)
 	return nil
 }

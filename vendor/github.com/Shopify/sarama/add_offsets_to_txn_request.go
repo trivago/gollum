@@ -1,6 +1,5 @@
 package sarama
 
-//AddOffsetsToTxnRequest adds offsets to a transaction request
 type AddOffsetsToTxnRequest struct {
 	TransactionalID string
 	ProducerID      int64

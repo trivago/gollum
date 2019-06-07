@@ -43,12 +43,16 @@ func TestFilterAnyAllNone(t *testing.T) {
 	expect.NoError(err)
 }
 
-func TestFilterAnyJsonRegExp(t *testing.T) {
+func TestFilterAnyMulti(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	conf := core.NewPluginConfig("", "filter.Any")
 
 	conf.Override("AnyFilters", []interface{}{
-		"filter.JSON",
+		map[interface{}]interface{}{
+			"filter.RegExp": map[string]string{
+				"Expression": "[{}]+",
+			},
+		},
 		map[interface{}]interface{}{
 			"filter.RegExp": map[string]string{
 				"Expression": "^ERROR",

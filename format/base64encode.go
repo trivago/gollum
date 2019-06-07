@@ -66,8 +66,8 @@ func (format *Base64Encode) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *Base64Encode) ApplyFormatter(msg *core.Message) error {
-	encoded := format.getEncodedContent(format.GetAppliedContentAsBytes(msg))
-	format.SetAppliedContent(msg, encoded)
+	encoded := format.getEncodedContent(format.GetSourceDataAsBytes(msg))
+	format.SetTargetData(msg, encoded)
 
 	return nil
 }

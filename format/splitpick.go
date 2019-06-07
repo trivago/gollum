@@ -15,7 +15,7 @@ import (
 // Parameters
 //
 // - Delimiter: Defines the delimiter to use when splitting the data.
-// By default this parameter is set to ":"
+// By default this parameter is set to ","
 //
 // - Index: Defines the index to pick.
 // By default this parameter is set to 0.
@@ -28,11 +28,11 @@ import (
 //    Modulators:
 //      - format.SplitPick:
 //        Index: 2
-//        Delimiter: ":"
+//        Delimiter: ","
 type SplitPick struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
 	index                int    `config:"Index" default:"0"`
-	delimiter            []byte `config:"Delimiter" default:":"`
+	delimiter            []byte `config:"Delimiter" default:","`
 }
 
 func init() {
@@ -45,12 +45,12 @@ func (format *SplitPick) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *SplitPick) ApplyFormatter(msg *core.Message) error {
-	parts := bytes.Split(format.GetAppliedContentAsBytes(msg), format.delimiter)
+	parts := bytes.Split(format.GetSourceDataAsBytes(msg), format.delimiter)
 
 	if format.index < len(parts) {
-		format.SetAppliedContent(msg, parts[format.index])
+		format.SetTargetData(msg, parts[format.index])
 	} else {
-		format.SetAppliedContent(msg, []byte{})
+		format.SetTargetData(msg, []byte{})
 	}
 
 	return nil

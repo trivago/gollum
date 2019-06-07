@@ -319,12 +319,12 @@ func (c *ringShards) Close() error {
 
 //------------------------------------------------------------------------------
 
-// Ring is a Redis client that uses consistent hashing to distribute
+// Ring is a Redis client that uses constistent hashing to distribute
 // keys across multiple Redis servers (shards). It's safe for
 // concurrent use by multiple goroutines.
 //
 // Ring monitors the state of each shard and removes dead shards from
-// the ring. When a shard comes online it is added back to the ring. This
+// the ring. When shard comes online it is added back to the ring. This
 // gives you maximum availability and partition tolerance, but no
 // consistency between different shards or even clients. Each client
 // uses shards that are available to the client and does not do any
@@ -342,7 +342,6 @@ type Ring struct {
 	shards        *ringShards
 	cmdsInfoCache *cmdsInfoCache
 
-	process         func(Cmder) error
 	processPipeline func([]Cmder) error
 }
 
@@ -355,7 +354,6 @@ func NewRing(opt *RingOptions) *Ring {
 	}
 	ring.cmdsInfoCache = newCmdsInfoCache(ring.cmdsInfo)
 
-	ring.process = ring.defaultProcess
 	ring.processPipeline = ring.defaultProcessPipeline
 	ring.cmdable.setProcessor(ring.Process)
 
@@ -528,34 +526,19 @@ func (c *Ring) Do(args ...interface{}) *Cmd {
 func (c *Ring) WrapProcess(
 	fn func(oldProcess func(cmd Cmder) error) func(cmd Cmder) error,
 ) {
-	c.process = fn(c.process)
+	c.ForEachShard(func(c *Client) error {
+		c.WrapProcess(fn)
+		return nil
+	})
 }
 
 func (c *Ring) Process(cmd Cmder) error {
-	return c.process(cmd)
-}
-
-func (c *Ring) defaultProcess(cmd Cmder) error {
-	for attempt := 0; attempt <= c.opt.MaxRetries; attempt++ {
-		if attempt > 0 {
-			time.Sleep(c.retryBackoff(attempt))
-		}
-
-		shard, err := c.cmdShard(cmd)
-		if err != nil {
-			cmd.setErr(err)
-			return err
-		}
-
-		err = shard.Client.Process(cmd)
-		if err == nil {
-			return nil
-		}
-		if !internal.IsRetryableError(err, cmd.readTimeout() == nil) {
-			return err
-		}
+	shard, err := c.cmdShard(cmd)
+	if err != nil {
+		cmd.setErr(err)
+		return err
 	}
-	return cmd.Err()
+	return shard.Client.Process(cmd)
 }
 
 func (c *Ring) Pipeline() Pipeliner {
@@ -592,42 +575,36 @@ func (c *Ring) defaultProcessPipeline(cmds []Cmder) error {
 			time.Sleep(c.retryBackoff(attempt))
 		}
 
-		var mu sync.Mutex
 		var failedCmdsMap map[string][]Cmder
-		var wg sync.WaitGroup
 
 		for hash, cmds := range cmdsMap {
-			wg.Add(1)
-			go func(hash string, cmds []Cmder) {
-				defer wg.Done()
+			shard, err := c.shards.GetByHash(hash)
+			if err != nil {
+				setCmdsErr(cmds, err)
+				continue
+			}
 
-				shard, err := c.shards.GetByHash(hash)
-				if err != nil {
-					setCmdsErr(cmds, err)
-					return
+			cn, err := shard.Client.getConn()
+			if err != nil {
+				setCmdsErr(cmds, err)
+				continue
+			}
+
+			canRetry, err := shard.Client.pipelineProcessCmds(cn, cmds)
+			if err == nil || internal.IsRedisError(err) {
+				shard.Client.connPool.Put(cn)
+				continue
+			}
+			shard.Client.connPool.Remove(cn)
+
+			if canRetry && internal.IsRetryableError(err, true) {
+				if failedCmdsMap == nil {
+					failedCmdsMap = make(map[string][]Cmder)
 				}
-
-				cn, err := shard.Client.getConn()
-				if err != nil {
-					setCmdsErr(cmds, err)
-					return
-				}
-
-				canRetry, err := shard.Client.pipelineProcessCmds(cn, cmds)
-				shard.Client.releaseConnStrict(cn, err)
-
-				if canRetry && internal.IsRetryableError(err, true) {
-					mu.Lock()
-					if failedCmdsMap == nil {
-						failedCmdsMap = make(map[string][]Cmder)
-					}
-					failedCmdsMap[hash] = cmds
-					mu.Unlock()
-				}
-			}(hash, cmds)
+				failedCmdsMap[hash] = cmds
+			}
 		}
 
-		wg.Wait()
 		if len(failedCmdsMap) == 0 {
 			break
 		}

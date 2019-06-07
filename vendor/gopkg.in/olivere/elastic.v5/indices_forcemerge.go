@@ -185,5 +185,5 @@ func (s *IndicesForcemergeService) Do(ctx context.Context) (*IndicesForcemergeRe
 
 // IndicesForcemergeResponse is the response of IndicesForcemergeService.Do.
 type IndicesForcemergeResponse struct {
-	Shards *ShardsInfo `json:"_shards"`
+	Shards shardsInfo `json:"_shards"`
 }

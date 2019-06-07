@@ -67,13 +67,13 @@ func (format *StreamRoute) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
-	content := format.GetAppliedContentAsBytes(msg)
+	content := format.GetSourceDataAsBytes(msg)
 	delimiterIdx := bytes.Index(content, format.delimiter)
 
 	switch delimiterIdx {
 	case 0:
 		content = content[len(format.delimiter):]
-		format.SetAppliedContent(msg, content)
+		format.SetTargetData(msg, content)
 	case -1:
 		// no prefix
 
@@ -82,7 +82,7 @@ func (format *StreamRoute) ApplyFormatter(msg *core.Message) error {
 		streamMsg := core.NewMessage(nil, streamName, nil, msg.GetStreamID())
 
 		content = content[(delimiterIdx + len(format.delimiter)):]
-		format.SetAppliedContent(msg, content)
+		format.SetTargetData(msg, content)
 
 		switch result := format.streamModulators.Modulate(streamMsg); result {
 		case core.ModulateResultDiscard, core.ModulateResultFallback:
