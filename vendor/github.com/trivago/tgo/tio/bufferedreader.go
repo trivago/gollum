@@ -17,8 +17,10 @@ package tio
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/trivago/tgo/tstrings"
 	"io"
+	"regexp"
+
+	"github.com/trivago/tgo/tstrings"
 )
 
 // BufferedReaderFlags is an enum to configure a buffered reader
@@ -68,6 +70,14 @@ const (
 	// BufferedReaderFlagEverything will keep MLE and/or delimiters when
 	// building a message.
 	BufferedReaderFlagEverything = BufferedReaderFlags(16)
+
+	// BufferedReaderFlagRegex enables reading messages delimited by regexp.
+	// To enable multiline reading, prefix the regex with "(?m)"
+	BufferedReaderFlagRegex = BufferedReaderFlags(32)
+
+	// BufferedReaderFlagRegexStart switches regex reading to find the start
+	// of the next message instead of looking for the end of the current.
+	BufferedReaderFlagRegexStart = BufferedReaderFlags(64 + 32)
 )
 
 type bufferError string
@@ -89,15 +99,16 @@ var BufferDataInvalid = bufferError("Invalid data")
 // has been reached. The latter has to be enabled by flag and will disable the
 // default behavior, which is looking for a delimiter string.
 type BufferedReader struct {
-	data       []byte
-	delimiter  []byte
-	parse      func() ([]byte, int)
-	paramMLE   int
-	growSize   int
-	end        int
-	encoding   binary.ByteOrder
-	flags      BufferedReaderFlags
-	incomplete bool
+	data            []byte
+	delimiter       []byte
+	parse           func() ([]byte, int)
+	paramMLE        int
+	growSize        int
+	end             int
+	encoding        binary.ByteOrder
+	flags           BufferedReaderFlags
+	incomplete      bool
+	delimiterRegexp *regexp.Regexp
 }
 
 // NewBufferedReader creates a new buffered reader that reads messages from a
@@ -105,24 +116,32 @@ type BufferedReader struct {
 // Messages can be separated from the stream by using common methods such as
 // fixed size, encoded message length or delimiter string.
 // The internal buffer is grown statically (by its original size) if necessary.
-// bufferSize defines the initial size / grow size of the buffer
-// flags configures the parsing method
-// offsetOrLength sets either the runlength offset or fixed message size
-// delimiter defines the delimiter used for textual message parsing
+// bufferSize defines the initial size / grow size of the buffer.
+// flags configures the parsing method.
+// offsetOrLength sets either the runlength offset or fixed message size.
+// delimiter defines the delimiter used for textual message parsing, i.e.
+// BufferedReaderFlagDelimiter or BufferedReaderFlagRegex.
 func NewBufferedReader(bufferSize int, flags BufferedReaderFlags, offsetOrLength int, delimiter string) *BufferedReader {
 	buffer := BufferedReader{
-		data:       make([]byte, bufferSize),
-		delimiter:  []byte(delimiter),
-		paramMLE:   offsetOrLength,
-		encoding:   binary.LittleEndian,
-		end:        0,
-		flags:      flags,
-		growSize:   bufferSize,
-		incomplete: true,
+		data:            make([]byte, bufferSize),
+		delimiter:       []byte(delimiter),
+		paramMLE:        offsetOrLength,
+		encoding:        binary.LittleEndian,
+		end:             0,
+		flags:           flags,
+		growSize:        bufferSize,
+		incomplete:      true,
+		delimiterRegexp: nil,
 	}
 
 	if flags&BufferedReaderFlagBigEndian != 0 {
 		buffer.encoding = binary.BigEndian
+	}
+
+	if flags&BufferedReaderFlagRegex != 0 {
+		buffer.parse = buffer.parseDelimiterRegex
+		buffer.delimiterRegexp = regexp.MustCompile(delimiter)
+		return &buffer
 	}
 
 	if flags&BufferedReaderFlagMaskMLE == 0 {
@@ -151,6 +170,20 @@ func NewBufferedReader(bufferSize int, flags BufferedReaderFlags, offsetOrLength
 func (buffer *BufferedReader) Reset(sequence uint64) {
 	buffer.end = 0
 	buffer.incomplete = true
+}
+
+// ResetGetIncomplete works like Reset but returns any incomplete contents
+// left in the buffer. Note that the data in the buffer returned is overwritten
+// with the next read call.
+func (buffer *BufferedReader) ResetGetIncomplete() []byte {
+	remains := buffer.data[:buffer.end]
+	buffer.Reset(0)
+	return remains
+}
+
+// HasIncompleteData returns true if there is unparsed data left in the buffer
+func (buffer *BufferedReader) HasIncompleteData() bool {
+	return buffer.end > 0
 }
 
 // general message extraction part of all parser methods
@@ -255,6 +288,33 @@ func (buffer *BufferedReader) parseMLE64() ([]byte, int) {
 		return nil, -1 // ### return, malformed ###
 	}
 	return buffer.extractMessage(int(messageLen), buffer.paramMLE+8)
+}
+
+// messages are separated by regexp
+func (buffer *BufferedReader) parseDelimiterRegex() ([]byte, int) {
+	startOffset := 0
+
+	for {
+		delimiterIdx := buffer.delimiterRegexp.FindIndex(buffer.data[startOffset:buffer.end])
+		if delimiterIdx == nil {
+			return nil, 0 // ### return, incomplete ###
+		}
+
+		// If we do end of message parsing, we're done
+		if buffer.flags&BufferedReaderFlagRegexStart != BufferedReaderFlagRegexStart {
+			return buffer.extractMessage(delimiterIdx[1], 0) // ### done, end of line ###
+		}
+
+		// We're done if this is the second pass (start offset > 0)
+		// We're done if we have data before the match (incomplete message)
+		if startOffset > 0 || delimiterIdx[0] > 0 {
+			return buffer.extractMessage(delimiterIdx[0]+startOffset, 0) // ### done, start of line ###
+		}
+
+		// Found delimiter at start of data, look for the start of a second message.
+		// We don't need to add startOffset here as we never reach this if startOffset != 0
+		startOffset = delimiterIdx[1]
+	}
 }
 
 // ReadAll calls ReadOne as long as there are messages in the stream.

@@ -54,6 +54,11 @@ import (
 // * RFC6587 (https://tools.ietf.org/html/rfc6587) - unix, upd, tcp
 // By default this parameter is set to "RFC6587".
 //
+// - Permissions: This value sets the filesystem permissions
+// as a four-digit octal number in case the address is a Unix domain socket
+// (i.e. unix://<filesystem-path>).
+// By default this parameter is set to "0770".
+//
 // - SetMetadata: When set to true, syslog based metadata will be attached to
 // the message. The metadata fields added depend on the protocol version used.
 // RFC3164 supports: tag, timestamp, hostname, priority, facility, severity.
@@ -88,8 +93,9 @@ type Syslogd struct {
 	format              format.Format // RFC3164, RFC5424 or RFC6587?
 	protocol            string
 	address             string
-	withMetadata        bool   `config:"SetMetadata" default:"false"`
-	timestampFormat     string `config:"TimestampFormat" default:"2006-01-02T15:04:05.000 MST"`
+	withMetadata        bool        `config:"SetMetadata" default:"false"`
+	fileFlags           os.FileMode `config:"Permissions" default:"0770"`
+	timestampFormat     string      `config:"TimestampFormat" default:"2006-01-02T15:04:05.000 MST"`
 }
 
 func init() {
@@ -173,7 +179,7 @@ func parseCustomFields(data string, metadata *tcontainer.MarshalMap) {
 		}
 
 		i := startOfValue
-		endOfValue := i + 1
+		var endOfValue int
 		hasQuotes := false
 		for {
 			endOfValue = strings.IndexByte(data[i:], '"')
@@ -282,9 +288,14 @@ func (cons *Syslogd) Consume(workers *sync.WaitGroup) {
 
 	switch cons.protocol {
 	case "unix":
+		err := os.Chmod(cons.address, cons.fileFlags)
+		if err != nil {
+			cons.Logger.WithError(err).Error("Failed to set file permissions on", cons.address)
+		}
+
 		if err := server.ListenUnixgram(cons.address); err != nil {
 			if errRemove := os.Remove(cons.address); errRemove != nil {
-				cons.Logger.WithError(errRemove).Error("Failed to remove exisiting socket")
+				cons.Logger.WithError(errRemove).Error("Failed to remove existing socket")
 			} else {
 				cons.Logger.Warning("Found existing socket ", cons.address, ". Removing.")
 				err = server.ListenUnixgram(cons.address)
