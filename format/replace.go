@@ -50,6 +50,6 @@ func (format *Replace) ApplyFormatter(msg *core.Message) error {
 	}
 
 	srcData := format.GetSourceDataAsString(msg)
-	format.SetTargetData(msg, strings.ReplaceAll(srcData, format.search, format.replaceWith))
+	format.SetTargetData(msg, strings.Replace(srcData, format.search, format.replaceWith, -1))
 	return nil
 }
