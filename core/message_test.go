@@ -170,6 +170,7 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 	expect.Equal("bar", value)
 
 	value, err = clone.GetMetadata().String("foo")
+	expect.NoError(err)
 	expect.Equal("original_bar", value)
 
 	expect.Equal(MessageStreamID(1), clone.GetStreamID())

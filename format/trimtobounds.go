@@ -99,8 +99,6 @@ func (format *TrimToBounds) ApplyFormatter(msg *core.Message) error {
 		leftIdx := bytes.Index(content[startIdx:], format.leftBounds)
 		if leftIdx >= 0 {
 			startIdx += leftIdx + 1
-		} else {
-			leftIdx = 0
 		}
 	}
 
