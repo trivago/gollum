@@ -1,7 +1,8 @@
 module github.com/trivago/gollum
 
 require (
-	github.com/MeteoGroup/go-metrics-prometheus v0.0.0-20170102121754-1d412ec2ed4f
+	github.com/CrowdStrike/go-metrics-prometheus v0.0.0-20190206080537-f2bb39ee2c39
+	github.com/MeteoGroup/go-metrics-prometheus v0.0.0-20170102121754-1d412ec2ed4f // indirect
 	github.com/Shopify/sarama v1.17.0
 	github.com/abbot/go-http-auth v0.4.0
 	github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0
@@ -14,7 +15,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20180705093442-88bfeed483d3
 	github.com/coreos/pkg v0.0.0-20180108230652-97fdf19511ea // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/deathowl/go-metrics-prometheus v0.0.0-20170731141557-091131e49c33
+	github.com/deathowl/go-metrics-prometheus v0.0.0-20170731141557-091131e49c33 // indirect
 	github.com/eapache/go-resiliency v1.1.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect

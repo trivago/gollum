@@ -181,6 +181,6 @@ type SnapshotCreateResponse struct {
 		EndTimeInMillis   int64                  `json:"end_time_in_millis"`
 		DurationInMillis  int64                  `json:"duration_in_millis"`
 		Failures          []SnapshotShardFailure `json:"failures"`
-		Shards            *ShardsInfo            `json:"shards"`
+		Shards            shardsInfo             `json:"shards"`
 	} `json:"snapshot"`
 }

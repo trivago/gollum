@@ -2,7 +2,6 @@ package sarama
 
 type SaslHandshakeRequest struct {
 	Mechanism string
-	Version   int16
 }
 
 func (r *SaslHandshakeRequest) encode(pe packetEncoder) error {
@@ -26,7 +25,7 @@ func (r *SaslHandshakeRequest) key() int16 {
 }
 
 func (r *SaslHandshakeRequest) version() int16 {
-	return r.Version
+	return 0
 }
 
 func (r *SaslHandshakeRequest) requiredVersion() KafkaVersion {

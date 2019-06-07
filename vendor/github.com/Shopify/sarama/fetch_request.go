@@ -36,8 +36,8 @@ type FetchRequest struct {
 type IsolationLevel int8
 
 const (
-	ReadUncommitted IsolationLevel = iota
-	ReadCommitted
+	ReadUncommitted IsolationLevel = 0
+	ReadCommitted   IsolationLevel = 1
 )
 
 func (r *FetchRequest) encode(pe packetEncoder) (err error) {

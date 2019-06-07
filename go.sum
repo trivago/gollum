@@ -1,3 +1,5 @@
+github.com/CrowdStrike/go-metrics-prometheus v0.0.0-20190206080537-f2bb39ee2c39 h1:Zz/GK7YHW5A30QC+eGkEDcWuGnTPANOhlYtdaS63DXU=
+github.com/CrowdStrike/go-metrics-prometheus v0.0.0-20190206080537-f2bb39ee2c39/go.mod h1:kLYp7QNoz4BLNm3d3ouwPO0BIA2Baip68suE/n8W1HU=
 github.com/MeteoGroup/go-metrics-prometheus v0.0.0-20170102121754-1d412ec2ed4f h1:ktq2U7clO3LvvPS7mz7ELu6gKlUnzMc2key0HwGP3ws=
 github.com/MeteoGroup/go-metrics-prometheus v0.0.0-20170102121754-1d412ec2ed4f/go.mod h1:1K30pWOX+V5p1W4bLuvKrEj7cAOf2uQNgd3Mt969i3c=
 github.com/Shopify/sarama v1.17.0 h1:Y2/FBwElFVwt7aLKL3fDG6hh+rrlywR6uLgTgKObwTc=

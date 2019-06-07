@@ -474,7 +474,6 @@ func (mmap MarshalMap) Value(key string) (val interface{}, exists bool) {
 func (mmap MarshalMap) Delete(key string) {
 	mmap.resolvePath(key, mmap, func(p, k reflect.Value, v interface{}) {
 		if v != nil {
-			println(key, "deleted")
 			p.SetMapIndex(k, reflect.Value{})
 		}
 	})
