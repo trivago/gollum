@@ -60,12 +60,14 @@ func TestBase64DecodeApplyHandling(t *testing.T) {
 	expect.True(castedDecoder)
 
 	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("dGVzdA=="))
+	msg.GetMetadata().Set("foo", []byte("dGVzdA=="))
 
 	err = decoder.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("test", msg.GetMetadata().GetValueString("foo"))
+	val, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
+	expect.Equal("test", string(val))
 }
 
 func TestBase64EncodeApplyHandling(t *testing.T) {
@@ -80,10 +82,12 @@ func TestBase64EncodeApplyHandling(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte{}, nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("test"))
+	msg.GetMetadata().Set("foo", []byte("test"))
 
 	err = encoder.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("dGVzdA==", msg.GetMetadata().GetValueString("foo"))
+	val, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
+	expect.Equal("dGVzdA==", string(val))
 }

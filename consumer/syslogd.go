@@ -16,10 +16,11 @@ package consumer
 
 import (
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/trivago/tgo/tcontainer"
 
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
@@ -138,7 +139,7 @@ func (cons *Syslogd) Configure(conf core.PluginConfigReader) {
 	}
 }
 
-func parseCustomFields(data string, metadata *core.Metadata) {
+func parseCustomFields(data string, metadata *tcontainer.MarshalMap) {
 	if len(data) == 0 {
 		return
 	}
@@ -199,7 +200,7 @@ func parseCustomFields(data string, metadata *core.Metadata) {
 			value = strings.Replace(value, "\\\"", "\"", -1)
 		}
 
-		metadata.SetValue(key, []byte(value))
+		metadata.Set(key, value)
 		data = data[endOfValue+1:]
 	}
 }
@@ -208,7 +209,7 @@ func parseCustomFields(data string, metadata *core.Metadata) {
 func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 	content := ""
 	isString := false
-	metaData := core.Metadata{}
+	metaData := core.NewMetadata()
 
 	switch cons.format {
 	case syslog.RFC3164:
@@ -222,13 +223,13 @@ func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 			severity, _ := parts["severity"].(int)
 			timestamp, _ := parts["timestamp"].(time.Time)
 
-			metaData.SetValue("tag", []byte(tag))
-			metaData.SetValue("timestamp", []byte(timestamp.Format(cons.timestampFormat)))
+			metaData.Set("tag", tag)
+			metaData.Set("timestamp", timestamp.Format(cons.timestampFormat))
 
-			metaData.SetValue("hostname", []byte(hostname))
-			metaData.SetValue("priority", []byte(strconv.Itoa(priority)))
-			metaData.SetValue("facility", []byte(strconv.Itoa(facility)))
-			metaData.SetValue("severity", []byte(strconv.Itoa(severity)))
+			metaData.Set("hostname", hostname)
+			metaData.Set("priority", priority)
+			metaData.Set("facility", facility)
+			metaData.Set("severity", severity)
 		}
 
 	case syslog.RFC5424, syslog.RFC6587:
@@ -246,20 +247,20 @@ func (cons *Syslogd) Handle(parts format.LogParts, code int64, err error) {
 			timestamp, _ := parts["timestamp"].(time.Time)
 			structuredData, _ := parts["structured_data"].(string)
 
-			metaData.SetValue("structured_data", []byte(structuredData))
+			metaData.Set("structured_data", structuredData)
 
 			parseCustomFields(structuredData, &metaData)
 
-			metaData.SetValue("app_name", []byte(app))
-			metaData.SetValue("version", []byte(version))
-			metaData.SetValue("proc_id", []byte(procID))
-			metaData.SetValue("msg_id", []byte(msgID))
-			metaData.SetValue("timestamp", []byte(timestamp.Format(cons.timestampFormat)))
+			metaData.Set("app_name", app)
+			metaData.Set("version", version)
+			metaData.Set("proc_id", procID)
+			metaData.Set("msg_id", msgID)
+			metaData.Set("timestamp", timestamp.Format(cons.timestampFormat))
 
-			metaData.SetValue("hostname", []byte(hostname))
-			metaData.SetValue("priority", []byte(strconv.Itoa(priority)))
-			metaData.SetValue("facility", []byte(strconv.Itoa(facility)))
-			metaData.SetValue("severity", []byte(strconv.Itoa(severity)))
+			metaData.Set("hostname", hostname)
+			metaData.Set("priority", priority)
+			metaData.Set("facility", facility)
+			metaData.Set("severity", severity)
 		}
 
 	default:

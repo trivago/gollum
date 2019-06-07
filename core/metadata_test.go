@@ -15,46 +15,41 @@
 package core
 
 import (
-	"github.com/trivago/tgo/ttesting"
 	"testing"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 func TestMetadataSetGet(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	meta := make(Metadata)
+	meta := NewMetadata()
 
-	meta.SetValue("foo", []byte("foo_value"))
-	expect.Equal([]byte("foo_value"), meta.GetValue("foo"))
+	meta.Set("foo", "foo_value")
 
-	setExisiting := meta.TrySetValue("foo", []byte("foo_value"))
-	expect.True(setExisiting)
-
-	setExisiting = meta.TrySetValue("bar", []byte("bar_value"))
-	expect.False(setExisiting)
-
-	barValue, exists := meta.TryGetValue("bar")
-	expect.False(exists)
-	expect.Equal([]byte{}, barValue)
-
-	barStrValue, exists := meta.TryGetValueString("bar")
-	expect.False(exists)
-	expect.Equal("", barStrValue)
-
-	fooVal, exists := meta.TryGetValue("foo")
-	expect.True(exists)
-	expect.Equal([]byte("foo_value"), fooVal)
-
-	fooStrVal, exists := meta.TryGetValueString("foo")
-	expect.True(exists)
-	expect.Equal("foo_value", fooStrVal)
+	val, err := meta.String("foo")
+	expect.NoError(err)
+	expect.Equal("foo_value", val)
 
 	meta2 := meta.Clone()
 
-	meta.Delete("foo")
-	_, exists = meta.TryGetValue("foo")
-	expect.False(exists)
+	meta.Set("foo", "bar_value")
 
-	_, exists = meta2.TryGetValue("foo")
+	val, err = meta.String("foo")
+	expect.NoError(err)
+	expect.Equal("bar_value", val)
+
+	ifaceVal, exists := meta.Value("bar")
+	expect.False(exists)
+	expect.Equal(nil, ifaceVal)
+
+	meta.Delete("foo")
+
+	ifaceVal, exists = meta.Value("foo")
+	expect.False(exists)
+	expect.Equal(nil, ifaceVal)
+
+	ifaceVal, exists = meta2.Value("foo")
 	expect.True(exists)
+	expect.Equal("foo_value", ifaceVal.(string))
 }

@@ -129,11 +129,13 @@ func TestTextToJSONFormatterApplyTo(t *testing.T) {
 
 	testString := `{"a":123,"b":"string","c":[1,2,3],"d":[{"a":1}],"e":[[1,2]],"f":[{"a":1},{"b":2}],"g":[[1,2],[3,4]]}`
 	msg := core.NewMessage(nil, []byte("payload"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte(testString))
+	msg.GetMetadata().Set("foo", []byte(testString))
 
 	err := format.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("payload", msg.String())
-	expect.Equal(testString, msg.GetMetadata().GetValueString("foo"))
+	expect.Equal(testString, string(foo))
 }

@@ -15,18 +15,19 @@
 package core
 
 import (
-	"github.com/trivago/tgo/ttesting"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 func TestMessageTracer_Dump(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
-	metadata := Metadata{}
-	metadata.SetValue("foo", []byte("bar"))
+	metadata := NewMetadata()
+	metadata.Set("foo", "bar")
 
 	msg := NewMessage(messageTracerSource{}, []byte("test"), metadata, WildcardStreamID)
 	out := sendMessageWithTrace(msg)

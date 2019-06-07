@@ -61,10 +61,12 @@ func TestSplitPickApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("MTIzNDU2#NjU0MzIx"))
+	msg.GetMetadata().Set("foo", []byte("MTIzNDU2#NjU0MzIx"))
 	err = formatter.ApplyFormatter(msg)
 
 	expect.NoError(err)
+	foo, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("PAYLOAD", msg.String())
-	expect.Equal("MTIzNDU2", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("MTIzNDU2", string(foo))
 }

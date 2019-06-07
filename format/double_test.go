@@ -68,11 +68,13 @@ func TestDoubleFormatterApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("SOME_PAYLOAD_DATA"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("TEST_VALUE"))
+	msg.GetMetadata().Set("foo", []byte("TEST_VALUE"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", msg.GetMetadata().GetValueString("foo"))
+	val, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
+	expect.Equal("TEST_VALUE:VEVTVF9WQUxVRQ==", string(val))
 	expect.Equal("SOME_PAYLOAD_DATA", msg.String())
 }

@@ -43,11 +43,13 @@ func TestFormatterRegExpApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("test 123"))
+	msg.GetMetadata().Set("foo", []byte("test 123"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("test", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("test", string(foo))
 }

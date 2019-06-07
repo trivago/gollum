@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/trivago/gollum/core"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -19,7 +20,7 @@ func TestMetadataCopyReplace(t *testing.T) {
 	formatter, casted := plugin.(*MetadataCopy)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.Metadata{"foo": []byte("foo")}, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("not applied"), tcontainer.MarshalMap{"foo": []byte("foo")}, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -44,8 +45,10 @@ func TestMetadataCopyAddKey(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	val, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("test", msg.String())
-	expect.Equal("test", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("test", string(val))
 }
 
 func TestMetadataCopyAppend(t *testing.T) {
@@ -62,7 +65,7 @@ func TestMetadataCopyAppend(t *testing.T) {
 	formatter, casted := plugin.(*MetadataCopy)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.Metadata{"foo": []byte("foo")}, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), tcontainer.MarshalMap{"foo": []byte("foo")}, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
@@ -83,58 +86,12 @@ func TestMetadataCopyPrepend(t *testing.T) {
 	formatter, casted := plugin.(*MetadataCopy)
 	expect.True(casted)
 
-	msg := core.NewMessage(nil, []byte("test"), core.Metadata{"foo": []byte("foo")}, core.InvalidStreamID)
+	msg := core.NewMessage(nil, []byte("test"), tcontainer.MarshalMap{"foo": []byte("foo")}, core.InvalidStreamID)
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	expect.Equal("footest", msg.String())
-}
-
-func TestMetadataCopyDeprecated(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-
-	config := core.NewPluginConfig("", "format.MetadataCopy")
-	config.Override("CopyToKeys", []string{"foo", "bar"})
-
-	plugin, err := core.NewPluginWithConfig(config)
-	expect.NoError(err)
-
-	formatter, casted := plugin.(*MetadataCopy)
-	expect.True(casted)
-
-	msg := core.NewMessage(nil, []byte("test"), nil, core.InvalidStreamID)
-
-	err = formatter.ApplyFormatter(msg)
-	expect.NoError(err)
-
-	expect.Equal("test", msg.String())
-	expect.Equal("test", msg.GetMetadata().GetValueString("foo"))
-	expect.Equal("test", msg.GetMetadata().GetValueString("bar"))
-}
-
-func TestMetadataCopyApplyToHandlingDeprecated(t *testing.T) {
-	expect := ttesting.NewExpect(t)
-
-	config := core.NewPluginConfig("", "format.MetadataCopy")
-	config.Override("ApplyTo", "foo")
-	config.Override("CopyToKeys", []string{"bar"})
-
-	plugin, err := core.NewPluginWithConfig(config)
-	expect.NoError(err)
-
-	formatter, casted := plugin.(*MetadataCopy)
-	expect.True(casted)
-
-	msg := core.NewMessage(nil, []byte("payload"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("meta"))
-
-	err = formatter.ApplyFormatter(msg)
-	expect.NoError(err)
-
-	expect.Equal("payload", msg.String())
-	expect.Equal("meta", msg.GetMetadata().GetValueString("foo"))
-	expect.Equal("meta", msg.GetMetadata().GetValueString("bar"))
 }
 
 func TestMetadataCopyMetadataIntegrity(t *testing.T) {
@@ -154,13 +111,17 @@ func TestMetadataCopyMetadataIntegrity(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("payload", msg.String())
-	expect.Equal("payload", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("payload", string(foo))
 
 	msg.StorePayload([]byte("xxx"))
 
+	foo, err = msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("xxx", msg.String())
-	expect.Equal("payload", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("payload", string(foo))
 }
 
 func TestMetadataCopyPayloadIntegrity(t *testing.T) {
@@ -176,16 +137,20 @@ func TestMetadataCopyPayloadIntegrity(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte{}, nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("metadata"))
+	msg.GetMetadata().Set("foo", []byte("metadata"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("metadata", msg.String())
-	expect.Equal("metadata", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("metadata", string(foo))
 
-	msg.GetMetadata().SetValue("foo", []byte("xxx"))
+	msg.GetMetadata().Set("foo", []byte("xxx"))
 
+	foo, err = msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("metadata", msg.String())
-	expect.Equal("xxx", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("xxx", string(foo))
 }

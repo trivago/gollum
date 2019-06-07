@@ -3,7 +3,9 @@ option go_package = "core";
 
 message serializedMessageData {
         required bytes Data = 1;
-        map<string, bytes> Metadata = 2;
+        // deprecated v0.5.x metadata
+        // map<string, bytes> Metadata = 2;
+        optional bytes Metadata = 3;
 }
 
 message serializedMessage {

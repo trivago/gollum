@@ -15,8 +15,9 @@
 package format
 
 import (
-	"github.com/trivago/gollum/core"
 	"regexp"
+
+	"github.com/trivago/gollum/core"
 )
 
 // RegExp formatter
@@ -72,7 +73,7 @@ func (format *RegExp) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *RegExp) ApplyFormatter(msg *core.Message) error {
-	content := format.GetAppliedContent(msg)
+	content := format.GetAppliedContentAsBytes(msg)
 	matches := format.expression.FindSubmatchIndex(content)
 	transformed := format.expression.Expand([]byte{}, format.template, content, matches)
 

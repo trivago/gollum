@@ -75,11 +75,13 @@ func TestExtractJSONApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("{\"foo\":\"bar\"}"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"))
+	msg.GetMetadata().Set("foo", []byte("{\"foo\":\"bar\",\"test\":\"valid\"}"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
-	expect.Equal("valid", msg.GetMetadata().GetValueString("foo"))
+	val, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
+	expect.Equal("valid", string(val))
 	expect.Equal("{\"foo\":\"bar\"}", msg.String())
 }

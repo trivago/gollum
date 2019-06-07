@@ -17,6 +17,7 @@ package format
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"
@@ -71,7 +72,7 @@ func (format *SplitToJSON) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *SplitToJSON) ApplyFormatter(msg *core.Message) error {
-	components := bytes.Split(format.GetAppliedContent(msg), format.token)
+	components := bytes.Split(format.GetAppliedContentAsBytes(msg), format.token)
 	maxIdx := tmath.MinI(len(format.keys), len(components))
 	jsonData := ""
 

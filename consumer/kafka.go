@@ -522,10 +522,10 @@ func (cons *Kafka) readPartitions(partitions []int32) {
 
 func (cons *Kafka) enqueueEvent(event *kafka.ConsumerMessage) {
 	if cons.hasToSetMetadata {
-		metaData := core.Metadata{}
+		metaData := core.NewMetadata()
 
-		metaData.SetValue("topic", []byte(event.Topic))
-		metaData.SetValue("key", event.Key)
+		metaData.Set("topic", event.Topic)
+		metaData.Set("key", event.Key)
 
 		cons.EnqueueWithMetadata(event.Value, metaData)
 	} else {

@@ -63,7 +63,7 @@ type JSON struct {
 	core.SimpleFilter `gollumdoc:"embed_type"`
 	rejectValues      map[string]*regexp.Regexp
 	acceptValues      map[string]*regexp.Regexp
-	getAppliedContent core.GetAppliedContent
+	getAppliedContent core.GetAppliedContentAsBytesFunc
 }
 
 func init() {
@@ -94,7 +94,7 @@ func (filter *JSON) Configure(conf core.PluginConfigReader) {
 	}
 
 	applyTo := conf.GetString("ApplyTo", "")
-	filter.getAppliedContent = core.GetAppliedContentGetFunction(applyTo)
+	filter.getAppliedContent = core.NewGetAppliedContentAsBytesFunc(applyTo)
 }
 
 func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, bool) {
@@ -117,6 +117,7 @@ func (filter *JSON) getValue(key string, values tcontainer.MarshalMap) (string, 
 // ApplyFilter check if all Filter wants to reject the message
 func (filter *JSON) ApplyFilter(msg *core.Message) (core.FilterResult, error) {
 	values := tcontainer.NewMarshalMap()
+
 	if err := json.Unmarshal(filter.getAppliedContent(msg), &values); err != nil {
 		return filter.GetFilterResultMessageReject(), err
 	}

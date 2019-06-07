@@ -142,7 +142,7 @@ func (format *JSONToInflux10) toUnixTime(timeString string) (int64, error) {
 
 // ApplyFormatter updates the message payload
 func (format *JSONToInflux10) ApplyFormatter(msg *core.Message) error {
-	content := format.GetAppliedContent(msg)
+	content := format.GetAppliedContentAsBytes(msg)
 
 	values := make(tcontainer.MarshalMap)
 	err := json.Unmarshal(content, &values)

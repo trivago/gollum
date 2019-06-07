@@ -16,10 +16,11 @@ package format
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
-	"testing"
 )
 
 func TestSplitToJSON(t *testing.T) {
@@ -120,13 +121,14 @@ func TestSplitToJSONApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("payload"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("test1,test2,{\"object\": true}"))
+	msg.GetMetadata().Set("foo", []byte("test1,test2,{\"object\": true}"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
 	jsonData := tcontainer.NewMarshalMap()
-	err = json.Unmarshal(msg.GetMetadata().GetValue("foo"), &jsonData)
+	foo, _ := msg.GetMetadata().Value("foo")
+	err = json.Unmarshal(foo.([]byte), &jsonData)
 	expect.NoError(err)
 
 	expect.MapEqual(jsonData, "first", "test1")

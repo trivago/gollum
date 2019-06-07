@@ -71,7 +71,7 @@ func (format *ExtractJSON) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *ExtractJSON) ApplyFormatter(msg *core.Message) error {
-	content := format.GetAppliedContent(msg)
+	content := format.GetAppliedContentAsBytes(msg)
 
 	value, err := format.extractJSON(content)
 	if err != nil {

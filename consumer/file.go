@@ -275,11 +275,11 @@ func (cons *File) observeFile(name string, stopIfNotExist bool) {
 	enqueue := cons.Enqueue
 
 	if cons.hasToSetMetadata {
-		dir, file := filepath.Split(name)
+		dirName, fileName := filepath.Split(name)
 		enqueue = func(data []byte) {
-			metaData := core.Metadata{}
-			metaData.SetValue("file", []byte(file))
-			metaData.SetValue("dir", []byte(dir))
+			metaData := core.NewMetadata()
+			metaData.Set("file", fileName)
+			metaData.Set("dir", dirName)
 			cons.EnqueueWithMetadata(data, metaData)
 		}
 	}

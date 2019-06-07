@@ -21,6 +21,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/trivago/tgo"
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/thealthcheck"
 )
 
@@ -204,7 +205,7 @@ func (cons *SimpleConsumer) Enqueue(data []byte) {
 }
 
 // EnqueueWithMetadata works like EnqueueWithSequence and allows to set meta data directly
-func (cons *SimpleConsumer) EnqueueWithMetadata(data []byte, metaData Metadata) {
+func (cons *SimpleConsumer) EnqueueWithMetadata(data []byte, metaData tcontainer.MarshalMap) {
 	msg := NewMessage(cons, data, metaData, InvalidStreamID)
 	cons.enqueueMessage(msg)
 }

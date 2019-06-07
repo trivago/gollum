@@ -102,17 +102,17 @@ func (prod *Redis) Configure(conf core.PluginConfigReader) {
 
 func (prod *Redis) getValueAndKey(msg *core.Message) (v, k []byte) {
 	meta := msg.GetMetadata()
-	key := meta.GetValue(prod.key)
+	key, _ := meta.Value(prod.key)
 
-	return msg.GetPayload(), key
+	return msg.GetPayload(), core.ConvertToBytes(key)
 }
 
 func (prod *Redis) getValueFieldAndKey(msg *core.Message) (v, f, k []byte) {
 	meta := msg.GetMetadata()
-	key := meta.GetValue(prod.key)
-	field := meta.GetValue(prod.field)
+	key, _ := meta.Value(prod.key)
+	field, _ := meta.Value(prod.field)
 
-	return msg.GetPayload(), field, key
+	return msg.GetPayload(), core.ConvertToBytes(field), core.ConvertToBytes(key)
 }
 
 func (prod *Redis) storeHash(msg *core.Message) {

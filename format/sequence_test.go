@@ -56,13 +56,15 @@ func TestSequenceApplyTo(t *testing.T) {
 	expect.True(casted)
 
 	msg := core.NewMessage(nil, []byte("PAYLOAD"), nil, core.InvalidStreamID)
-	msg.GetMetadata().SetValue("foo", []byte("test"))
+	msg.GetMetadata().Set("foo", []byte("test"))
 
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("1:test", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("1:test", string(foo))
 }
 
 func TestSequenceApplyToNoSeparator(t *testing.T) {
@@ -82,6 +84,8 @@ func TestSequenceApplyToNoSeparator(t *testing.T) {
 	err = formatter.ApplyFormatter(msg)
 	expect.NoError(err)
 
+	foo, err := msg.GetMetadata().Bytes("foo")
+	expect.NoError(err)
 	expect.Equal("PAYLOAD", string(msg.GetPayload()))
-	expect.Equal("1", msg.GetMetadata().GetValueString("foo"))
+	expect.Equal("1", string(foo))
 }

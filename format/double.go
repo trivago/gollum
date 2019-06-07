@@ -79,8 +79,8 @@ func (format *Double) ApplyFormatter(msg *core.Message) error {
 
 	// pre-process
 	if format.applyTo != "" {
-		leftMsg.StorePayload(format.GetAppliedContent(msg))
-		rightMsg.StorePayload(format.GetAppliedContent(msg))
+		leftMsg.StorePayload(format.GetAppliedContentAsBytes(msg))
+		rightMsg.StorePayload(format.GetAppliedContentAsBytes(msg))
 	}
 
 	// apply sub-formatter

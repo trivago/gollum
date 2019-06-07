@@ -45,7 +45,7 @@ func (format *SplitPick) Configure(conf core.PluginConfigReader) {
 
 // ApplyFormatter update message payload
 func (format *SplitPick) ApplyFormatter(msg *core.Message) error {
-	parts := bytes.Split(format.GetAppliedContent(msg), format.delimiter)
+	parts := bytes.Split(format.GetAppliedContentAsBytes(msg), format.delimiter)
 
 	if format.index < len(parts) {
 		format.SetAppliedContent(msg, parts[format.index])

@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/trivago/tgo/tcontainer"
 	"github.com/trivago/tgo/ttesting"
 )
 
@@ -118,11 +119,13 @@ func TestMessageCloneMetadata(t *testing.T) {
 	msg := NewMessage(nil, []byte(msgString), nil, 1)
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
-	msg.GetMetadata().SetValue("foo", []byte("bar"))
+	msg.GetMetadata().Set("foo", "bar")
 
 	msg.Clone()
 
-	expect.Equal("bar", msg.GetMetadata().GetValueString("foo"))
+	val, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
+	expect.Equal("bar", val)
 }
 
 func TestMessageCloneOriginal(t *testing.T) {
@@ -148,7 +151,7 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	msgString := "Test for clone original"
 	msgUpdateString := "Test for clone original - UPDATE"
-	msgMetadata := Metadata{"foo": []byte("original_bar")}
+	msgMetadata := tcontainer.MarshalMap{"foo": "original_bar"}
 
 	msg := NewMessage(nil, []byte(msgString), msgMetadata, 1)
 
@@ -156,14 +159,19 @@ func TestMessageCloneOriginalMetadata(t *testing.T) {
 
 	msg.SetStreamID(MessageStreamID(10))
 	msg.StorePayload([]byte(msgUpdateString))
-	msg.GetMetadata().SetValue("foo", []byte("bar"))
+	msg.GetMetadata().Set("foo", "bar")
 
 	clone := msg.CloneOriginal()
 
 	// We froze before changing metadata, i.e. original metadata must be
 	// original value
-	expect.Equal("bar", msg.GetMetadata().GetValueString("foo"))
-	expect.Equal("original_bar", clone.GetMetadata().GetValueString("foo"))
+	value, err := msg.GetMetadata().String("foo")
+	expect.NoError(err)
+	expect.Equal("bar", value)
+
+	value, err = clone.GetMetadata().String("foo")
+	expect.Equal("original_bar", value)
+
 	expect.Equal(MessageStreamID(1), clone.GetStreamID())
 	expect.Equal(msgString, string(clone.GetPayload()))
 }
@@ -172,40 +180,45 @@ func TestMessageMetadata(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	msg := NewMessage(nil, []byte("message payload"), nil, 1)
-	value1 := []byte("value string")
-	value2 := []byte("100")
+	value1 := "value string"
+	value2 := "100"
 
-	msg.GetMetadata().SetValue("key1", value1)
-	msg.GetMetadata().SetValue("key2", value2)
+	msg.GetMetadata().Set("key1", value1)
+	msg.GetMetadata().Set("key2", value2)
 
-	result1 := msg.GetMetadata().GetValue("key1")
-	result2 := msg.GetMetadata().GetValue("key2")
+	result1, err := msg.GetMetadata().String("key1")
+	expect.NoError(err)
 
-	expect.Equal("value string", string(result1))
-	expect.Equal("100", string(result2))
+	result2, err := msg.GetMetadata().String("key2")
+	expect.NoError(err)
+
+	expect.Equal("value string", result1)
+	expect.Equal("100", result2)
 }
 
 func TestMessageMetadataReset(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 
 	msg := NewMessage(nil, []byte("message payload"), nil, 1)
-	value := []byte("value string")
+	value := "value string"
 
-	msg.GetMetadata().SetValue("key1", value)
+	msg.GetMetadata().Set("key1", value)
 
-	result1 := msg.GetMetadata().GetValue("key1")
+	result1, err := msg.GetMetadata().String("key1")
+	expect.NoError(err)
+	expect.Equal("value string", result1)
 
 	msg.GetMetadata().Delete("key1")
-	result2 := msg.GetMetadata().GetValue("key1")
 
-	expect.Equal("value string", string(result1))
-	expect.Equal([]byte{}, result2)
+	result2, exists := msg.GetMetadata().Value("key1")
+	expect.False(exists)
+	expect.Equal(nil, result2)
 }
 
 func TestMessageSerialize(t *testing.T) {
 	expect := ttesting.NewExpect(t)
 	testMessage := NewMessage(nil, []byte("This is a\nteststring"), nil, 1)
-	testMessage.GetMetadata().SetValue("key", []byte("meta data value"))
+	testMessage.GetMetadata().Set("key", "meta data value")
 
 	data, err := testMessage.Serialize()
 	expect.NoError(err)
@@ -234,13 +247,14 @@ func TestMessageSerialize(t *testing.T) {
 	readMessage, err = DeserializeMessage(data)
 	expect.NoError(err)
 
-	expect.Equal(readMessage.streamID, testMessage.streamID)
-	expect.Equal(readMessage.prevStreamID, testMessage.prevStreamID)
-	expect.Equal(readMessage.origStreamID, testMessage.origStreamID)
-	expect.Equal(readMessage.timestamp, testMessage.timestamp)
-	expect.Equal(readMessage.data.payload, testMessage.data.payload)
-	expect.Equal(readMessage.data.metadata, testMessage.data.metadata)
+	expect.Equal(testMessage.streamID, readMessage.streamID)
+	expect.Equal(testMessage.prevStreamID, readMessage.prevStreamID)
+	expect.Equal(testMessage.origStreamID, readMessage.origStreamID)
+	expect.Equal(testMessage.timestamp, readMessage.timestamp)
+	expect.Equal(testMessage.data.payload, readMessage.data.payload)
+	expect.Equal(testMessage.data.metadata, readMessage.data.metadata)
+
 	expect.NotNil(readMessage.orig)
-	expect.Equal(readMessage.orig.payload, testMessage.orig.payload)
-	expect.Equal(readMessage.orig.metadata, testMessage.orig.metadata)
+	expect.Equal(testMessage.orig.payload, readMessage.orig.payload)
+	expect.Equal(testMessage.orig.metadata, readMessage.orig.metadata)
 }

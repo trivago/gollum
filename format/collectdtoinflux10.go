@@ -55,7 +55,7 @@ func (format *CollectdToInflux10) escapeTag(value string) string {
 
 // ApplyFormatter update message payload
 func (format *CollectdToInflux10) ApplyFormatter(msg *core.Message) error {
-	contentData := format.GetAppliedContent(msg)
+	contentData := format.GetAppliedContentAsBytes(msg)
 
 	collectdData, err := parseCollectdPacket(contentData)
 	if err != nil {

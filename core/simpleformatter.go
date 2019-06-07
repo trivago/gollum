@@ -15,6 +15,8 @@
 package core
 
 import (
+	"reflect"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,10 +36,12 @@ import (
 // that is empty or - in case of metadata - not existing.
 // By default this parameter is set to false
 type SimpleFormatter struct {
-	Logger            logrus.FieldLogger
-	GetAppliedContent GetAppliedContent
-	SetAppliedContent SetAppliedContent
-	SkipIfEmpty       bool `config:"SkipIfEmpty"`
+	Logger                    logrus.FieldLogger
+	GetAppliedContent         GetAppliedContentFunc
+	GetAppliedContentAsBytes  GetAppliedContentAsBytesFunc
+	GetAppliedContentAsString GetAppliedContentAsStringFunc
+	SetAppliedContent         SetAppliedContentFunc
+	SkipIfEmpty               bool `config:"SkipIfEmpty"`
 }
 
 // Configure sets up all values required by SimpleFormatter.
@@ -45,14 +49,38 @@ func (format *SimpleFormatter) Configure(conf PluginConfigReader) {
 	format.Logger = conf.GetSubLogger("Formatter")
 
 	applyTo := conf.GetString("ApplyTo", "")
-	format.GetAppliedContent = GetAppliedContentGetFunction(applyTo)
-	format.SetAppliedContent = GetAppliedContentSetFunction(applyTo)
+	format.GetAppliedContent = NewGetAppliedContentFunc(applyTo)
+	format.GetAppliedContentAsBytes = NewGetAppliedContentAsBytesFunc(applyTo)
+	format.GetAppliedContentAsString = NewGetAppliedContentAsStringFunc(applyTo)
+	format.SetAppliedContent = NewSetAppliedContentFunc(applyTo)
 }
 
 // CanBeApplied returns true if the formatter can be applied to this message
 func (format *SimpleFormatter) CanBeApplied(msg *Message) bool {
-	if format.SkipIfEmpty {
-		return len(format.GetAppliedContent(msg)) > 0
+	if !format.SkipIfEmpty {
+		return true
+	}
+
+	data := format.GetAppliedContent(msg)
+	if data == nil {
+		return false
+	}
+
+	// payload fast path
+	if bytes, isBytes := data.([]byte); isBytes {
+		return len(bytes) > 0
+	}
+
+	// metadata string fast path
+	if str, isString := data.(string); isString {
+		return len(str) > 0
+	}
+
+	// arbitrary, len-able metadata path
+	value := reflect.ValueOf(data)
+	switch value.Kind() {
+	case reflect.Slice, reflect.Array, reflect.Map:
+		return value.Len() > 0
 	}
 	return true
 }
