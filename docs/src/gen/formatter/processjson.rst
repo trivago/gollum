@@ -250,12 +250,12 @@ Examples
 	   Streams: console
 	   Modulators:
 	     - format.ProcessJSON:
-	       Directives:
-	         - "host:split: :host:@timestamp"
-	         - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
-	         - "client:ip"
-	         - "client:geoip:location:country"
-	         - "ua:agent:ua:os:engine:engine_version"
+	         Directives:
+	           - "host:split: :host:@timestamp"
+	           - "@timestamp:time:20060102150405:2006-01-02 15\\:04\\:05"
+	           - "client:ip"
+	           - "client:geoip:location:country"
+	           - "ua:agent:ua:os:engine:engine_version"
 
 
 
