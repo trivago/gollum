@@ -15,6 +15,7 @@ Go 1.10 and 1.9 are still supported. Support for Go 1.8 or older has been droppe
 * Consumer.File setting "Files" now supports glob patterns.
 * Consumer.Syslog now allows non-standard protocol types (see issue #234)
 * Message metadata can now store arbitrary data
+* When not setting the numbers of CPU, gollum will try to use cgroup limits
 
 ### Breaking changes with 0.6.0
 

@@ -38,6 +38,7 @@ import (
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tos"
 	"golang.org/x/crypto/ssh/terminal"
+	"go.uber.org/automaxprocs/maxprocs"
 )
 
 // logrusHookBuffer is our single instance of LogrusHookBuffer
@@ -214,10 +215,14 @@ func configureRuntime() {
 	}
 
 	if *flagNumCPU == 0 {
+		// Gollum defaults to use all CPUs available
 		runtime.GOMAXPROCS(runtime.NumCPU())
+		// If there are cgroup limits, overwrite with those
+		maxprocs.Set(maxprocs.Logger(logrus.Infof))
 	} else {
 		runtime.GOMAXPROCS(*flagNumCPU)
 	}
+	logrus.Debugf("Golang maxprocs set to %d", runtime.GOMAXPROCS(-1))
 
 	if *flagProfile {
 		time.AfterFunc(time.Second*3, printProfile)

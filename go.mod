@@ -44,6 +44,7 @@ require (
 	github.com/trivago/grok v1.0.0
 	github.com/trivago/tgo v1.0.7
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
+	go.uber.org/automaxprocs v1.2.0
 	golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac
 	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d // indirect
 	golang.org/x/sys v0.0.0-20180828065106-d99a578cf41b // indirect

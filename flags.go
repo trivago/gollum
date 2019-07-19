@@ -31,7 +31,7 @@ var (
 	flagTestConfigFile = tflag.String("tc", "testconfig", "", "Test the given configuration file and exit.")
 	flagLoglevel       = tflag.Int("ll", "loglevel", 2, "Set the loglevel [0-3] as in {0=Error, 1=+Warning, 2=+Info, 3=+Debug}.")
 	flagLogColors      = tflag.String("lc", "log-colors", "auto", "Use Logrus's \"colored\" log format. One of \"never\", \"auto\" (default), \"always\"")
-	flagNumCPU         = tflag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs.")
+	flagNumCPU         = tflag.Int("n", "numcpu", 0, "Number of CPUs to use. Set 0 for all CPUs (respects cgroup limits).")
 	flagPidFile        = tflag.String("p", "pidfile", "", "Write the process id into a given file.")
 	flagMetricsAddress = tflag.String("m", "metrics", "", "Address to use for metric queries. Disabled by default.")
 	flagMetricsType    = tflag.String("mt", "metricstype", "", "Type of metrics to generate. Defaults to \"prometheus\"")
