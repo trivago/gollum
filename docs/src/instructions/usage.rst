@@ -17,7 +17,7 @@ Gollum has several commandline options that can be accessed by starting Gollum w
 -tc, -testconfig    Test the given configuration file and exit.
 -ll, -loglevel      Set the loglevel [0-3] as in {0=Error, 1=+Warning, 2=+Info, 3=+Debug}.
 -lc, -log-colors    Use Logrus's "colored" log format. One of "never", "auto" (default), "always"
--n, -numcpu         Number of CPUs to use. Set 0 for all CPUs.
+-n, -numcpu         Number of CPUs to use. Set 0 for all CPUs (respects cgroup limits).
 -p, -pidfile        Write the process id into a given file.
 -m, -metrics        Address to use for metric queries. Disabled by default.
 -hc, -healthcheck   Listening address ([IP]:PORT) to use for healthcheck HTTP endpoint. Disabled by default.
