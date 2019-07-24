@@ -91,6 +91,9 @@ func (fs *observableFile) storeOffset() {
 }
 
 func (fs *observableFile) saveOffset(offset int64) {
+	if len(fs.offsetFileName) == 0 {
+		return
+	}
 	offsetAsString := strconv.FormatInt(offset, 10)
 	if err := ioutil.WriteFile(fs.offsetFileName, []byte(offsetAsString), 0644); err != nil {
 		fs.log.WithError(err).Error("Failed to store offset")
