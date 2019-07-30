@@ -4,7 +4,7 @@ Aggregate
 =========
 
 Aggregate is a formatter which can group up further formatter.
-The `ApplyTo` settings will be pass on and overwritten in the child formatter.
+The `Source` setting will be passed on to all child formatters, overwriting any source value there (if set).
 This plugin could be useful to setup complex configs with metadata handling in more readable format.
 
 
@@ -13,26 +13,43 @@ This plugin could be useful to setup complex configs with metadata handling in m
 Parameters
 ----------
 
-**ApplyTo**
+**Source**
 
-  This value chooses the part of the message the formatting
-  should be applied to. Use "" to target the message payload; other values
-  specify the name of a metadata field to target.
-  This value will also used for further child modulators!
+  This value chooses the part of the message that should be
+  formatted. Use "" to use the message payload; other values specify the
+  name of a  metadata field to use.
+  This values is forced to be used by all child modulators.
   By default this parameter is set to "".
   
   
 
 **Modulators**
 
-  Defines a list of child modulators to be applied to a message when
-  it arrives at this formatter. Please try to use only content based formatter and filter!
-  If a modulator changes the stream of a message the message is NOT routed to this stream anymore.
+  Defines a list of child modulators to be applied to a message
+  when it arrives at this formatter. Please note that everything is still one
+  message. I.e. applying filters twice might not make sense.
   
   
 
 Parameters (from core.SimpleFormatter)
 --------------------------------------
+
+**Target**
+
+  This value chooses the part of the message the formatted data
+  should be stored to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
+
+**ApplyTo**
+
+  Use this to set Source and Target to the same value. This setting
+  will be ignored if either Source or Target is set to something else but "".
+  By default this parameter is set to "".
+  
+  
 
 **SkipIfEmpty**
 
@@ -53,18 +70,20 @@ This example show a useful case for format.Aggregate plugin:
 	   Type: consumer.Console
 	   Streams: "foo"
 	   Modulators:
-	     - format.MetadataCopy:
-	         CopyToKeys: ["foo", "bar"]
 	     - format.Aggregate:
-	         ApplyTo: foo
+	         Target: bar
 	         Modulators:
+	           - format.Copy
+	           - format.Envelope:
+	               Postfix: "\n"
+	     - format.Aggregate:
+	         Target: foo
+	         Modulators:
+	           - format.Copy
 	           - format.Base64Encode
 	           - format.Double
 	           - format.Envelope:
 	               Postfix: "\n"
-	     - format.Envelope:
-	         Postfix: "\n"
-	         ApplyTo: bar
 
 
 .. code-block:: yaml
@@ -74,18 +93,20 @@ This example show a useful case for format.Aggregate plugin:
 	   Type: consumer.Console
 	   Streams: "bar"
 	   Modulators:
-	     - format.MetadataCopy:
-	         CopyToKeys: ["foo", "bar"]
+	     - format.Copy:
+	         Target: bar
+	     - format.Envelope:
+	         Target: bar
+	         Postfix: "\n"
+	     - format.Copy:
+	         Target: foo
 	     - format.Base64Encode:
-	         ApplyTo: foo
+	         Target: foo
 	     - format.Double:
-	         ApplyTo: foo
+	         Target: foo
 	     - format.Envelope:
 	         Postfix: "\n"
-	         ApplyTo: foo
-	     - format.Envelope:
-	         Postfix: "\n"
-	         ApplyTo: bar
+	         Target: foo
 
 
 

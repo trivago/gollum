@@ -3,8 +3,8 @@
 Trim
 ====
 
-This formatter searches for separator strings and removes all data left or
-right of this separator.
+Trim removes a set of characters from the beginning and end of a metadata value
+or the payload.
 
 
 
@@ -12,45 +12,39 @@ right of this separator.
 Parameters
 ----------
 
-**LeftSeparator**
+**Characters** (default:  \t\r\n\v\f)
 
-  The string to search for. Searching starts from the left
-  side of the data. If an empty string is given this parameter is ignored.
-  By default this parameter is set to "".
-  
-  
-
-**RightSeparator**
-
-  The string to search for. Searching starts from the right
-  side of the data. If an empty string is given this parameter is ignored.
-  By default this parameter is set to "".
-  
-  
-
-**LeftOffset** (default: 0)
-
-  Defines the search start index when using LeftSeparator.
-  By default this parameter is set to 0.
-  
-  
-
-**RightOffset** (default: 0)
-
-  Defines the search start index when using RightSeparator.
-  Counting starts from the right side of the message.
-  By default this parameter is set to 0.
+  This value defines which characters should be removed from
+  both ends of the data. The data to operate on is expected to be a string.
+  By default this is set to " \t\r\n\v\f".
   
   
 
 Parameters (from core.SimpleFormatter)
 --------------------------------------
 
+**Source**
+
+  This value chooses the part of the message the data to be formatted
+  should be read from. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
+
+**Target**
+
+  This value chooses the part of the message the formatted data
+  should be stored to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
+
 **ApplyTo**
 
-  This value chooses the part of the message the formatting
-  should be applied to. Use "" to target the message payload; other values
-  specify the name of a metadata field to target.
+  Use this to set Source and Target to the same value. This setting
+  will be ignored if either Source or Target is set to something else but "".
   By default this parameter is set to "".
   
   
@@ -66,7 +60,7 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
-This example will reduce data like "foo[bar[foo]bar]foo" to "bar[foo]bar".
+This example will trim spaces from the message payload:
 
 .. code-block:: yaml
 
@@ -74,9 +68,7 @@ This example will reduce data like "foo[bar[foo]bar]foo" to "bar[foo]bar".
 	   Type: consumer.Console
 	   Streams: "*"
 	   Modulators:
-	     - format.Trim:
-	       LeftSeparator: "["
-	       RightSeparator: "]"
+	     - format.Trim: {}
 
 
 

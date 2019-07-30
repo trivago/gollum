@@ -3,9 +3,11 @@
 Double
 ======
 
-Double is a formatter that appends a delimiter string and a second copy of
-the message's contents to the message. Independent sets of formatters may
-be applied to both duplicates.
+Double is a formatter that duplicates a message and applies two different
+sets of formatters to both sides. After both messages have been processed,
+the value of the field defined as "source" by the double formatter will be
+copied from both copies and merged into the "target" field of the original
+message using a given separator.
 
 
 
@@ -22,8 +24,8 @@ Parameters
 
 **UseLeftStreamID** (default: false)
 
-  Use the stream id of the left side as the final stream id
-  for the message if this value is "true".
+  When set to "true", use the stream id of the left side
+  (after formatting) as the streamID for the resulting message.
   This parameter is set to "false" by default.
   
   
@@ -36,7 +38,7 @@ Parameters
   
   
 
-**Left**
+**Right**
 
   An optional list of formatters. The second copy of the mssage (right
   of the delimiter) is passed through these filters.
@@ -44,19 +46,31 @@ Parameters
   
   
 
-**Right**
-
-  (no documentation available)
-  
-
 Parameters (from core.SimpleFormatter)
 --------------------------------------
 
+**Source**
+
+  This value chooses the part of the message the data to be formatted
+  should be read from. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
+
+**Target**
+
+  This value chooses the part of the message the formatted data
+  should be stored to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
+
 **ApplyTo**
 
-  This value chooses the part of the message the formatting
-  should be applied to. Use "" to target the message payload; other values
-  specify the name of a metadata field to target.
+  Use this to set Source and Target to the same value. This setting
+  will be ignored if either Source or Target is set to something else but "".
   By default this parameter is set to "".
   
   
@@ -72,8 +86,8 @@ Parameters (from core.SimpleFormatter)
 Examples
 --------
 
-This example creates a message of the form "<orig>|<base64>", where <orig> is
-the original console input and <base64> its Base64-encoded equivalent.
+This example creates a message of the form "<orig>|<hash>", where <orig> is
+the original console input and <hash> its hash.
 
 .. code-block:: yaml
 
@@ -84,7 +98,8 @@ the original console input and <base64> its Base64-encoded equivalent.
 	     - format.Double:
 	       Separator: "|"
 	       Right:
-	         - format.Base64Encode
+	         - format.Identifier:
+	           Generator: hash
 
 
 

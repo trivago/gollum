@@ -4,34 +4,35 @@
 .. toctree::
     :maxdepth: 9
 
+    /src/gen/formatter/agent.rst
     /src/gen/formatter/aggregate.rst
     /src/gen/formatter/base64decode.rst
     /src/gen/formatter/base64encode.rst
-    /src/gen/formatter/clear.rst
-    /src/gen/formatter/collectdtoinflux08.rst
-    /src/gen/formatter/collectdtoinflux09.rst
-    /src/gen/formatter/collectdtoinflux10.rst
+    /src/gen/formatter/converttime.rst
+    /src/gen/formatter/copy.rst
+    /src/gen/formatter/delete.rst
     /src/gen/formatter/double.rst
     /src/gen/formatter/envelope.rst
-    /src/gen/formatter/extractjson.rst
-    /src/gen/formatter/groktojson.rst
+    /src/gen/formatter/flatten.rst
+    /src/gen/formatter/geoip.rst
+    /src/gen/formatter/grok.rst
     /src/gen/formatter/hostname.rst
     /src/gen/formatter/identifier.rst
-    /src/gen/formatter/jsontoarray.rst
-    /src/gen/formatter/jsontoinflux10.rst
-    /src/gen/formatter/metadatacopy.rst
-    /src/gen/formatter/processjson.rst
-    /src/gen/formatter/processtsv.rst
+    /src/gen/formatter/json.rst
+    /src/gen/formatter/move.rst
     /src/gen/formatter/regexp.rst
+    /src/gen/formatter/replace.rst
     /src/gen/formatter/runlength.rst
     /src/gen/formatter/sequence.rst
-    /src/gen/formatter/serialize.rst
+    /src/gen/formatter/split.rst
     /src/gen/formatter/splitpick.rst
-    /src/gen/formatter/splittojson.rst
+    /src/gen/formatter/splittofields.rst
     /src/gen/formatter/streamname.rst
     /src/gen/formatter/streamrevert.rst
     /src/gen/formatter/streamroute.rst
-    /src/gen/formatter/templatejson.rst
-    /src/gen/formatter/texttojson.rst
+    /src/gen/formatter/template.rst
     /src/gen/formatter/timestamp.rst
+    /src/gen/formatter/tocsv.rst
+    /src/gen/formatter/tojson.rst
     /src/gen/formatter/trim.rst
+    /src/gen/formatter/trimtobounds.rst

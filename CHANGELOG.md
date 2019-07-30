@@ -19,6 +19,7 @@ Go 1.10 and 1.9 are still supported. Support for Go 1.8 or older has been droppe
 
 ### Breaking changes with 0.6.0
 
+* Format.SplitPick default delimiter is now ","
 * Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
   Old-style metrics have been removed and many metrics names have changed.
 * Consumer.File setting "File" has been renamed to "Files"

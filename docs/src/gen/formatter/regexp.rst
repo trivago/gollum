@@ -39,11 +39,28 @@ Parameters
 Parameters (from core.SimpleFormatter)
 --------------------------------------
 
+**Source**
+
+  This value chooses the part of the message the data to be formatted
+  should be read from. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
+
+**Target**
+
+  This value chooses the part of the message the formatted data
+  should be stored to. Use "" to target the message payload; other values
+  specify the name of a metadata field to target.
+  By default this parameter is set to "".
+  
+  
+
 **ApplyTo**
 
-  This value chooses the part of the message the formatting
-  should be applied to. Use "" to target the message payload; other values
-  specify the name of a metadata field to target.
+  Use this to set Source and Target to the same value. This setting
+  will be ignored if either Source or Target is set to something else but "".
   By default this parameter is set to "".
   
   

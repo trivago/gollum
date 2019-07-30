@@ -52,6 +52,15 @@ Parameters
   
   
 
+**Permissions** (default: 0770)
+
+  This value sets the filesystem permissions
+  as a four-digit octal number in case the address is a Unix domain socket
+  (i.e. unix://<filesystem-path>).
+  By default this parameter is set to "0770".
+  
+  
+
 **SetMetadata** (default: false)
 
   When set to true, syslog based metadata will be attached to
