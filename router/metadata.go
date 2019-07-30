@@ -59,7 +59,13 @@ func (router *Metadata) Enqueue(msg *core.Message) error {
 		return router.Broadcast.Enqueue(msg)
 	}
 
-	streamName, _ := metadata.String(router.key)
+	val, exists := metadata.Value(router.key)
+	if !exists {
+		return router.Broadcast.Enqueue(msg)
+	}
+
+	streamName := core.ConvertToString(val)
+
 	targetID := core.GetStreamID(streamName)
 	if targetID == core.InvalidStreamID {
 		return router.Broadcast.Enqueue(msg)
