@@ -16,10 +16,13 @@ Go 1.10 and 1.9 are still supported. Support for Go 1.8 or older has been droppe
 * Consumer.Syslog now allows non-standard protocol types (see issue #234)
 * Message metadata can now store arbitrary data
 * When not setting the numbers of CPU, gollum will try to use cgroup limits
+* format.Cast for changing metadata field types
+* format.Override to set static field values
 
 ### Breaking changes with 0.6.0
 
 * Format.SplitPick default delimiter is now ","
+* Multiple formatters have been renamed to support the new metadata model
 * Metrics are now collected using go-metrics. This allows e.g. prometheus output (default).
   Old-style metrics have been removed and many metrics names have changed.
 * Consumer.File setting "File" has been renamed to "Files"
