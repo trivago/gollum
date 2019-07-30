@@ -38,11 +38,11 @@ import (
 //    Streams: stdin
 //    Modulators:
 //      - format.Cast
-//        Target: bar
-//        AsType: "string"
+//        ApplyTo: bar
+//        ToType: "string"
 type Cast struct {
 	core.SimpleFormatter `gollumdoc:"embed_type"`
-	asType               string `config:"AsType" default:"string"`
+	toType               string `config:"ToType" default:"string"`
 	castMessage          func(*core.Message) error
 }
 
@@ -52,8 +52,8 @@ func init() {
 
 // Configure initializes this formatter with values from a plugin config.
 func (format *Cast) Configure(conf core.PluginConfigReader) {
-	format.asType = strings.ToLower(format.asType)
-	switch format.asType {
+	format.toType = strings.ToLower(format.toType)
+	switch format.toType {
 	case "string":
 		format.castMessage = format.stringCast
 	case "bytes":
