@@ -8,6 +8,7 @@
     /src/gen/formatter/aggregate.rst
     /src/gen/formatter/base64decode.rst
     /src/gen/formatter/base64encode.rst
+    /src/gen/formatter/cast.rst
     /src/gen/formatter/converttime.rst
     /src/gen/formatter/copy.rst
     /src/gen/formatter/delete.rst
@@ -20,6 +21,7 @@
     /src/gen/formatter/identifier.rst
     /src/gen/formatter/json.rst
     /src/gen/formatter/move.rst
+    /src/gen/formatter/override.rst
     /src/gen/formatter/regexp.rst
     /src/gen/formatter/replace.rst
     /src/gen/formatter/runlength.rst
