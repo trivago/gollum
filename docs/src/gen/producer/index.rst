@@ -21,5 +21,6 @@
     /src/gen/producer/scribe.rst
     /src/gen/producer/socket.rst
     /src/gen/producer/spooling.rst
+    /src/gen/producer/stackdriver.rst
     /src/gen/producer/statsdmetrics.rst
     /src/gen/producer/websocket.rst
