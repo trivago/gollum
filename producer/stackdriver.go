@@ -41,14 +41,6 @@ import (
 // message payload will be passed as string.
 // By default this is setting is set to "".
 //
-// - LogName: Defines a mapping between stream name and log name. If not set,
-// the stream name will be used as a log name. By default no mapping is set.
-//
-// - Labels: An array of metadata keys, that should be extracted from each message
-// and used as a label. If a key is not available for a single message, the label
-// will still be set with an empty string as value.
-// By default this is set to an empty array.
-//
 // - Severity: If set, this denotes a metadata field containing a valid severity
 // string. Valid, case sensitive strings are "Default", "Debug", "Info", "Notice",
 // "Warning", "Error", "Critical", "Alert" and "Emergency". If a value fails to be
@@ -58,6 +50,14 @@ import (
 //
 // - DefaultSeverity: The severity to use if no severity is set or parsing of the
 // Severity metadata field failed. By default this is set to "Default".
+//
+// - LogName: Defines a mapping between stream name and log name. If not set,
+// the stream name will be used as a log name. By default no mapping is set.
+//
+// - Labels: An array of metadata keys, that should be extracted from each message
+// and used as a label. If a key is not available for a single message, the label
+// will still be set with an empty string as value.
+// By default this is set to an empty array.
 //
 // Examples
 //
