@@ -15,17 +15,18 @@
 package core
 
 import (
-	"github.com/trivago/tgo/ttesting"
 	"testing"
 	"time"
+
+	"github.com/trivago/tgo/ttesting"
 )
 
 func getSimpleConsumer(mockConf PluginConfig) (SimpleConsumer, error) {
 	simpleConsumer := SimpleConsumer{
-	//control:         make(chan PluginControl),
-	//runState:        new(PluginRunState),
-	//modulators:      ModulatorArray{},
-	//Logger:          logrus.WithField("Scope", "test"),
+		//control:         make(chan PluginControl),
+		//runState:        new(PluginRunState),
+		//modulators:      ModulatorArray{},
+		//Logger:          logrus.WithField("Scope", "test"),
 	}
 
 	reader := NewPluginConfigReader(&mockConf)

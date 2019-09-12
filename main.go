@@ -37,8 +37,8 @@ import (
 	"github.com/trivago/tgo/thealthcheck"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tos"
-	"golang.org/x/crypto/ssh/terminal"
 	"go.uber.org/automaxprocs/maxprocs"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // logrusHookBuffer is our single instance of LogrusHookBuffer
