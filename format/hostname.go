@@ -67,10 +67,10 @@ func (format *Hostname) ApplyFormatter(msg *core.Message) error {
 	return nil
 }
 
-func (format *Hostname) getFinalContent(content []byte) []byte {
+func (format *Hostname) getFinalContent(content []byte) string {
 	hostname, err := os.Hostname()
 	if err != nil {
-		format.Logger.Error(err)
+		format.Logger.WithError(err).Error("failed to retrieve hostname")
 		hostname = "unknown host"
 	}
 
@@ -81,5 +81,5 @@ func (format *Hostname) getFinalContent(content []byte) []byte {
 	offset += copy(payload[offset:], format.separator)
 	copy(payload[offset:], content)
 
-	return payload
+	return string(payload)
 }
