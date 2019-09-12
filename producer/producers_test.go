@@ -41,6 +41,11 @@ func TestProducerInterface(t *testing.T) {
 	var idx int
 	for idx, name = range producers {
 		conf := core.NewPluginConfig(fmt.Sprintf("prod%d", idx), name)
+
+		if name == "producer.Stackdriver" {
+			conf.Override("ProjectID", "foo")
+		}
+
 		_, err := core.NewPluginWithConfig(conf)
 		if err != nil {
 			t.Errorf("Failed to create producer %s: %s", name, err.Error())
