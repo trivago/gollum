@@ -46,7 +46,7 @@ pi:
 win:
 	@echo "\033[0;33mBuilding for Windows/x64\033[0;0m"
 	@GOOS=windows GOARCH=amd64 $(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)" -o gollum.exe
-	@zip dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip gollum
+	@zip dist/gollum-$(GOLLUM_VERSION)-Windows_x64.zip gollum.exe
 
 .PHONY: docker # Build the gollum docker image
 docker:
