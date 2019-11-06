@@ -1,6 +1,7 @@
 module github.com/trivago/gollum
 
 require (
+	cloud.google.com/go/logging v1.0.0
 	github.com/CrowdStrike/go-metrics-prometheus v0.0.0-20190206080537-f2bb39ee2c39
 	github.com/MeteoGroup/go-metrics-prometheus v0.0.0-20170102121754-1d412ec2ed4f // indirect
 	github.com/Shopify/sarama v1.17.0
@@ -21,7 +22,7 @@ require (
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-redis/redis v6.14.0+incompatible
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/protobuf v1.3.2
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/gorilla/websocket v1.3.0
 	github.com/mattn/go-colorable v0.0.9 // indirect
@@ -45,9 +46,7 @@ require (
 	github.com/trivago/tgo v1.0.7
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	go.uber.org/automaxprocs v1.2.0
-	golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac
-	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d // indirect
-	golang.org/x/sys v0.0.0-20180828065106-d99a578cf41b // indirect
+	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	gopkg.in/mcuadros/go-syslog.v2 v2.2.1
 	gopkg.in/olivere/elastic.v5 v5.0.74
 	gopkg.in/oschwald/geoip2-golang.v1 v1.2.1
