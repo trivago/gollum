@@ -17,11 +17,12 @@ package components
 import (
 	"fmt"
 
+	"gollum/core"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/trivago/gollum/core"
 )
 
 // DefaultAwsRegion defines the default region to use

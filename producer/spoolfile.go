@@ -27,7 +27,8 @@ import (
 
 	metrics "github.com/rcrowley/go-metrics"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
+
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tmath"
 	"github.com/trivago/tgo/tstrings"

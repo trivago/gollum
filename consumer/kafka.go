@@ -27,9 +27,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"gollum/core"
+
 	kafka "github.com/Shopify/sarama"
 	cluster "github.com/bsm/sarama-cluster"
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tsync"
 )
 

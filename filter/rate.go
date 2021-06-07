@@ -19,8 +19,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"gollum/core"
+
 	"github.com/rcrowley/go-metrics"
-	"github.com/trivago/gollum/core"
 )
 
 // Rate filter plugin

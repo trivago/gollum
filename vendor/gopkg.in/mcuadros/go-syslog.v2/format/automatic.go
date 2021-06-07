@@ -3,7 +3,6 @@ package format
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"strconv"
 
 	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser/rfc3164"
@@ -31,33 +30,40 @@ const (
 	detectedRFC6587 = iota
 )
 
-func detect(data []byte) (detected int, err error) {
+/*
+ * Will always fallback to rfc3164 (see section 4.3.3)
+ */
+func detect(data []byte) int {
 	// all formats have a sapce somewhere
 	if i := bytes.IndexByte(data, ' '); i > 0 {
 		pLength := data[0:i]
 		if _, err := strconv.Atoi(string(pLength)); err == nil {
-			return detectedRFC6587, nil
+			return detectedRFC6587
 		}
-
+		// are we starting with <
+		if data[0] != '<' {
+			return detectedRFC3164
+		}
 		// is there a close angle bracket before the ' '? there should be
 		angle := bytes.IndexByte(data, '>')
 		if (angle < 0) || (angle >= i) {
-			return detectedUnknown, errors.New("No close angle bracket before space")
+			return detectedRFC3164
 		}
 
 		// if a single digit immediately follows the angle bracket, then a space
 		// it is RFC5424, as RFC3164 must begin with a letter (month name)
 		if (angle+2 == i) && (data[angle+1] >= '0') && (data[angle+1] <= '9') {
-			return detectedRFC5424, nil
+			return detectedRFC5424
 		} else {
-			return detectedRFC3164, nil
+			return detectedRFC3164
 		}
 	}
-	return detectedUnknown, nil
+	// fallback to rfc 3164 section 4.3.3
+	return detectedRFC3164
 }
 
 func (f *Automatic) GetParser(line []byte) LogParser {
-	switch format, _ := detect(line); format {
+	switch format := detect(line); format {
 	case detectedRFC3164:
 		return &parserWrapper{rfc3164.NewParser(line)}
 	case detectedRFC5424:
@@ -82,7 +88,7 @@ func (f *Automatic) automaticScannerSplit(data []byte, atEOF bool) (advance int,
 		return 0, nil, nil
 	}
 
-	switch format, err := detect(data); format {
+	switch format := detect(data); format {
 	case detectedRFC6587:
 		return rfc6587ScannerSplit(data, atEOF)
 	case detectedRFC3164, detectedRFC5424:

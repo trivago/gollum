@@ -19,10 +19,10 @@ import (
 	"runtime/debug"
 	"testing"
 
-	"github.com/trivago/gollum/core"
-	_ "github.com/trivago/gollum/filter"
-	_ "github.com/trivago/gollum/format"
-	_ "github.com/trivago/gollum/router"
+	"gollum/core"
+	_ "gollum/filter"
+	_ "gollum/format"
+	_ "gollum/router"
 )
 
 func TestProducerInterface(t *testing.T) {

@@ -19,11 +19,12 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+	"gollum/core/components"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/firehose"
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
 )
 
 // AwsFirehose producer plugin

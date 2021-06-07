@@ -15,7 +15,7 @@
 package format
 
 import (
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // StreamRevert formatter

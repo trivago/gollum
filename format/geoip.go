@@ -18,8 +18,9 @@ import (
 	"net"
 	"strings"
 
+	"gollum/core"
+
 	"github.com/mmcloughlin/geohash"
-	"github.com/trivago/gollum/core"
 	geoip2 "gopkg.in/oschwald/geoip2-golang.v1"
 )
 

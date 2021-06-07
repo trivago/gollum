@@ -17,7 +17,7 @@ package format
 import (
 	"strings"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Trim formatter plugin

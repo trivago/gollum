@@ -16,8 +16,8 @@ package consumer
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/core"
-	_ "github.com/trivago/gollum/router"
+	"gollum/core"
+	_ "gollum/router"
 	"runtime/debug"
 	"testing"
 )

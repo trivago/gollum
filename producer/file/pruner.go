@@ -16,12 +16,13 @@ package file
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/tgo/tio"
+	"gollum/core"
+	"gollum/core/components"
 	"os"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/trivago/tgo/tio"
 )
 
 // Pruner file producer pruning component

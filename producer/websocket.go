@@ -20,8 +20,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"gollum/core"
+
 	"github.com/gorilla/websocket"
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tsync"
 )

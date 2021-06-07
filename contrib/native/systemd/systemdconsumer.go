@@ -23,8 +23,9 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+
 	"github.com/coreos/go-systemd/sdjournal"
-	"github.com/trivago/gollum/core"
 )
 
 // SystemdConsumer consumer plugin

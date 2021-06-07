@@ -27,18 +27,18 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	_ "github.com/trivago/gollum/consumer"
-	"github.com/trivago/gollum/core"
-	_ "github.com/trivago/gollum/filter"
-	_ "github.com/trivago/gollum/format"
-	"github.com/trivago/gollum/logger"
-	_ "github.com/trivago/gollum/producer"
-	_ "github.com/trivago/gollum/router"
 	"github.com/trivago/tgo/thealthcheck"
 	"github.com/trivago/tgo/tnet"
 	"github.com/trivago/tgo/tos"
-	"golang.org/x/crypto/ssh/terminal"
 	"go.uber.org/automaxprocs/maxprocs"
+	"golang.org/x/crypto/ssh/terminal"
+	_ "gollum/consumer"
+	"gollum/core"
+	_ "gollum/filter"
+	_ "gollum/format"
+	"gollum/logger"
+	_ "gollum/producer"
+	_ "gollum/router"
 )
 
 // logrusHookBuffer is our single instance of LogrusHookBuffer

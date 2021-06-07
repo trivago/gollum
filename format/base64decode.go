@@ -17,7 +17,7 @@ package format
 import (
 	"encoding/base64"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Base64Decode formatter plugin

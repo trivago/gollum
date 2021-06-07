@@ -17,7 +17,7 @@ package format
 import (
 	"regexp"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // RegExp formatter

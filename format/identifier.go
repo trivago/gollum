@@ -15,7 +15,7 @@
 package format
 
 import (
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 	"hash/fnv"
 	"strconv"
 	"strings"

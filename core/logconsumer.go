@@ -19,9 +19,10 @@ import (
 	"sync"
 	"time"
 
+	"gollum/logger"
+
 	"github.com/rcrowley/go-metrics"
 	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/logger"
 )
 
 // LogConsumer is an internal consumer plugin used indirectly by the gollum log

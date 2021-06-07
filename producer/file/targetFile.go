@@ -21,7 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/trivago/gollum/core/components"
+	"gollum/core/components"
+
 	"github.com/trivago/tgo/tstrings"
 )
 

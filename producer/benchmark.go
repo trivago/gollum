@@ -15,7 +15,7 @@
 package producer
 
 import (
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 	"sync"
 )
 

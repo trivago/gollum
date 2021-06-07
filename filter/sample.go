@@ -17,7 +17,7 @@ package filter
 import (
 	"sync/atomic"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Sample filter plugin

@@ -22,8 +22,9 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+
 	"github.com/miekg/pcap"
-	"github.com/trivago/gollum/core"
 )
 
 // PcapHTTPConsumer consumer

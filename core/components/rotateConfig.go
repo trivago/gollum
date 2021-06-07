@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // RotateConfig defines rotation settings

@@ -28,6 +28,8 @@ var (
 	ErrVersionNotFound = &ParserError{"Can not find version"}
 
 	ErrTimestampUnknownFormat = &ParserError{"Timestamp format unknown"}
+
+	ErrHostnameTooShort = &ParserError{"Hostname field too short"}
 )
 
 type LogParser interface {
@@ -180,6 +182,11 @@ func Parse2Digits(buff []byte, cursor *int, l int, min int, max int, e error) (i
 
 func ParseHostname(buff []byte, cursor *int, l int) (string, error) {
 	from := *cursor
+
+	if from >= l {
+		return "", ErrHostnameTooShort
+	}
+
 	var to int
 
 	for to = from; to < l; to++ {

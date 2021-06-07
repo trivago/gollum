@@ -19,11 +19,12 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+
 	"github.com/artyom/fb303"
 	"github.com/artyom/scribe"
 	"github.com/artyom/thrift"
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tmath"
 )
 

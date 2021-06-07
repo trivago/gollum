@@ -18,7 +18,7 @@ import (
 	"runtime/debug"
 	"testing"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 func TestFormatters(t *testing.T) {

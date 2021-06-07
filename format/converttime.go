@@ -19,7 +19,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // ConvertTime formatter

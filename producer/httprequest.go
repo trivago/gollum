@@ -25,7 +25,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
+
 	"github.com/trivago/tgo/thealthcheck"
 )
 

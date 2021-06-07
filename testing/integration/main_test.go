@@ -6,7 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
+
 	"github.com/trivago/tgo/ttesting"
 )
 

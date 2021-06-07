@@ -15,7 +15,7 @@
 package filter
 
 import (
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Any filter plugin

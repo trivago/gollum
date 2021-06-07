@@ -258,7 +258,7 @@ func (s *Server) parser(line []byte, client string, tlsPeer string) {
 
 	logParts := parser.Dump()
 	logParts["client"] = client
-	if logParts["hostname"] == "" && s.format == RFC3164 {
+	if logParts["hostname"] == "" && (s.format == RFC3164 || s.format == Automatic) {
 		if i := strings.Index(client, ":"); i > 1 {
 			logParts["hostname"] = client[:i]
 		} else {

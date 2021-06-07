@@ -17,7 +17,7 @@ package format
 import (
 	"os"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Hostname formatter

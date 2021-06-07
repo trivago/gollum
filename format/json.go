@@ -17,7 +17,7 @@ package format
 import (
 	"encoding/json"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // JSON formatter

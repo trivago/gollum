@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"text/template"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Template formatter

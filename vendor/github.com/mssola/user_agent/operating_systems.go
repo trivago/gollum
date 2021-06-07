@@ -1,18 +1,34 @@
-// Copyright (C) 2012-2014 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2012-2021 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
 package user_agent
 
-import "strings"
+import (
+	"strings"
+)
+
+// OSInfo represents full information on the operating system extracted from the
+// user agent.
+type OSInfo struct {
+	// Full name of the operating system. This is identical to the output of ua.OS()
+	FullName string
+
+	// Name of the operating system. This is sometimes a shorter version of the
+	// operating system name, e.g. "Mac OS X" instead of "Intel Mac OS X"
+	Name string
+
+	// Operating system version, e.g. 7 for Windows 7 or 10.8 for Max OS X Mountain Lion
+	Version string
+}
 
 // Normalize the name of the operating system. By now, this just
-// affects to Windows.
+// affects to Windows NT.
 //
 // Returns a string containing the normalized name for the Operating System.
 func normalizeOS(name string) string {
 	sp := strings.SplitN(name, " ", 3)
-	if len(sp) != 3 {
+	if len(sp) != 3 || sp[1] != "NT" {
 		return name
 	}
 
@@ -33,7 +49,7 @@ func normalizeOS(name string) string {
 		return "Windows 8"
 	case "6.3":
 		return "Windows 8.1"
-	case "6.4":
+	case "10.0":
 		return "Windows 10"
 	}
 	return name
@@ -62,7 +78,7 @@ func webkit(p *UserAgent, comment []string) {
 			p.browser.Name = "Android"
 		}
 		if len(comment) > 1 {
-			if comment[1] == "U" {
+			if comment[1] == "U" || comment[1] == "arm_64" {
 				if len(comment) > 2 {
 					p.os = comment[2]
 				} else {
@@ -75,6 +91,8 @@ func webkit(p *UserAgent, comment []string) {
 		}
 		if len(comment) > 3 {
 			p.localization = comment[3]
+		} else if len(comment) == 3 {
+			_ = p.googleOrBingBot()
 		}
 	} else if len(comment) > 0 {
 		if len(comment) > 3 {
@@ -85,7 +103,7 @@ func webkit(p *UserAgent, comment []string) {
 		} else if len(comment) < 2 {
 			p.localization = comment[0]
 		} else if len(comment) < 3 {
-			if !p.googleBot() {
+			if !p.googleOrBingBot() && !p.iMessagePreview() {
 				p.os = normalizeOS(comment[1])
 			}
 		} else {
@@ -98,6 +116,12 @@ func webkit(p *UserAgent, comment []string) {
 			}
 		}
 	}
+
+	// Special case for Firefox on iPad, where the platform is advertised as Macintosh instead of iPad
+	if p.platform == "Macintosh" && p.browser.Engine == "AppleWebKit" && p.browser.Name == "Firefox" {
+		p.platform = "iPad"
+		p.mobile = true
+	}
 }
 
 // Guess the OS, the localization and if this is a mobile device
@@ -107,14 +131,14 @@ func webkit(p *UserAgent, comment []string) {
 // argument is a slice of strings containing the comment.
 func gecko(p *UserAgent, comment []string) {
 	if len(comment) > 1 {
-		if comment[1] == "U" {
+		if comment[1] == "U" || comment[1] == "arm_64" {
 			if len(comment) > 2 {
 				p.os = normalizeOS(comment[2])
 			} else {
 				p.os = normalizeOS(comment[1])
 			}
 		} else {
-			if p.platform == "Android" {
+			if strings.Contains(p.platform, "Android") {
 				p.mobile = true
 				p.platform, p.os = normalizeOS(comment[1]), p.platform
 			} else if comment[0] == "Mobile" || comment[0] == "Tablet" {
@@ -126,7 +150,9 @@ func gecko(p *UserAgent, comment []string) {
 				}
 			}
 		}
-		if len(comment) > 3 {
+		// Only parse 4th comment as localization if it doesn't start with rv:.
+		// For example Firefox on Ubuntu contains "rv:XX.X" in this field.
+		if len(comment) > 3 && !strings.HasPrefix(comment[3], "rv:") {
 			p.localization = comment[3]
 		}
 	}
@@ -193,6 +219,23 @@ func opera(p *UserAgent, comment []string) {
 	}
 }
 
+// Guess the OS. Android browsers send Dalvik as the user agent in the
+// request header.
+//
+// The first argument p is a reference to the current UserAgent and the second
+// argument is a slice of strings containing the comment.
+func dalvik(p *UserAgent, comment []string) {
+	slen := len(comment)
+
+	if strings.HasPrefix(comment[0], "Linux") {
+		p.platform = comment[0]
+		if slen > 2 {
+			p.os = comment[2]
+		}
+		p.mobile = true
+	}
+}
+
 // Given the comment of the first section of the UserAgent string,
 // get the platform.
 func getPlatform(comment []string) string {
@@ -238,23 +281,92 @@ func (p *UserAgent) detectOS(s section) {
 		if len(s.comment) > 0 {
 			opera(p, s.comment)
 		}
+	} else if s.name == "Dalvik" {
+		if len(s.comment) > 0 {
+			dalvik(p, s.comment)
+		}
+	} else if s.name == "okhttp" {
+		p.mobile = true
+		p.browser.Name = "OkHttp"
+		p.browser.Version = s.version
 	} else {
 		// Check whether this is a bot or just a weird browser.
 		p.undecided = true
 	}
 }
 
-// Returns a string containing the platform..
+// Platform returns a string containing the platform..
 func (p *UserAgent) Platform() string {
 	return p.platform
 }
 
-// Returns a string containing the name of the Operating System.
+// OS returns a string containing the name of the Operating System.
 func (p *UserAgent) OS() string {
 	return p.os
 }
 
-// Returns a string containing the localization.
+// Localization returns a string containing the localization.
 func (p *UserAgent) Localization() string {
 	return p.localization
+}
+
+// Return OS name and version from a slice of strings created from the full name of the OS.
+func osName(osSplit []string) (name, version string) {
+	if len(osSplit) == 1 {
+		name = osSplit[0]
+		version = ""
+	} else {
+		// Assume version is stored in the last part of the array.
+		nameSplit := osSplit[:len(osSplit)-1]
+		version = osSplit[len(osSplit)-1]
+
+		// Nicer looking Mac OS X
+		if len(nameSplit) >= 2 && nameSplit[0] == "Intel" && nameSplit[1] == "Mac" {
+			nameSplit = nameSplit[1:]
+		}
+		name = strings.Join(nameSplit, " ")
+
+		if strings.Contains(version, "x86") || strings.Contains(version, "i686") {
+			// x86_64 and i868 are not Linux versions but architectures
+			version = ""
+		} else if version == "X" && name == "Mac OS" {
+			// X is not a version for Mac OS.
+			name = name + " " + version
+			version = ""
+		}
+	}
+	return name, version
+}
+
+// OSInfo returns combined information for the operating system.
+func (p *UserAgent) OSInfo() OSInfo {
+	// Special case for iPhone weirdness
+	os := strings.Replace(p.os, "like Mac OS X", "", 1)
+	os = strings.Replace(os, "CPU", "", 1)
+	os = strings.Trim(os, " ")
+
+	osSplit := strings.Split(os, " ")
+
+	// Special case for x64 edition of Windows
+	if os == "Windows XP x64 Edition" {
+		osSplit = osSplit[:len(osSplit)-2]
+	}
+
+	name, version := osName(osSplit)
+
+	// Special case for names that contain a forward slash version separator.
+	if strings.Contains(name, "/") {
+		s := strings.Split(name, "/")
+		name = s[0]
+		version = s[1]
+	}
+
+	// Special case for versions that use underscores
+	version = strings.Replace(version, "_", ".", -1)
+
+	return OSInfo{
+		FullName: p.os,
+		Name:     name,
+		Version:  version,
+	}
 }

@@ -17,7 +17,7 @@ package filter
 import (
 	"regexp"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // RegExp filter

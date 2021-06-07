@@ -2,6 +2,7 @@ package rfc3164
 
 import (
 	"bytes"
+	"os"
 	"time"
 
 	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser"
@@ -43,12 +44,22 @@ func (p *Parser) Location(location *time.Location) {
 }
 
 func (p *Parser) Parse() error {
+	tcursor := p.cursor
 	pri, err := p.parsePriority()
 	if err != nil {
-		return err
+		// RFC3164 sec 4.3.3
+		p.priority = syslogparser.Priority{13, syslogparser.Facility{Value: 1}, syslogparser.Severity{Value: 5}}
+		p.cursor = tcursor
+		content, err := p.parseContent()
+		p.header.timestamp = time.Now().Round(time.Second)
+		if err != syslogparser.ErrEOL {
+			return err
+		}
+		p.message = rfc3164message{content: content}
+		return nil
 	}
 
-	tcursor := p.cursor
+	tcursor = p.cursor
 	hdr, err := p.parseHeader()
 	if err == syslogparser.ErrTimestampUnknownFormat {
 		// RFC3164 sec 4.3.2.
@@ -142,8 +153,16 @@ func (p *Parser) parseTimestamp() (time.Time, error) {
 	var sub []byte
 
 	tsFmts := []string{
-		"Jan 02 15:04:05",
-		"Jan  2 15:04:05",
+		time.Stamp,
+		time.RFC3339,
+	}
+	// if timestamps starts with numeric try formats with different order
+	// it is more likely that timestamp is in RFC3339 format then
+	if c := p.buff[p.cursor]; c > '0' && c < '9' {
+		tsFmts = []string{
+			time.RFC3339,
+			time.Stamp,
+		}
 	}
 
 	found := false
@@ -163,7 +182,7 @@ func (p *Parser) parseTimestamp() (time.Time, error) {
 	}
 
 	if !found {
-		p.cursor = tsFmtLen
+		p.cursor = len(time.Stamp)
 
 		// XXX : If the timestamp is invalid we try to push the cursor one byte
 		// XXX : further, in case it is a space
@@ -186,7 +205,17 @@ func (p *Parser) parseTimestamp() (time.Time, error) {
 }
 
 func (p *Parser) parseHostname() (string, error) {
-	return syslogparser.ParseHostname(p.buff, &p.cursor, p.l)
+	oldcursor := p.cursor
+	hostname, err := syslogparser.ParseHostname(p.buff, &p.cursor, p.l)
+	if err == nil && len(hostname) > 0 && string(hostname[len(hostname)-1]) == ":" { // not an hostname! we found a GNU implementation of syslog()
+		p.cursor = oldcursor - 1
+		myhostname, err := os.Hostname()
+		if err == nil {
+			return myhostname, nil
+		}
+		return "", nil
+	}
+	return hostname, err
 }
 
 // http://tools.ietf.org/html/rfc3164#section-4.1.3

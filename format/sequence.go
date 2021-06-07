@@ -18,7 +18,7 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Sequence formatter

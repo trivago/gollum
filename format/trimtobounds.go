@@ -17,7 +17,7 @@ package format
 import (
 	"bytes"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // TrimToBounds formatter

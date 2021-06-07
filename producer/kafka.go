@@ -23,9 +23,10 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+
 	kafka "github.com/Shopify/sarama"
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/trivago/gollum/core"
 )
 
 const (

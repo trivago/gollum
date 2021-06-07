@@ -14,6 +14,9 @@ import (
 // The Header may change between Read() calls in case of concatenated frames.
 type Reader struct {
 	Header
+	// Handler called when a block has been successfully read.
+	// It provides the number of bytes read.
+	OnBlockDone func(size int)
 
 	buf      [8]byte       // Scrap buffer.
 	pos      int64         // Current position in src.
@@ -22,6 +25,8 @@ type Reader struct {
 	data     []byte        // Uncompressed data.
 	idx      int           // Index of unread bytes into data.
 	checksum xxh32.XXHZero // Frame hash.
+	skip     int64         // Bytes to skip before next read.
+	dpos     int64         // Position in dest
 }
 
 // NewReader returns a new LZ4 frame decoder.
@@ -76,17 +81,17 @@ func (z *Reader) readHeader(first bool) error {
 		return fmt.Errorf("lz4: invalid version: got %d; expected %d", v, Version)
 	}
 	if b>>5&1 == 0 {
-		return fmt.Errorf("lz4: block dependency not supported")
+		return ErrBlockDependency
 	}
 	z.BlockChecksum = b>>4&1 > 0
 	frameSize := b>>3&1 > 0
 	z.NoChecksum = b>>2&1 == 0
 
 	bmsID := buf[1] >> 4 & 0x7
-	bSize, ok := bsMapID[bmsID]
-	if !ok {
+	if bmsID < 4 || bmsID > 7 {
 		return fmt.Errorf("lz4: invalid block max size ID: %d", bmsID)
 	}
+	bSize := blockSizeIndexToValue(bmsID - 4)
 	z.BlockMaxSize = bSize
 
 	// Allocate the compressed/uncompressed buffers.
@@ -94,12 +99,14 @@ func (z *Reader) readHeader(first bool) error {
 	if n := 2 * bSize; cap(z.zdata) < n {
 		z.zdata = make([]byte, n, n)
 	}
-	debug("header block max size id=%d size=%d", bmsID, bSize)
+	if debugFlag {
+		debug("header block max size id=%d size=%d", bmsID, bSize)
+	}
 	z.zdata = z.zdata[:bSize]
 	z.data = z.zdata[:cap(z.zdata)][bSize:]
 	z.idx = len(z.data)
 
-	z.checksum.Write(buf[0:2])
+	_, _ = z.checksum.Write(buf[0:2])
 
 	if frameSize {
 		buf := buf[:8]
@@ -108,7 +115,7 @@ func (z *Reader) readHeader(first bool) error {
 		}
 		z.Size = binary.LittleEndian.Uint64(buf)
 		z.pos += 8
-		z.checksum.Write(buf)
+		_, _ = z.checksum.Write(buf)
 	}
 
 	// Header checksum.
@@ -121,7 +128,9 @@ func (z *Reader) readHeader(first bool) error {
 	}
 
 	z.Header.done = true
-	debug("header read: %v", z.Header)
+	if debugFlag {
+		debug("header read: %v", z.Header)
+	}
 
 	return nil
 }
@@ -132,13 +141,17 @@ func (z *Reader) readHeader(first bool) error {
 // change between calls to Read(). If that is the case, no data is actually read from
 // the underlying io.Reader, to allow for potential input buffer resizing.
 func (z *Reader) Read(buf []byte) (int, error) {
-	debug("Read buf len=%d", len(buf))
+	if debugFlag {
+		debug("Read buf len=%d", len(buf))
+	}
 	if !z.Header.done {
 		if err := z.readHeader(true); err != nil {
 			return 0, err
 		}
-		debug("header read OK compressed buffer %d / %d uncompressed buffer %d : %d index=%d",
-			len(z.zdata), cap(z.zdata), len(z.data), cap(z.data), z.idx)
+		if debugFlag {
+			debug("header read OK compressed buffer %d / %d uncompressed buffer %d : %d index=%d",
+				len(z.zdata), cap(z.zdata), len(z.data), cap(z.data), z.idx)
+		}
 	}
 
 	if len(buf) == 0 {
@@ -147,7 +160,12 @@ func (z *Reader) Read(buf []byte) (int, error) {
 
 	if z.idx == len(z.data) {
 		// No data ready for reading, process the next block.
-		debug("reading block from writer")
+		if debugFlag {
+			debug("reading block from writer")
+		}
+		// Reset uncompressed buffer
+		z.data = z.zdata[:cap(z.zdata)][len(z.zdata):]
+
 		// Block length: 0 = end of frame, highest bit set: uncompressed.
 		bLen, err := z.readUint32()
 		if err != nil {
@@ -163,7 +181,9 @@ func (z *Reader) Read(buf []byte) (int, error) {
 				if err != nil {
 					return 0, err
 				}
-				debug("frame checksum got=%x / want=%x", z.checksum.Sum32(), checksum)
+				if debugFlag {
+					debug("frame checksum got=%x / want=%x", z.checksum.Sum32(), checksum)
+				}
 				z.pos += 4
 				if h := z.checksum.Sum32(); checksum != h {
 					return 0, fmt.Errorf("lz4: invalid frame checksum: got %x; expected %x", h, checksum)
@@ -179,11 +199,15 @@ func (z *Reader) Read(buf []byte) (int, error) {
 			return 0, z.readHeader(false)
 		}
 
-		debug("raw block size %d", bLen)
+		if debugFlag {
+			debug("raw block size %d", bLen)
+		}
 		if bLen&compressedBlockFlag > 0 {
 			// Uncompressed block.
 			bLen &= compressedBlockMask
-			debug("uncompressed block size %d", bLen)
+			if debugFlag {
+				debug("uncompressed block size %d", bLen)
+			}
 			if int(bLen) > cap(z.data) {
 				return 0, fmt.Errorf("lz4: invalid block size: %d", bLen)
 			}
@@ -192,6 +216,9 @@ func (z *Reader) Read(buf []byte) (int, error) {
 				return 0, err
 			}
 			z.pos += int64(bLen)
+			if z.OnBlockDone != nil {
+				z.OnBlockDone(int(bLen))
+			}
 
 			if z.BlockChecksum {
 				checksum, err := z.readUint32()
@@ -207,7 +234,9 @@ func (z *Reader) Read(buf []byte) (int, error) {
 
 		} else {
 			// Compressed block.
-			debug("compressed block size %d", bLen)
+			if debugFlag {
+				debug("compressed block size %d", bLen)
+			}
 			if int(bLen) > cap(z.data) {
 				return 0, fmt.Errorf("lz4: invalid block size: %d", bLen)
 			}
@@ -234,20 +263,53 @@ func (z *Reader) Read(buf []byte) (int, error) {
 				return 0, err
 			}
 			z.data = z.data[:n]
+			if z.OnBlockDone != nil {
+				z.OnBlockDone(n)
+			}
 		}
 
 		if !z.NoChecksum {
-			z.checksum.Write(z.data)
-			debug("current frame checksum %x", z.checksum.Sum32())
+			_, _ = z.checksum.Write(z.data)
+			if debugFlag {
+				debug("current frame checksum %x", z.checksum.Sum32())
+			}
 		}
 		z.idx = 0
 	}
 
+	if z.skip > int64(len(z.data[z.idx:])) {
+		z.skip -= int64(len(z.data[z.idx:]))
+		z.dpos += int64(len(z.data[z.idx:]))
+		z.idx = len(z.data)
+		return 0, nil
+	}
+
+	z.idx += int(z.skip)
+	z.dpos += z.skip
+	z.skip = 0
+
 	n := copy(buf, z.data[z.idx:])
 	z.idx += n
-	debug("copied %d bytes to input", n)
+	z.dpos += int64(n)
+	if debugFlag {
+		debug("copied %d bytes to input", n)
+	}
 
 	return n, nil
+}
+
+// Seek implements io.Seeker, but supports seeking forward from the current
+// position only. Any other seek will return an error. Allows skipping output
+// bytes which aren't needed, which in some scenarios is faster than reading
+// and discarding them.
+// Note this may cause future calls to Read() to read 0 bytes if all of the
+// data they would have returned is skipped.
+func (z *Reader) Seek(offset int64, whence int) (int64, error) {
+	if offset < 0 || whence != io.SeekCurrent {
+		return z.dpos + z.skip, ErrUnsupportedSeek
+	}
+	z.skip += offset
+	return z.dpos + z.skip, nil
 }
 
 // Reset discards the Reader's state and makes it equivalent to the

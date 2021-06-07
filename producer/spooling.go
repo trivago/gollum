@@ -24,8 +24,8 @@ import (
 
 	metrics "github.com/rcrowley/go-metrics"
 
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
+	"gollum/core"
+	"gollum/core/components"
 )
 
 // Spooling producer

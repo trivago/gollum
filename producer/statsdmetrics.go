@@ -19,8 +19,9 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+
 	"github.com/quipo/statsd"
-	"github.com/trivago/gollum/core"
 )
 
 // StatsdMetrics producer

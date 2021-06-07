@@ -3,7 +3,7 @@ package format
 import (
 	"strings"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // SplitToFields formatter

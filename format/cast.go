@@ -19,7 +19,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Cast formatter

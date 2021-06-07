@@ -21,10 +21,11 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+	"gollum/core/components"
+	"gollum/producer/awss3"
+
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/gollum/producer/awss3"
 )
 
 const defaultAwsEndpoint = "s3.amazonaws.com"

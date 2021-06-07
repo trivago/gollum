@@ -15,14 +15,15 @@
 package producer
 
 import (
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/tgo/tio"
-	"github.com/trivago/tgo/tnet"
-	"github.com/trivago/tgo/tstrings"
+	"gollum/core"
 	"net"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/trivago/tgo/tio"
+	"github.com/trivago/tgo/tnet"
+	"github.com/trivago/tgo/tstrings"
 )
 
 // Proxy producer plugin

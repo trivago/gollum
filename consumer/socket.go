@@ -23,10 +23,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 	"github.com/trivago/tgo/tnet"
+	"gollum/core"
 )
 
 const (

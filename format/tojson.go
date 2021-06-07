@@ -17,7 +17,8 @@ package format
 import (
 	"encoding/json"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
+
 	"github.com/trivago/tgo/tcontainer"
 )
 

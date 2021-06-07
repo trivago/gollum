@@ -18,8 +18,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/ttesting"
+	"gollum/core"
 )
 
 func TestFilterRate(t *testing.T) {

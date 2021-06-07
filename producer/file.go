@@ -21,9 +21,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/trivago/gollum/core"
-	"github.com/trivago/gollum/core/components"
-	"github.com/trivago/gollum/producer/file"
+	"gollum/core"
+	"gollum/core/components"
+	"gollum/producer/file"
 )
 
 // File producer plugin

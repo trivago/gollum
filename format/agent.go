@@ -17,8 +17,9 @@ package format
 import (
 	"strings"
 
+	"gollum/core"
+
 	"github.com/mssola/user_agent"
-	"github.com/trivago/gollum/core"
 )
 
 // Agent formatter

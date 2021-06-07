@@ -16,7 +16,7 @@ package producer
 
 import (
 	"fmt"
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 	"os"
 	"strings"
 	"sync"

@@ -25,13 +25,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"gollum/core"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tcontainer"
 )
 

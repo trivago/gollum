@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"gollum/core"
+
 	promMetrics "github.com/CrowdStrike/go-metrics-prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
 )
 
 func startPrometheusMetricsService(address string) func() {

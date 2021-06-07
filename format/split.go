@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Split formatter

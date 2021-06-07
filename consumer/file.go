@@ -25,8 +25,9 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+
 	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tio"
 )

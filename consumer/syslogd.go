@@ -22,7 +22,8 @@ import (
 
 	"github.com/trivago/tgo/tcontainer"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
+
 	"github.com/trivago/tgo/tnet"
 	syslog "gopkg.in/mcuadros/go-syslog.v2"
 	"gopkg.in/mcuadros/go-syslog.v2/format"

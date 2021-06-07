@@ -20,8 +20,9 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+
 	"github.com/go-redis/redis"
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
 )
 

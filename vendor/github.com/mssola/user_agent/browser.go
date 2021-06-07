@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2014 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2012-2021 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
@@ -9,7 +9,9 @@ import (
 	"strings"
 )
 
-// A struct containing all the information that we might be
+var ie11Regexp = regexp.MustCompile("^rv:(.+)$")
+
+// Browser is a struct containing all the information that we might be
 // interested from the browser.
 type Browser struct {
 	// The name of the browser's engine.
@@ -34,27 +36,83 @@ func (p *UserAgent) detectBrowser(sections []section) {
 	slen := len(sections)
 
 	if sections[0].name == "Opera" {
-		p.mozilla = ""
 		p.browser.Name = "Opera"
 		p.browser.Version = sections[0].version
 		p.browser.Engine = "Presto"
 		if slen > 1 {
 			p.browser.EngineVersion = sections[1].version
 		}
+	} else if sections[0].name == "Dalvik" {
+		// When Dalvik VM is in use, there is no browser info attached to ua.
+		// Although browser is still a Mozilla/5.0 compatible.
+		p.mozilla = "5.0"
 	} else if slen > 1 {
 		engine := sections[1]
 		p.browser.Engine = engine.name
 		p.browser.EngineVersion = engine.version
 		if slen > 2 {
-			p.browser.Version = sections[2].version
+			sectionIndex := 2
+			// The version after the engine comment is empty on e.g. Ubuntu
+			// platforms so if this is the case, let's use the next in line.
+			if sections[2].version == "" && slen > 3 {
+				sectionIndex = 3
+			}
+			p.browser.Version = sections[sectionIndex].version
 			if engine.name == "AppleWebKit" {
-				if sections[slen-1].name == "OPR" {
+				for _, comment := range engine.comment {
+					if len(comment) > 5 &&
+						(strings.HasPrefix(comment, "Googlebot") || strings.HasPrefix(comment, "bingbot")) {
+						p.undecided = true
+						break
+					}
+				}
+				switch sections[slen-1].name {
+				case "Edge":
+					p.browser.Name = "Edge"
+					p.browser.Version = sections[slen-1].version
+					p.browser.Engine = "EdgeHTML"
+					p.browser.EngineVersion = ""
+				case "Edg":
+					if p.undecided != true {
+						p.browser.Name = "Edge"
+						p.browser.Version = sections[slen-1].version
+						p.browser.Engine = "AppleWebKit"
+						p.browser.EngineVersion = sections[slen-2].version
+					}
+				case "OPR":
 					p.browser.Name = "Opera"
 					p.browser.Version = sections[slen-1].version
-				} else if sections[2].name == "Chrome" {
-					p.browser.Name = "Chrome"
-				} else {
-					p.browser.Name = "Safari"
+				default:
+					switch sections[slen-3].name {
+					case "YaBrowser":
+						p.browser.Name = "YaBrowser"
+						p.browser.Version = sections[slen-3].version
+					default:
+						switch sections[slen-2].name {
+						case "Electron":
+							p.browser.Name = "Electron"
+							p.browser.Version = sections[slen-2].version
+						default:
+							switch sections[sectionIndex].name {
+							case "Chrome", "CriOS":
+								p.browser.Name = "Chrome"
+							case "Chromium":
+								p.browser.Name = "Chromium"
+							case "FxiOS":
+								p.browser.Name = "Firefox"
+							default:
+								p.browser.Name = "Safari"
+							}
+						}
+					}
+					// It's possible the google-bot emulates these now
+					for _, comment := range engine.comment {
+						if len(comment) > 5 &&
+							(strings.HasPrefix(comment, "Googlebot") || strings.HasPrefix(comment, "bingbot")) {
+							p.undecided = true
+							break
+						}
+					}
 				}
 			} else if engine.name == "Gecko" {
 				name := sections[2].name
@@ -67,9 +125,8 @@ func (p *UserAgent) detectBrowser(sections []section) {
 				// This is the new user agent from Internet Explorer 11.
 				p.browser.Engine = "Trident"
 				p.browser.Name = "Internet Explorer"
-				reg, _ := regexp.Compile("^rv:(.+)$")
 				for _, c := range sections[0].comment {
-					version := reg.FindStringSubmatch(c)
+					version := ie11Regexp.FindStringSubmatch(c)
 					if len(version) > 0 {
 						p.browser.Version = version[1]
 						return
@@ -107,13 +164,13 @@ func (p *UserAgent) detectBrowser(sections []section) {
 	}
 }
 
-// Returns two strings. The first string is the name of the engine and the
+// Engine returns two strings. The first string is the name of the engine and the
 // second one is the version of the engine.
 func (p *UserAgent) Engine() (string, string) {
 	return p.browser.Engine, p.browser.EngineVersion
 }
 
-// Returns two strings. The first string is the name of the browser and the
+// Browser returns two strings. The first string is the name of the browser and the
 // second one is the version of the browser.
 func (p *UserAgent) Browser() (string, string) {
 	return p.browser.Name, p.browser.Version

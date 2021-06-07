@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"strings"
 
+	"gollum/core/components"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core/components"
 )
 
 const minUploadPartSize = 5 * 1024 * 1024

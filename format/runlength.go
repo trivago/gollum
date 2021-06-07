@@ -17,7 +17,7 @@ package format
 import (
 	"strconv"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Runlength formatter plugin

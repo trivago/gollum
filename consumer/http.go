@@ -23,8 +23,9 @@ import (
 	"sync"
 	"time"
 
+	"gollum/core"
+
 	auth "github.com/abbot/go-http-auth"
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo/tnet"
 )
 

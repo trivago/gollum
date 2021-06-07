@@ -21,9 +21,10 @@ import (
 	"syscall"
 	"time"
 
+	"gollum/core"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
 	"github.com/trivago/tgo"
 	"github.com/trivago/tgo/tcontainer"
 	"gopkg.in/olivere/elastic.v5"

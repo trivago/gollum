@@ -8,7 +8,7 @@ GOLLUM_DIRTY := $(if $(shell git status --porcelain),-dirty)
 GOLLUM_VERSION := $(GOLLUM_TAG)$(GOLLUM_DIRTY)$(if $(GOLLUM_RELEASE_SUFFIX),+$(GOLLUM_RELEASE_SUFFIX))
 
 GO_ENV := GORACE="halt_on_error=0" GO111MODULE="$(GOMOD)"
-GO_FLAGS := -ldflags="-s -X 'github.com/trivago/gollum/core.versionString=$(GOLLUM_VERSION)'"
+GO_FLAGS := -ldflags="-s -X 'gollum/core.versionString=$(GOLLUM_VERSION)'"
 GO_FLAGS_DEBUG := $(GO_FLAGS) -ldflags='-linkmode=internal' -gcflags='-N -l'
 
 TAGS_GOLLUM=netgo
@@ -60,9 +60,10 @@ docker-dev:
 
 .PHONY: build # Build the gollum binary for the current platform
 build:
+	@echo "$(GO_ENV) go build $(GO_FLAGS) -tags=$(TAGS_GOLLUM)"
 	@$(GO_ENV) go build $(GO_FLAGS) -tags="$(TAGS_GOLLUM)"
 
-.PHONY: debug # Build the gollum binary for the current platform with additional debugging flags 
+.PHONY: debug # Build the gollum binary for the current platform with additional debugging flags
 debug:
 	@$(GO_ENV) go build $(GO_FLAGS_DEBUG) -tags="$(TAGS_GOLLUM)"
 

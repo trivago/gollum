@@ -3,7 +3,8 @@ package format
 import (
 	"fmt"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
+
 	"github.com/trivago/tgo/tcontainer"
 )
 

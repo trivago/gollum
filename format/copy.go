@@ -18,7 +18,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/trivago/gollum/core"
+	"gollum/core"
+
 	"github.com/trivago/tgo/treflect"
 )
 

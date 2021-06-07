@@ -15,7 +15,7 @@
 package router
 
 import (
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 	"math/rand"
 )
 

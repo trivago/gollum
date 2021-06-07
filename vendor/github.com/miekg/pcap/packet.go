@@ -74,7 +74,7 @@ func (p *Packet) headerString(headers []interface{}) string {
 	if len(headers) >= 2 {
 		if addr, ok := headers[0].(addrHdr); ok {
 			if _, ok := headers[1].(addrHdr); ok {
-				return fmt.Sprintf("%s > %s IP in IP: ",
+				return fmt.Sprintf("%s > %s IP in IP: %s",
 					addr.SrcAddr(), addr.DestAddr(), p.headerString(headers[1:]))
 			}
 		}

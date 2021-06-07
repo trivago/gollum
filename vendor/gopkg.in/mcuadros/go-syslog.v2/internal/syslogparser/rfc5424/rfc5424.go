@@ -193,6 +193,10 @@ func (p *Parser) parseVersion() (int, error) {
 func (p *Parser) parseTimestamp() (time.Time, error) {
 	var ts time.Time
 
+	if p.cursor >= p.l {
+		return ts, ErrInvalidTimeFormat
+	}
+
 	if p.buff[p.cursor] == NILVALUE {
 		p.cursor++
 		return ts, nil
@@ -203,7 +207,7 @@ func (p *Parser) parseTimestamp() (time.Time, error) {
 		return ts, err
 	}
 
-	if p.buff[p.cursor] != 'T' {
+	if p.cursor >= p.l || p.buff[p.cursor] != 'T' {
 		return ts, ErrInvalidTimeFormat
 	}
 
@@ -272,7 +276,7 @@ func parseFullDate(buff []byte, cursor *int, l int) (fullDate, error) {
 		return fd, err
 	}
 
-	if buff[*cursor] != '-' {
+	if *cursor >= l || buff[*cursor] != '-' {
 		return fd, syslogparser.ErrTimestampUnknownFormat
 	}
 
@@ -283,7 +287,7 @@ func parseFullDate(buff []byte, cursor *int, l int) (fullDate, error) {
 		return fd, err
 	}
 
-	if buff[*cursor] != '-' {
+	if *cursor >= l || buff[*cursor] != '-' {
 		return fd, syslogparser.ErrTimestampUnknownFormat
 	}
 
@@ -371,7 +375,7 @@ func parsePartialTime(buff []byte, cursor *int, l int) (partialTime, error) {
 		return pt, err
 	}
 
-	if buff[*cursor] != ':' {
+	if *cursor >= l || buff[*cursor] != ':' {
 		return pt, ErrInvalidTimeFormat
 	}
 
@@ -392,7 +396,7 @@ func parsePartialTime(buff []byte, cursor *int, l int) (partialTime, error) {
 
 	// ----
 
-	if buff[*cursor] != '.' {
+	if *cursor >= l || buff[*cursor] != '.' {
 		return pt, nil
 	}
 
@@ -458,7 +462,7 @@ func parseSecFrac(buff []byte, cursor *int, l int) (float64, error) {
 // TIME-OFFSET = "Z" / TIME-NUMOFFSET
 func parseTimeOffset(buff []byte, cursor *int, l int) (*time.Location, error) {
 
-	if buff[*cursor] == 'Z' {
+	if *cursor >= l || buff[*cursor] == 'Z' {
 		*cursor++
 		return time.UTC, nil
 	}
@@ -498,7 +502,7 @@ func getHourMinute(buff []byte, cursor *int, l int) (int, int, error) {
 		return 0, 0, err
 	}
 
-	if buff[*cursor] != ':' {
+	if *cursor >= l || buff[*cursor] != ':' {
 		return 0, 0, ErrInvalidTimeFormat
 	}
 
@@ -579,7 +583,7 @@ func parseUpToLen(buff []byte, cursor *int, l int, maxLen int, e error) (string,
 
 	max := *cursor + maxLen
 
-	for to = *cursor; (to < max) && (to < l); to++ {
+	for to = *cursor; (to <= max) && (to < l); to++ {
 		if buff[to] == ' ' {
 			found = true
 			break
@@ -588,6 +592,8 @@ func parseUpToLen(buff []byte, cursor *int, l int, maxLen int, e error) (string,
 
 	if found {
 		result = string(buff[*cursor:to])
+	} else if to > max {
+		to = max // don't go past max
 	}
 
 	*cursor = to

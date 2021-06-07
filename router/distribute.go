@@ -16,7 +16,7 @@ package router
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/trivago/gollum/core"
+	"gollum/core"
 )
 
 // Distribute router plugin
