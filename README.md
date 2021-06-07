@@ -15,6 +15,9 @@ Gollum originally started as a tool to **MUL**-tiplex **LOG**-files (read it bac
 It quickly evolved to a one-way router for all kinds of messages, not limited to just logs.
 Gollum is written in Go to make it scalable and easy to extend without the need to use a scripting language.
 
+Please not that this project is not related to the [Gollum Wiki](https://github.com/gollum/gollum).  
+Follow the link above if you came here looking for it.
+
 ## Gollum Documentation
 
 How-to-use, installation instructions, getting started guides, and in-depth plugin documentation:
