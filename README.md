@@ -4,6 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/trivago/gollum)](https://goreportcard.com/report/github.com/trivago/gollum)
 [![Build Status](https://travis-ci.org/trivago/gollum.svg?branch=master)](https://travis-ci.org/trivago/gollum)
 [![Coverage Status](https://coveralls.io/repos/github/trivago/gollum/badge.svg?branch=master)](https://coveralls.io/github/trivago/gollum?branch=master)
+[![Homebrew](https://img.shields.io/badge/dynamic/json.svg?url=https://formulae.brew.sh/api/formula/gollum.json&query=$.versions.stable&label=homebrew)](https://formulae.brew.sh/formula/gollum)
 
 ![Gollum](docs/src/gollum.png)
 
@@ -15,7 +16,7 @@ Gollum originally started as a tool to **MUL**-tiplex **LOG**-files (read it bac
 It quickly evolved to a one-way router for all kinds of messages, not limited to just logs.
 Gollum is written in Go to make it scalable and easy to extend without the need to use a scripting language.
 
-Please not that this project is not related to the [Gollum Wiki](https://github.com/gollum/gollum).  
+Please not that this project is not related to the [Gollum Wiki](https://github.com/gollum/gollum).
 Follow the link above if you came here looking for it.
 
 ## Gollum Documentation
