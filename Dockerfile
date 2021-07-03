@@ -9,7 +9,7 @@ RUN make build
 
 #############################################################################
 
-FROM alpine:3.7
+FROM alpine:3.13
 
 LABEL maintainer="marc.siebeneicher@trivago.com"
 LABEL maintainer="arne.claus@trivago.com"
