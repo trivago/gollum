@@ -214,17 +214,16 @@ Make sure to start Gollum with `gollum -ll 3 -ps` to see all log messages as wel
 
 ::
 
-'Profiler':
-  Type: 'consumer.Profiler'
-  Streams: 'profile'
-  Runs: 100000
-  Batches: 100
-  Characters: 'abcdefghijklmnopqrstuvwxyz .,!;:-_'
-  Message: '%256s'
-  KeepRunning: false
-  ModulatorRoutines: 0
+  'Profiler':
+    Type: 'consumer.Profiler'
+    Streams: 'profile'
+    Runs: 100000
+    Batches: 100
+    Characters: 'abcdefghijklmnopqrstuvwxyz .,!;:-_'
+    Message: '%256s'
+    KeepRunning: false
+    ModulatorRoutines: 0
 
-'Benchmark':
-  Type: 'producer.Benchmark'
-  Streams: 'profile'
-
+  'Benchmark':
+    Type: 'producer.Benchmark'
+    Streams: 'profile'
