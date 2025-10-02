@@ -8,6 +8,10 @@
 
 ![Gollum](docs/src/gollum.png)
 
+> [!CAUTION]
+> This repository has been archived as of October 2025.  
+> If you wish to update or extend this project, please create a fork.
+
 # What is Gollum?
 
 Gollum is an **n:m multiplexer** that gathers messages from different sources and broadcasts them to a set of destinations.
